@@ -61,7 +61,7 @@ The main efforts now be on:
 
 The ultimate goal for the repo is to be used as a light-weighted image registry.
 
-It would focus more on usability, and become very easy to use/establish.
+It would focus more on usability, and become straightforward to use/establish.
 
 1. make middlewares optional
 
