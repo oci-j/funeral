@@ -120,6 +120,7 @@ public class BlobResource {
         return Response.status(202)
                 .header("Location", location)
                 .header("Docker-Upload-UUID", uploadUuid)
+                .header("OCI-Chunk-Min-Length", 1 << 24)
                 .build();
     }
 
@@ -157,6 +158,7 @@ public class BlobResource {
             return Response.status(201)
                     .header("Location", location)
                     .header("Docker-Content-Digest", actualDigest)
+                    .header("OCI-Chunk-Min-Length", 1 << 24)
                     .build();
 
         } catch (IllegalArgumentException e) {
@@ -214,6 +216,7 @@ public class BlobResource {
             return Response.status(202)
                     .header("Location", location)
                     .header("Range", "0-" + endBytes)
+                    .header("OCI-Chunk-Min-Length", 1 << 24)
                     .build();
         } catch (Exception e) {
             log.error("completeBlobUploadChunkPatch failed", e);
@@ -261,6 +264,7 @@ public class BlobResource {
             return Response.status(201)
                     .header("Location", location)
                     .header("Docker-Content-Digest", actualDigest)
+                    .header("OCI-Chunk-Min-Length", 1 << 24)
                     .build();
         } catch (Exception e) {
             log.error("completeBlobUploadChunkPatch failed", e);
