@@ -12,6 +12,7 @@ import io.minio.RemoveObjectArgs;
 import io.minio.StatObjectArgs;
 import io.minio.StatObjectResponse;
 import io.minio.errors.ErrorResponseException;
+import io.oci.dto.CalculateTempChunkResult;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import java.io.File;
@@ -23,6 +24,7 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.lang3.tuple.Pair;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @ApplicationScoped
@@ -103,6 +105,34 @@ public class S3StorageService {
             throw new IOException("Failed to store blob", e);
         }
 
+    }
+
+    public CalculateTempChunkResult calculateTempChunks(
+            String uploadUuid
+    ) throws IOException {
+        try {
+            // Ensure bucket exists
+            ensureTempBucketExists();
+        } catch (Exception e) {
+            throw new IOException("Failed to store blob", e);
+        }
+        long bytesWritten = 0;
+        int i = 0;
+        while (true) {
+            String objectKey = "chunk/" + uploadUuid + "/" + i;
+            try {
+                StatObjectResponse stat = minioClient.statObject(
+                        StatObjectArgs.builder()
+                                .bucket(tempBucketName)
+                                .object(objectKey)
+                                .build()
+                );
+                bytesWritten += stat.size();
+            } catch (Exception e) {
+                return new CalculateTempChunkResult(i, bytesWritten);
+            }
+            i++;
+        }
     }
 
 

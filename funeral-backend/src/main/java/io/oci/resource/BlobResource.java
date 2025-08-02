@@ -1,5 +1,6 @@
 package io.oci.resource;
 
+import io.oci.dto.CalculateTempChunkResult;
 import io.oci.dto.ErrorResponse;
 import io.oci.model.Blob;
 import io.oci.model.Repository;
@@ -211,11 +212,11 @@ public class BlobResource {
                     index
             );
             long startBytes = Long.parseLong(split[1]);
-            long endBytes = startBytes + bytesWritten - 1;
+            long endBytes = startBytes + bytesWritten;
             String location = "/v2/" + repositoryName + "/blobs/uploads/" + uploadUuid + "/" + (index + 1) + "_" + endBytes;
             return Response.status(202)
                     .header("Location", location)
-                    .header("Range", "0-" + endBytes)
+                    .header("Range", "0-" + (endBytes - 1))
                     .header("OCI-Chunk-Min-Length", 1 << 24)
                     .build();
         } catch (Exception e) {
@@ -264,6 +265,24 @@ public class BlobResource {
             return Response.status(201)
                     .header("Location", location)
                     .header("Docker-Content-Digest", actualDigest)
+                    .header("OCI-Chunk-Min-Length", 1 << 24)
+                    .build();
+        } catch (Exception e) {
+            log.error("completeBlobUploadChunkPatch failed", e);
+            return Response.status(500).build();
+        }
+    }
+
+    @GET
+    @Path("/uploads/{uuid}/")
+    public Response completeBlobUploadChunkGet(@PathParam("name") String repositoryName,
+                                               @PathParam("uuid") String uploadUuid) {
+        try {
+            CalculateTempChunkResult calculateTempChunkResult = storageService.calculateTempChunks(uploadUuid);
+            String location = "/v2/" + repositoryName + "/blobs/uploads/" + uploadUuid + "/" + calculateTempChunkResult.index() + "_" + calculateTempChunkResult.bytesWritten();
+            return Response.status(204)
+                    .header("Location", location)
+                    .header("Range", "0-" + (calculateTempChunkResult.bytesWritten() - 1))
                     .header("OCI-Chunk-Min-Length", 1 << 24)
                     .build();
         } catch (Exception e) {
