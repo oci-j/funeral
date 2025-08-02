@@ -83,7 +83,7 @@ It would focus more on usability, and become very easy to use/establish.
 
    But that would be a long-term goal, and we shall do things one by one.
 
-5. this repo don't focus on security, so it won't support things like
+5. this repo doesn't focus on security, so it won't support things like
     - image signing
     - image scanning
     - etc.
