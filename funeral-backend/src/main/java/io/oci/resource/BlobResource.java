@@ -82,13 +82,6 @@ public class BlobResource {
             @QueryParam("from") String from,
             InputStream uploadStream
     ) {
-        if (digest != null && !digest.isBlank()) {
-            return Response.status(400)
-                    .entity(new ErrorResponse(List.of(
-                            new ErrorResponse.Error("UNSUPPORTED", "digest in /uploads/", "")
-                    )))
-                    .build();
-        }
         if (mount != null && !mount.isBlank()) {
             return Response.status(400)
                     .entity(new ErrorResponse(List.of(
@@ -112,6 +105,16 @@ public class BlobResource {
 
 
         String uploadUuid = UUID.randomUUID().toString();
+
+        if (digest != null && !digest.isBlank()) {
+            return completeBlobUpload(
+                    repositoryName,
+                    uploadUuid,
+                    digest,
+                    uploadStream
+            );
+        }
+
         String location = "/v2/" + repositoryName + "/blobs/uploads/" + uploadUuid;
 
         return Response.status(202)
