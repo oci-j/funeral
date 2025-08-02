@@ -209,7 +209,7 @@ public class BlobResource {
                     index
             );
             long startBytes = Long.parseLong(split[1]);
-            long endBytes = startBytes + bytesWritten;
+            long endBytes = startBytes + bytesWritten - 1;
             String location = "/v2/" + repositoryName + "/blobs/uploads/" + uploadUuid + "/" + (index + 1) + "_" + endBytes;
             return Response.status(202)
                     .header("Location", location)
