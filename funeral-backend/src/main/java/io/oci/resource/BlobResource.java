@@ -214,13 +214,29 @@ public class BlobResource {
             );
             long startBytes = Long.parseLong(split[1]);
             long endBytes = startBytes + bytesWritten;
+            if (StringUtils.isNotBlank(contentRange)) {
+                try {
+                    String[] contentRangeSplit = StringUtils.split(contentRange, '-');
+                    if (contentRangeSplit.length != 2) {
+                        return Response.status(416).build();
+                    }
+                    if (startBytes != Long.parseLong(contentRangeSplit[0])) {
+                        return Response.status(416).build();
+                    }
+                    if (endBytes - 1 != Long.parseLong(contentRangeSplit[1])) {
+                        return Response.status(416).build();
+                    }
+                } catch (Exception e) {
+                    return Response.status(416).build();
+                }
+            }
             String location = "/v2/" + repositoryName + "/blobs/uploads/" + uploadUuid + "/" + (index + 1) + "_" + endBytes;
             return Response.status(202)
                     .header("Location", location)
                     .header("Range", "0-" + (endBytes - 1))
                     .header("OCI-Chunk-Min-Length", 1 << 24)
                     .build();
-        } catch (WithResponseException e){
+        } catch (WithResponseException e) {
             log.error("completeBlobUploadChunkPatch failed WithResponseException", e);
             return e.getResponse();
         } catch (Exception e) {
@@ -271,7 +287,7 @@ public class BlobResource {
                     .header("Docker-Content-Digest", actualDigest)
                     .header("OCI-Chunk-Min-Length", 1 << 24)
                     .build();
-        } catch (WithResponseException e){
+        } catch (WithResponseException e) {
             log.error("completeBlobUploadChunkPatch failed WithResponseException", e);
             return e.getResponse();
         } catch (Exception e) {
