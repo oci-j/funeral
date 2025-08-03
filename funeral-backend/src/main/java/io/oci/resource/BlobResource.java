@@ -2,6 +2,7 @@ package io.oci.resource;
 
 import io.oci.dto.CalculateTempChunkResult;
 import io.oci.dto.ErrorResponse;
+import io.oci.exception.WithResponseException;
 import io.oci.model.Blob;
 import io.oci.model.Repository;
 import io.oci.service.S3StorageService;
@@ -219,6 +220,9 @@ public class BlobResource {
                     .header("Range", "0-" + (endBytes - 1))
                     .header("OCI-Chunk-Min-Length", 1 << 24)
                     .build();
+        } catch (WithResponseException e){
+            log.error("completeBlobUploadChunkPatch failed WithResponseException", e);
+            return e.getResponse();
         } catch (Exception e) {
             log.error("completeBlobUploadChunkPatch failed", e);
             return Response.status(500).build();
@@ -267,6 +271,9 @@ public class BlobResource {
                     .header("Docker-Content-Digest", actualDigest)
                     .header("OCI-Chunk-Min-Length", 1 << 24)
                     .build();
+        } catch (WithResponseException e){
+            log.error("completeBlobUploadChunkPatch failed WithResponseException", e);
+            return e.getResponse();
         } catch (Exception e) {
             log.error("completeBlobUploadChunkPatch failed", e);
             return Response.status(500).build();
