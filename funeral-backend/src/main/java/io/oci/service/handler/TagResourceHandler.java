@@ -34,18 +34,11 @@ public class TagResourceHandler {
                     .build();
         }
 
-        List<String> tags = Manifest.findTagsByRepository(repositoryName);
-
-        // Apply pagination if needed
-        if (last != null) {
-            int lastIndex = tags.indexOf(last);
-            if (lastIndex >= 0 && lastIndex + 1 < tags.size()) {
-                tags = tags.subList(lastIndex + 1, Math.min(tags.size(), lastIndex + 1 + limit));
-            }
-        } else {
-            tags = tags.subList(0, Math.min(tags.size(), limit));
-        }
-
+        List<String> tags = Manifest.findTagsByRepository(
+                repositoryName,
+                last,
+                limit
+        );
         return Response.ok(new TagsResponse(repositoryName, tags)).build();
     }
 }

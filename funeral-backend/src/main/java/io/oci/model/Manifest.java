@@ -6,6 +6,7 @@ import org.bson.codecs.pojo.annotations.BsonProperty;
 import org.bson.types.ObjectId;
 import java.time.LocalDateTime;
 import java.util.List;
+import org.jetbrains.annotations.Nullable;
 
 @MongoEntity(collection = "manifests")
 public class Manifest extends PanacheMongoEntity {
@@ -47,10 +48,27 @@ public class Manifest extends PanacheMongoEntity {
         return find("repositoryName", repositoryName).list();
     }
 
-    public static List<String> findTagsByRepository(String repositoryName) {
-        List<Manifest> manifests = find("repositoryName = ?1 and tag != null", repositoryName)
-                .list();
-        return manifests.stream().map(manifest -> manifest.tag).toList();
+    public static List<String> findTagsByRepository(
+            String repositoryName,
+            @Nullable String last,
+            int limit
+    ) {
+        List<Manifest> manifests;
+        if (last == null) {
+            manifests = find("repositoryName = ?1 and tag != ?2", repositoryName, null)
+                    .page(0, limit)
+                    .list();
+        } else {
+            manifests = find("repositoryName = ?1 and tag != ?2 and tag > ?3", repositoryName, null, last)
+                    .page(0, limit)
+                    .list();
+        }
+        List<String> result = manifests.stream().map(manifest -> manifest.tag).toList();
+        System.out.println("repositoryName : " + repositoryName);
+        System.out.println("last : " + last);
+        System.out.println("limit : " + limit);
+        System.out.println(result);
+        return result;
     }
 
     public static long countByRepository(String repositoryName) {
