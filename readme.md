@@ -8,19 +8,15 @@ It just begins the development.
 
 Don't use it in production, it's not ready yet.
 
-It passed only 59 / 79 of the tests defined
+It passed only 61 / 79 of the tests defined
 in [oci-distribution-spec](https://github.com/opencontainers/distribution-spec.git)
 
 ```
-Ran 74 of 79 Specs in 3.401 seconds
-FAIL! -- 59 Passed | 15 Failed | 0 Pending | 5 Skipped
---- FAIL: TestConformance (3.41s)
+Ran 74 of 79 Specs in 2.103 seconds
+FAIL! -- 61 Passed | 13 Failed | 0 Pending | 5 Skipped
+--- FAIL: TestConformance (2.11s)
 FAIL
 ```
-
-Due to implementation reason (quarkus), It only supports single-part name image for now, like `node:latest`, but not
-`bitnami/nginx:latest`, because a slash be in the name.
-(This will be fixed but just not ready for now.)
 
 # Usage
 
