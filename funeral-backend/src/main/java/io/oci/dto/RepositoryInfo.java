@@ -1,7 +1,9 @@
 package io.oci.dto;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.time.LocalDateTime;
 
+@RegisterForReflection
 public class RepositoryInfo {
     public String name;
     public LocalDateTime createdAt;

@@ -2,9 +2,11 @@ package io.oci.model;
 
 import io.quarkus.mongodb.panache.PanacheMongoEntity;
 import io.quarkus.mongodb.panache.common.MongoEntity;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 import java.time.LocalDateTime;
 
+@RegisterForReflection
 @MongoEntity(collection = "repositories")
 public class Repository extends PanacheMongoEntity {
 

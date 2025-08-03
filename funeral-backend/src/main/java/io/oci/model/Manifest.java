@@ -2,12 +2,14 @@ package io.oci.model;
 
 import io.quarkus.mongodb.panache.PanacheMongoEntity;
 import io.quarkus.mongodb.panache.common.MongoEntity;
+import io.quarkus.runtime.annotations.RegisterForReflection;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 import org.bson.types.ObjectId;
 import java.time.LocalDateTime;
 import java.util.List;
 import org.jetbrains.annotations.Nullable;
 
+@RegisterForReflection
 @MongoEntity(collection = "manifests")
 public class Manifest extends PanacheMongoEntity {
 
