@@ -1,0 +1,1 @@
+mvn quarkus:dev -Djvm.args=-agentlib:native-image-agent=config-merge-dir=src/main/resources/META-INF/native-image/oci-j/funeral/ -Ddebug=false -f pom.xml
