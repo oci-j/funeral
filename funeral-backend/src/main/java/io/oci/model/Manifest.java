@@ -48,9 +48,9 @@ public class Manifest extends PanacheMongoEntity {
     }
 
     public static List<String> findTagsByRepository(String repositoryName) {
-        return find("repositoryName = ?1 and tag != null", repositoryName)
-            .project(String.class)
-            .list();
+        List<Manifest> manifests = find("repositoryName = ?1 and tag != null", repositoryName)
+                .list();
+        return manifests.stream().map(manifest -> manifest.tag).toList();
     }
 
     public static long countByRepository(String repositoryName) {
