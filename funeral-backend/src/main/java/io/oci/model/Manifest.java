@@ -1,39 +1,59 @@
 package io.oci.model;
 
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
-import jakarta.persistence.*;
+import io.quarkus.mongodb.panache.PanacheMongoEntity;
+import io.quarkus.mongodb.panache.common.MongoEntity;
+import org.bson.codecs.pojo.annotations.BsonProperty;
+import org.bson.types.ObjectId;
 import java.time.LocalDateTime;
+import java.util.List;
 
-@Entity
-@Table(name = "manifests")
-public class Manifest extends PanacheEntityBase {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long id;
+@MongoEntity(collection = "manifests")
+public class Manifest extends PanacheMongoEntity {
 
-    @ManyToOne
-    @JoinColumn(name = "repository_id", nullable = false)
-    public Repository repository;
+    @BsonProperty("repository_id")
+    public ObjectId repositoryId;
 
-    @Column(nullable = false)
+    @BsonProperty("repository_name")
+    public String repositoryName;
+
     public String digest;
 
-    @Column(name = "media_type", nullable = false)
+    @BsonProperty("media_type")
     public String mediaType;
 
-    @Column(columnDefinition = "TEXT", nullable = false)
     public String content;
 
-    @Column(name = "content_length")
+    @BsonProperty("content_length")
     public Long contentLength;
 
     public String tag;
 
-    @Column(name = "created_at")
+    @BsonProperty("created_at")
     public LocalDateTime createdAt;
 
-    @PrePersist
-    public void prePersist() {
-        createdAt = LocalDateTime.now();
+    public Manifest() {
+        this.createdAt = LocalDateTime.now();
+    }
+
+    public static Manifest findByRepositoryAndDigest(String repositoryName, String digest) {
+        return find("repositoryName = ?1 and digest = ?2", repositoryName, digest).firstResult();
+    }
+
+    public static Manifest findByRepositoryAndTag(String repositoryName, String tag) {
+        return find("repositoryName = ?1 and tag = ?2", repositoryName, tag).firstResult();
+    }
+
+    public static List<Manifest> findByRepository(String repositoryName) {
+        return find("repositoryName", repositoryName).list();
+    }
+
+    public static List<String> findTagsByRepository(String repositoryName) {
+        return find("repositoryName = ?1 and tag != null", repositoryName)
+            .project(String.class)
+            .list();
+    }
+
+    public static long countByRepository(String repositoryName) {
+        return count("repositoryName = ?1 and tag != null", repositoryName);
     }
 }

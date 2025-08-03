@@ -1,23 +1,10 @@
-quarkus.http.access-log.enabled: true
-quarkus.http.access-log.pattern: combined
-# 可选：输出到文件
-quarkus.http.access-log.log-to-file: true
-quarkus.http.access-log.base-file-name: http-access
-quarkus.http.access-log.log-directory: logs
-quarkus.log.level: TRACE
 quarkus:
-  datasource:
-    db-kind: postgresql
-    username: postgres
-    password: ""
-    jdbc:
-      url: ${DB_URL:jdbc:postgresql://localhost:5432/oci_registry}
-  hibernate-orm:
-    database:
-      generation: drop-and-create
-    log:
-      sql: true
+  mongodb:
+    connection-string: ${MONGO_URL:mongodb://localhost:27017}
+    database: ${MONGO_DATABASE:oci_registry}
   http:
+    limits:
+      max-body-size: 4G
     host: 0.0.0.0
     port: 8911
     cors:
@@ -28,8 +15,12 @@ quarkus:
   smallrye-openapi:
     info-title: OCI Distribution Registry API
     info-version: 1.0.0
-    info-description: OCI Distribution Specification compliant registry
+    info-description: OCI Distribution Specification compliant registry with MongoDB and MinIO S3
 
 oci:
+  s3:
+    endpoint: ${S3_ENDPOINT:http://localhost:19000}
+    access-key: ${S3_ACCESS_KEY:minioadmin}
+    secret-key: ${S3_SECRET_KEY:minioadmin}
   storage:
-    root: ${OCI_STORAGE_ROOT:/tmp/oci-registry}
+    bucket: ${S3_BUCKET:oci-registry}

@@ -1,33 +1,35 @@
 package io.oci.model;
 
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
-import jakarta.persistence.*;
+import io.quarkus.mongodb.panache.PanacheMongoEntity;
+import io.quarkus.mongodb.panache.common.MongoEntity;
+import org.bson.codecs.pojo.annotations.BsonProperty;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "blobs")
-public class Blob extends PanacheEntityBase {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long id;
+@MongoEntity(collection = "blobs")
+public class Blob extends PanacheMongoEntity {
 
-    @Column(unique = true, nullable = false)
     public String digest;
 
-    @Column(name = "content_length")
+    @BsonProperty("content_length")
     public Long contentLength;
 
-    @Column(name = "media_type")
+    @BsonProperty("media_type")
     public String mediaType;
 
-    @Column(name = "file_path")
-    public String filePath;
+    @BsonProperty("s3_key")
+    public String s3Key;
 
-    @Column(name = "created_at")
+    @BsonProperty("s3_bucket")
+    public String s3Bucket;
+
+    @BsonProperty("created_at")
     public LocalDateTime createdAt;
 
-    @PrePersist
-    public void prePersist() {
-        createdAt = LocalDateTime.now();
+    public Blob() {
+        this.createdAt = LocalDateTime.now();
+    }
+
+    public static Blob findByDigest(String digest) {
+        return find("digest", digest).firstResult();
     }
 }

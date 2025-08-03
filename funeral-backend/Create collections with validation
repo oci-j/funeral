@@ -1,0 +1,102 @@
+db.createCollection("repositories", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["name", "created_at", "updated_at"],
+      properties: {
+        name: {
+          bsonType: "string",
+          description: "Repository name must be a string and is required"
+        },
+        created_at: {
+          bsonType: "date",
+          description: "Created timestamp must be a date and is required"
+        },
+        updated_at: {
+          bsonType: "date",
+          description: "Updated timestamp must be a date and is required"
+        }
+      }
+    }
+  }
+});
+
+db.createCollection("manifests", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["repository_name", "digest", "media_type", "content", "created_at"],
+      properties: {
+        repository_id: {
+          bsonType: "objectId",
+          description: "Repository ID must be an ObjectId"
+        },
+        repository_name: {
+          bsonType: "string",
+          description: "Repository name must be a string and is required"
+        },
+        digest: {
+          bsonType: "string",
+          pattern: "^sha256:[a-f0-9]{64}$",
+          description: "Digest must be a valid SHA256 hash and is required"
+        },
+        media_type: {
+          bsonType: "string",
+          description: "Media type must be a string and is required"
+        },
+        content: {
+          bsonType: "string",
+          description: "Content must be a string and is required"
+        },
+        content_length: {
+          bsonType: "long",
+          description: "Content length must be a number"
+        },
+        tag: {
+          bsonType: "string",
+          description: "Tag must be a string"
+        },
+        created_at: {
+          bsonType: "date",
+          description: "Created timestamp must be a date and is required"
+        }
+      }
+    }
+  }
+});
+
+db.createCollection("blobs", {
+  validator: {
+    $jsonSchema: {
+      bsonType: "object",
+      required: ["digest", "s3_key", "s3_bucket", "created_at"],
+      properties: {
+        digest: {
+          bsonType: "string",
+          pattern: "^sha256:[a-f0-9]{64}$",
+          description: "Digest must be a valid SHA256 hash and is required"
+        },
+        content_length: {
+          bsonType: "long",
+          description: "Content length must be a number"
+        },
+        media_type: {
+          bsonType: "string",
+          description: "Media type must be a string"
+        },
+        s3_key: {
+          bsonType: "string",
+          description: "S3 key must be a string and is required"
+        },
+        s3_bucket: {
+          bsonType: "string",
+          description: "S3 bucket must be a string and is required"
+        },
+        created_at: {
+          bsonType: "date",
+          description: "Created timestamp must be a date and is required"
+        }
+      }
+    }
+  }
+});

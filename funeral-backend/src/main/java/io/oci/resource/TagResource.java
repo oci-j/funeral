@@ -19,7 +19,7 @@ public class TagResource {
                            @QueryParam("n") @DefaultValue("100") int limit,
                            @QueryParam("last") String last) {
 
-        Repository repo = Repository.find("name", repositoryName).firstResult();
+        Repository repo = Repository.findByName(repositoryName);
         if (repo == null) {
             return Response.status(404)
                 .entity(new ErrorResponse(List.of(
@@ -28,9 +28,7 @@ public class TagResource {
                 .build();
         }
 
-        List<String> tags = Manifest.find("repository = ?1 and tag is not null", repo)
-            .project(String.class)
-            .list();
+        List<String> tags = Manifest.findTagsByRepository(repositoryName);
 
         // Apply pagination if needed
         if (last != null) {

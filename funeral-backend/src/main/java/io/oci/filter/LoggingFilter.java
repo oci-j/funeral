@@ -17,6 +17,8 @@ public class LoggingFilter implements ContainerRequestFilter, ContainerResponseF
 
     @Override
     public void filter(ContainerRequestContext requestContext, ContainerResponseContext responseContext) {
-        System.out.println("<<< " + responseContext.getStatus());
+        System.out.println("<<< " + responseContext.getStatus()
+                + " " + requestContext.getMethod()
+                + " " + requestContext.getUriInfo().getRequestUri());
     }
 }

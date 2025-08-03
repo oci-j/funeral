@@ -1,33 +1,36 @@
 package io.oci.model;
 
-import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
-import jakarta.persistence.*;
+import io.quarkus.mongodb.panache.PanacheMongoEntity;
+import io.quarkus.mongodb.panache.common.MongoEntity;
+import org.bson.codecs.pojo.annotations.BsonProperty;
 import java.time.LocalDateTime;
 
-@Entity
-@Table(name = "repositories")
-public class Repository extends PanacheEntityBase {
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    public Long id;
+@MongoEntity(collection = "repositories")
+public class Repository extends PanacheMongoEntity {
 
-    @Column(unique = true, nullable = false)
     public String name;
 
-    @Column(name = "created_at")
+    @BsonProperty("created_at")
     public LocalDateTime createdAt;
 
-    @Column(name = "updated_at")
+    @BsonProperty("updated_at")
     public LocalDateTime updatedAt;
 
-    @PrePersist
-    public void prePersist() {
-        createdAt = LocalDateTime.now();
-        updatedAt = LocalDateTime.now();
+    public Repository() {
+        this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
-    @PreUpdate
-    public void preUpdate() {
-        updatedAt = LocalDateTime.now();
+    public Repository(String name) {
+        this();
+        this.name = name;
+    }
+
+    public void updateTimestamp() {
+        this.updatedAt = LocalDateTime.now();
+    }
+
+    public static Repository findByName(String name) {
+        return find("name", name).firstResult();
     }
 }
