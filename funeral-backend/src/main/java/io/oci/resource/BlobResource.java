@@ -167,6 +167,20 @@ public class BlobResource {
         }
     }
 
+    @PUT
+    @Path("/uploads/{uuid}")
+    public Response completeBlobUploadPut(@PathParam("name") String repositoryName,
+                                          @PathParam("uuid") String uploadUuid,
+                                          @QueryParam("digest") String expectedDigest,
+                                          InputStream uploadStream) {
+        return completeBlobUpload(
+                repositoryName,
+                uploadUuid,
+                expectedDigest,
+                uploadStream
+        );
+    }
+
     @PATCH
     @Path("/uploads/{uuid}")
     public Response completeBlobUploadChunkPatch(@PathParam("name") String repositoryName,
