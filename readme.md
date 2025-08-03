@@ -8,13 +8,24 @@ It just begins the development.
 
 Don't use it in production, it's not ready yet.
 
-It passed only 61 / 79 of the tests defined
+Though there be only 4 / 79 of the tests defined
 in [oci-distribution-spec](https://github.com/opencontainers/distribution-spec.git)
+failed, it still doesn't mean it's ready for production.
 
 ```
-Ran 74 of 79 Specs in 2.103 seconds
-FAIL! -- 61 Passed | 13 Failed | 0 Pending | 5 Skipped
---- FAIL: TestConformance (2.11s)
+Summarizing 4 Failures:
+  [FAIL] OCI Distribution Conformance Tests Content Discovery Test content discovery endpoints (listing references) [It] GET request to nonexistent blob should result in empty 200 response
+  /home/xenoamess/workspace/distribution-spec/conformance/03_discovery_test.go:307
+  [FAIL] OCI Distribution Conformance Tests Content Discovery Test content discovery endpoints (listing references) [It] GET request to existing blob should yield 200
+  /home/xenoamess/workspace/distribution-spec/conformance/03_discovery_test.go:322
+  [FAIL] OCI Distribution Conformance Tests Content Discovery Test content discovery endpoints (listing references) [It] GET request to existing blob with filter should yield 200
+  /home/xenoamess/workspace/distribution-spec/conformance/03_discovery_test.go:343
+  [FAIL] OCI Distribution Conformance Tests Content Discovery Test content discovery endpoints (listing references) [It] GET request to missing manifest should yield 200
+  /home/xenoamess/workspace/distribution-spec/conformance/03_discovery_test.go:374
+
+Ran 74 of 79 Specs in 2.254 seconds
+FAIL! -- 70 Passed | 4 Failed | 0 Pending | 5 Skipped
+--- FAIL: TestConformance (2.27s)
 FAIL
 ```
 
