@@ -1,28 +1,39 @@
-package io.oci.resource;
+package io.oci.service.handler;
 
 import com.fasterxml.jackson.jr.ob.JSON;
+import io.oci.annotation.CommentDELETE;
+import io.oci.annotation.CommentGET;
+import io.oci.annotation.CommentHEAD;
+import io.oci.annotation.CommentHeaderParam;
+import io.oci.annotation.CommentPUT;
+import io.oci.annotation.CommentPath;
+import io.oci.annotation.CommentPathParam;
 import io.oci.dto.ErrorResponse;
 import io.oci.model.Manifest;
 import io.oci.model.Repository;
 import io.oci.service.DigestService;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.transaction.Transactional;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.*;
+import jakarta.ws.rs.core.Response;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
-@Path("/v2/{name}/manifests")
-public class ManifestResource {
+@CommentPath("/v2/{name}/manifests")
+@ApplicationScoped
+public class ManifestResourceHandler {
 
     @Inject
     DigestService digestService;
 
-    @HEAD
-    @Path("/{reference}")
-    public Response headManifest(@PathParam("name") String repositoryName,
-                                 @PathParam("reference") String reference) {
+    @CommentHEAD
+    @CommentPath("/{reference}")
+    public Response headManifest(
+            @CommentPathParam("name") String repositoryName,
+            @CommentPathParam("reference") String reference
+    ) {
         Repository repo = Repository.findByName(repositoryName);
         if (repo == null) {
             return Response.status(404)
@@ -55,10 +66,12 @@ public class ManifestResource {
     }
 
 
-    @GET
-    @Path("/{reference}")
-    public Response getManifest(@PathParam("name") String repositoryName,
-                                @PathParam("reference") String reference) {
+    @CommentGET
+    @CommentPath("/{reference}")
+    public Response getManifest(
+            @CommentPathParam("name") String repositoryName,
+            @CommentPathParam("reference") String reference
+    ) {
 
         Repository repo = Repository.findByName(repositoryName);
         if (repo == null) {
@@ -91,14 +104,20 @@ public class ManifestResource {
                 .build();
     }
 
-    @PUT
-    @Path("/{reference}")
-    public Response putManifest(@PathParam("name") String repositoryName,
-                                @PathParam("reference") String reference,
-                                @HeaderParam("Content-Type") String contentType,
-                                String manifestContent) {
-
-        if (manifestContent == null || manifestContent.isBlank()) {
+    @CommentPUT
+    @CommentPath("/{reference}")
+    public Response putManifest(@CommentPathParam("name") String repositoryName,
+                                @CommentPathParam("reference") String reference,
+                                @CommentHeaderParam("Content-Type") String contentType,
+                                InputStream inputStream
+    ) {
+        String manifestContent = null;
+        try {
+            manifestContent = new String(inputStream.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        if (manifestContent.isBlank()) {
             return Response.status(400)
                     .entity(new ErrorResponse(List.of(
                             new ErrorResponse.Error("MANIFEST_INVALID", "manifest invalid", "empty manifest")
@@ -161,11 +180,12 @@ public class ManifestResource {
                 .build();
     }
 
-    @DELETE
-    @Path("/{reference}")
-
-    public Response deleteManifest(@PathParam("name") String repositoryName,
-                                   @PathParam("reference") String reference) {
+    @CommentDELETE
+    @CommentPath("/{reference}")
+    public Response deleteManifest(
+            @CommentPathParam("name") String repositoryName,
+            @CommentPathParam("reference") String reference
+    ) {
 
         Repository repo = Repository.findByName(repositoryName);
         if (repo == null) {

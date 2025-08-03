@@ -12,7 +12,6 @@ import io.minio.RemoveObjectArgs;
 import io.minio.StatObjectArgs;
 import io.minio.StatObjectResponse;
 import io.minio.errors.ErrorResponseException;
-import io.oci.dto.CalculateTempChunkResult;
 import io.oci.exception.WithResponseException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -126,6 +125,12 @@ public class S3StorageService {
             throw new IOException("Failed to store blob", e);
         }
 
+    }
+
+    public static record CalculateTempChunkResult(
+            int index,
+            long bytesWritten
+    ) {
     }
 
     public CalculateTempChunkResult calculateTempChunks(

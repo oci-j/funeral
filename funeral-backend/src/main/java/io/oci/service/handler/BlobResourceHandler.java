@@ -1,34 +1,46 @@
-package io.oci.resource;
+package io.oci.service.handler;
 
-import io.oci.dto.CalculateTempChunkResult;
+import io.oci.annotation.CommentDELETE;
+import io.oci.annotation.CommentGET;
+import io.oci.annotation.CommentHEAD;
+import io.oci.annotation.CommentHeaderParam;
+import io.oci.annotation.CommentPATCH;
+import io.oci.annotation.CommentPOST;
+import io.oci.annotation.CommentPUT;
+import io.oci.annotation.CommentPath;
+import io.oci.annotation.CommentPathParam;
+import io.oci.annotation.CommentQueryParam;
 import io.oci.dto.ErrorResponse;
 import io.oci.exception.WithResponseException;
 import io.oci.model.Blob;
 import io.oci.model.Repository;
 import io.oci.service.S3StorageService;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.*;
-import jakarta.ws.rs.core.*;
+import jakarta.ws.rs.core.Response;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
-import org.apache.commons.lang3.NotImplementedException;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path("/v2/{name}/blobs")
-public class BlobResource {
+@CommentPath("/v2/{name}/blobs")
+@ApplicationScoped
+public class BlobResourceHandler {
 
-    private static final Logger log = LoggerFactory.getLogger(BlobResource.class);
+    private static final Logger log = LoggerFactory.getLogger(BlobResourceHandler.class);
+
     @Inject
     S3StorageService storageService;
 
-    @HEAD
-    @Path("/{digest}")
-    public Response headBlob(@PathParam("name") String repositoryName,
-                             @PathParam("digest") String digest) {
+    @CommentHEAD
+    @CommentPath("/{digest}")
+    public Response headBlob(
+            @CommentPathParam("name") String repositoryName,
+            @CommentPathParam("digest") String digest
+    ) {
 
         if (!storageService.blobExists(digest)) {
             return Response.status(404)
@@ -49,10 +61,12 @@ public class BlobResource {
         }
     }
 
-    @GET
-    @Path("/{digest}")
-    public Response getBlob(@PathParam("name") String repositoryName,
-                            @PathParam("digest") String digest) {
+    @CommentGET
+    @CommentPath("/{digest}")
+    public Response getBlob(
+            @CommentPathParam("name") String repositoryName,
+            @CommentPathParam("digest") String digest
+    ) {
 
         try {
             InputStream blobStream = storageService.getBlobStream(digest);
@@ -75,13 +89,13 @@ public class BlobResource {
         }
     }
 
-    @POST
-    @Path("/uploads/")
+    @CommentPOST
+    @CommentPath("/uploads/")
     public Response startBlobUpload(
-            @PathParam("name") String repositoryName,
-            @QueryParam("digest") String digest,
-            @QueryParam("mount") String mount,
-            @QueryParam("from") String from,
+            @CommentPathParam("name") String repositoryName,
+            @CommentQueryParam("digest") String digest,
+            @CommentQueryParam("mount") String mount,
+            @CommentQueryParam("from") String from,
             InputStream uploadStream
     ) {
         if (mount != null && !mount.isBlank()) {
@@ -126,12 +140,14 @@ public class BlobResource {
                 .build();
     }
 
-    @POST
-    @Path("/uploads/{uuid}")
-    public Response completeBlobUpload(@PathParam("name") String repositoryName,
-                                       @PathParam("uuid") String uploadUuid,
-                                       @QueryParam("digest") String expectedDigest,
-                                       InputStream uploadStream) {
+    @CommentPOST
+    @CommentPath("/uploads/{uuid}")
+    public Response completeBlobUpload(
+            @CommentPathParam("name") String repositoryName,
+            @CommentPathParam("uuid") String uploadUuid,
+            @CommentQueryParam("digest") String expectedDigest,
+            InputStream uploadStream
+    ) {
         log.info("Completing blob upload for repository: {}, UUID: {}", repositoryName, uploadUuid);
         if (expectedDigest == null) {
             log.info("digest is null");
@@ -174,12 +190,14 @@ public class BlobResource {
         }
     }
 
-    @PUT
-    @Path("/uploads/{uuid}")
-    public Response completeBlobUploadPut(@PathParam("name") String repositoryName,
-                                          @PathParam("uuid") String uploadUuid,
-                                          @QueryParam("digest") String expectedDigest,
-                                          InputStream uploadStream) {
+    @CommentPUT
+    @CommentPath("/uploads/{uuid}")
+    public Response completeBlobUploadPut(
+            @CommentPathParam("name") String repositoryName,
+            @CommentPathParam("uuid") String uploadUuid,
+            @CommentQueryParam("digest") String expectedDigest,
+            InputStream uploadStream
+    ) {
         return completeBlobUpload(
                 repositoryName,
                 uploadUuid,
@@ -188,22 +206,26 @@ public class BlobResource {
         );
     }
 
-    @PATCH
-    @Path("/uploads/{uuid}")
-    public Response completeBlobUploadChunkPatch(@PathParam("name") String repositoryName,
-                                                 @PathParam("uuid") String uploadUuid,
-                                                 @HeaderParam("Content-Range") String contentRange,
-                                                 InputStream uploadStream) {
+    @CommentPATCH
+    @CommentPath("/uploads/{uuid}")
+    public Response completeBlobUploadChunkPatch(
+            @CommentPathParam("name") String repositoryName,
+            @CommentPathParam("uuid") String uploadUuid,
+            @CommentHeaderParam("Content-Range") String contentRange,
+            InputStream uploadStream
+    ) {
         return this.completeBlobUploadChunkPatch(repositoryName, uploadUuid, "0_0", contentRange, uploadStream);
     }
 
-    @PATCH
-    @Path("/uploads/{uuid}/{index_and_start_bytes}")
-    public Response completeBlobUploadChunkPatch(@PathParam("name") String repositoryName,
-                                                 @PathParam("uuid") String uploadUuid,
-                                                 @PathParam("index_and_start_bytes") String indexAndStartBytes,
-                                                 @HeaderParam("Content-Range") String contentRange,
-                                                 InputStream uploadStream) {
+    @CommentPATCH
+    @CommentPath("/uploads/{uuid}/{index_and_start_bytes}")
+    public Response completeBlobUploadChunkPatch(
+            @CommentPathParam("name") String repositoryName,
+            @CommentPathParam("uuid") String uploadUuid,
+            @CommentPathParam("index_and_start_bytes") String indexAndStartBytes,
+            @CommentHeaderParam("Content-Range") String contentRange,
+            InputStream uploadStream
+    ) {
         try {
             String[] split = StringUtils.split(indexAndStartBytes, '_');
             int index = Integer.parseInt(split[0]);
@@ -245,13 +267,15 @@ public class BlobResource {
         }
     }
 
-    @PUT
-    @Path("/uploads/{uuid}/{index_and_start_bytes}")
-    public Response completeBlobUploadChunkPut(@PathParam("name") String repositoryName,
-                                               @PathParam("uuid") String uploadUuid,
-                                               @PathParam("index_and_start_bytes") String indexAndStartBytes,
-                                               @QueryParam("digest") String digest,
-                                               InputStream uploadStream) {
+    @CommentPUT
+    @CommentPath("/uploads/{uuid}/{index_and_start_bytes}")
+    public Response completeBlobUploadChunkPut(
+            @CommentPathParam("name") String repositoryName,
+            @CommentPathParam("uuid") String uploadUuid,
+            @CommentPathParam("index_and_start_bytes") String indexAndStartBytes,
+            @CommentQueryParam("digest") String digest,
+            InputStream uploadStream
+    ) {
         try {
             String[] split = StringUtils.split(indexAndStartBytes, '_');
             int index = Integer.parseInt(split[0]);
@@ -296,12 +320,14 @@ public class BlobResource {
         }
     }
 
-    @GET
-    @Path("/uploads/{uuid}/")
-    public Response completeBlobUploadChunkGet(@PathParam("name") String repositoryName,
-                                               @PathParam("uuid") String uploadUuid) {
+    @CommentGET
+    @CommentPath("/uploads/{uuid}/")
+    public Response completeBlobUploadChunkGet(
+            @CommentPathParam("name") String repositoryName,
+            @CommentPathParam("uuid") String uploadUuid
+    ) {
         try {
-            CalculateTempChunkResult calculateTempChunkResult = storageService.calculateTempChunks(uploadUuid);
+            S3StorageService.CalculateTempChunkResult calculateTempChunkResult = storageService.calculateTempChunks(uploadUuid);
             String location = "/v2/" + repositoryName + "/blobs/uploads/" + uploadUuid + "/" + calculateTempChunkResult.index() + "_" + calculateTempChunkResult.bytesWritten();
             return Response.status(204)
                     .header("Location", location)
@@ -314,10 +340,12 @@ public class BlobResource {
         }
     }
 
-    @DELETE
-    @Path("/{digest}")
-    public Response deleteBlob(@PathParam("name") String repositoryName,
-                               @PathParam("digest") String digest) {
+    @CommentDELETE
+    @CommentPath("/{digest}")
+    public Response deleteBlob(
+            @CommentPathParam("name") String repositoryName,
+            @CommentPathParam("digest") String digest
+    ) {
 
         Blob blob = Blob.findByDigest(digest);
         if (blob == null) {
@@ -336,4 +364,5 @@ public class BlobResource {
             return Response.status(500).build();
         }
     }
+
 }
