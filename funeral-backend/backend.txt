@@ -1,0 +1,795 @@
+// pom.xml
+<?xml version="1.0"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>io.oci</groupId>
+  <artifactId>oci-registry</artifactId>
+  <version>1.0.0-SNAPSHOT</version>
+  <properties>
+    <compiler-plugin.version>3.11.0</compiler-plugin.version>
+    <maven.compiler.release>17</maven.compiler.release>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+    <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
+    <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
+    <quarkus.platform.version>3.8.1</quarkus.platform.version>
+  </properties>
+  <dependencyManagement>
+    <dependencies>
+      <dependency>
+        <groupId>${quarkus.platform.group-id}</groupId>
+        <artifactId>${quarkus.platform.artifact-id}</artifactId>
+        <version>${quarkus.platform.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
+    </dependencies>
+  </dependencyManagement>
+  <dependencies>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-resteasy-reactive-jackson</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-hibernate-orm-panache</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-jdbc-postgresql</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-smallrye-openapi</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-security</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>io.quarkus</groupId>
+      <artifactId>quarkus-config-yaml</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>commons-codec</groupId>
+      <artifactId>commons-codec</artifactId>
+    </dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>${quarkus.platform.group-id}</groupId>
+        <artifactId>quarkus-maven-plugin</artifactId>
+        <version>${quarkus.platform.version}</version>
+        <extensions>true</extensions>
+        <executions>
+          <execution>
+            <goals>
+              <goal>build</goal>
+              <goal>generate-code</goal>
+              <goal>generate-code-tests</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
+
+// src/main/java/io/oci/model/Repository.java
+package io.oci.model;
+
+import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "repositories")
+public class Repository extends PanacheEntityBase {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    public Long id;
+
+    @Column(unique = true, nullable = false)
+    public String name;
+
+    @Column(name = "created_at")
+    public LocalDateTime createdAt;
+
+    @Column(name = "updated_at")
+    public LocalDateTime updatedAt;
+
+    @PrePersist
+    public void prePersist() {
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    public void preUpdate() {
+        updatedAt = LocalDateTime.now();
+    }
+}
+
+// src/main/java/io/oci/model/Manifest.java
+package io.oci.model;
+
+import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "manifests")
+public class Manifest extends PanacheEntityBase {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    public Long id;
+
+    @ManyToOne
+    @JoinColumn(name = "repository_id", nullable = false)
+    public Repository repository;
+
+    @Column(nullable = false)
+    public String digest;
+
+    @Column(name = "media_type", nullable = false)
+    public String mediaType;
+
+    @Column(columnDefinition = "TEXT", nullable = false)
+    public String content;
+
+    @Column(name = "content_length")
+    public Long contentLength;
+
+    public String tag;
+
+    @Column(name = "created_at")
+    public LocalDateTime createdAt;
+
+    @PrePersist
+    public void prePersist() {
+        createdAt = LocalDateTime.now();
+    }
+}
+
+// src/main/java/io/oci/model/Blob.java
+package io.oci.model;
+
+import io.quarkus.hibernate.orm.panache.PanacheEntityBase;
+import jakarta.persistence.*;
+import java.time.LocalDateTime;
+
+@Entity
+@Table(name = "blobs")
+public class Blob extends PanacheEntityBase {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    public Long id;
+
+    @Column(unique = true, nullable = false)
+    public String digest;
+
+    @Column(name = "content_length")
+    public Long contentLength;
+
+    @Column(name = "media_type")
+    public String mediaType;
+
+    @Column(name = "file_path")
+    public String filePath;
+
+    @Column(name = "created_at")
+    public LocalDateTime createdAt;
+
+    @PrePersist
+    public void prePersist() {
+        createdAt = LocalDateTime.now();
+    }
+}
+
+// src/main/java/io/oci/dto/ErrorResponse.java
+package io.oci.dto;
+
+import java.util.List;
+
+public class ErrorResponse {
+    public List<Error> errors;
+
+    public ErrorResponse(List<Error> errors) {
+        this.errors = errors;
+    }
+
+    public static class Error {
+        public String code;
+        public String message;
+        public String detail;
+
+        public Error(String code, String message, String detail) {
+            this.code = code;
+            this.message = message;
+            this.detail = detail;
+        }
+    }
+}
+
+// src/main/java/io/oci/dto/TagsResponse.java
+package io.oci.dto;
+
+import java.util.List;
+
+public class TagsResponse {
+    public String name;
+    public List<String> tags;
+
+    public TagsResponse(String name, List<String> tags) {
+        this.name = name;
+        this.tags = tags;
+    }
+}
+
+// src/main/java/io/oci/service/StorageService.java
+package io.oci.service;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+@ApplicationScoped
+public class StorageService {
+    private static final String STORAGE_ROOT = System.getProperty("oci.storage.root", "/tmp/oci-registry");
+
+    public String storeBlob(InputStream inputStream, String expectedDigest) throws IOException {
+        Path storageDir = Paths.get(STORAGE_ROOT, "blobs");
+        Files.createDirectories(storageDir);
+
+        // Create temp file first
+        Path tempFile = Files.createTempFile(storageDir, "blob-", ".tmp");
+
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            long size = 0;
+
+            try (InputStream is = inputStream;
+                 FileOutputStream fos = new FileOutputStream(tempFile.toFile());
+                 DigestInputStream dis = new DigestInputStream(is, digest)) {
+
+                byte[] buffer = new byte[8192];
+                int bytesRead;
+                while ((bytesRead = dis.read(buffer)) != -1) {
+                    fos.write(buffer, 0, bytesRead);
+                    size += bytesRead;
+                }
+            }
+
+            String calculatedDigest = "sha256:" + bytesToHex(digest.digest());
+
+            if (expectedDigest != null && !expectedDigest.equals(calculatedDigest)) {
+                Files.delete(tempFile);
+                throw new IllegalArgumentException("Digest mismatch");
+            }
+
+            // Move to final location
+            String digestPath = calculatedDigest.replace(":", "/");
+            Path finalPath = storageDir.resolve(digestPath);
+            Files.createDirectories(finalPath.getParent());
+            Files.move(tempFile, finalPath, StandardCopyOption.REPLACE_EXISTING);
+
+            return calculatedDigest;
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA-256 not available", e);
+        } catch (Exception e) {
+            try {
+                Files.delete(tempFile);
+            } catch (IOException ignored) {}
+            throw e;
+        }
+    }
+
+    public InputStream getBlobStream(String digest) throws IOException {
+        String digestPath = digest.replace(":", "/");
+        Path blobPath = Paths.get(STORAGE_ROOT, "blobs", digestPath);
+
+        if (!Files.exists(blobPath)) {
+            return null;
+        }
+
+        return Files.newInputStream(blobPath);
+    }
+
+    public boolean blobExists(String digest) {
+        String digestPath = digest.replace(":", "/");
+        Path blobPath = Paths.get(STORAGE_ROOT, "blobs", digestPath);
+        return Files.exists(blobPath);
+    }
+
+    public long getBlobSize(String digest) throws IOException {
+        String digestPath = digest.replace(":", "/");
+        Path blobPath = Paths.get(STORAGE_ROOT, "blobs", digestPath);
+        return Files.size(blobPath);
+    }
+
+    private String bytesToHex(byte[] bytes) {
+        StringBuilder result = new StringBuilder();
+        for (byte b : bytes) {
+            result.append(String.format("%02x", b));
+        }
+        return result.toString();
+    }
+
+    private static class DigestInputStream extends InputStream {
+        private final InputStream wrapped;
+        private final MessageDigest digest;
+
+        public DigestInputStream(InputStream wrapped, MessageDigest digest) {
+            this.wrapped = wrapped;
+            this.digest = digest;
+        }
+
+        @Override
+        public int read() throws IOException {
+            int b = wrapped.read();
+            if (b != -1) {
+                digest.update((byte) b);
+            }
+            return b;
+        }
+
+        @Override
+        public int read(byte[] buffer, int offset, int length) throws IOException {
+            int bytesRead = wrapped.read(buffer, offset, length);
+            if (bytesRead > 0) {
+                digest.update(buffer, offset, bytesRead);
+            }
+            return bytesRead;
+        }
+
+        @Override
+        public void close() throws IOException {
+            wrapped.close();
+        }
+    }
+}
+
+// src/main/java/io/oci/service/DigestService.java
+package io.oci.service;
+
+import jakarta.enterprise.context.ApplicationScoped;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
+@ApplicationScoped
+public class DigestService {
+
+    public String calculateDigest(String content) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(content.getBytes());
+            return "sha256:" + bytesToHex(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("SHA-256 not available", e);
+        }
+    }
+
+    private String bytesToHex(byte[] bytes) {
+        StringBuilder result = new StringBuilder();
+        for (byte b : bytes) {
+            result.append(String.format("%02x", b));
+        }
+        return result.toString();
+    }
+}
+
+// src/main/java/io/oci/resource/ManifestResource.java
+package io.oci.resource;
+
+import io.oci.dto.ErrorResponse;
+import io.oci.model.Manifest;
+import io.oci.model.Repository;
+import io.oci.service.DigestService;
+import io.oci.service.StorageService;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.*;
+import java.util.List;
+
+@Path("/v2/{name}/manifests")
+@Produces(MediaType.APPLICATION_JSON)
+@Consumes(MediaType.APPLICATION_JSON)
+public class ManifestResource {
+
+    @Inject
+    DigestService digestService;
+
+    @Inject
+    StorageService storageService;
+
+    @GET
+    @Path("/{reference}")
+    public Response getManifest(@PathParam("name") String repositoryName,
+                              @PathParam("reference") String reference) {
+
+        Repository repo = Repository.find("name", repositoryName).firstResult();
+        if (repo == null) {
+            return Response.status(404)
+                .entity(new ErrorResponse(List.of(
+                    new ErrorResponse.Error("NAME_UNKNOWN", "repository name not known to registry", repositoryName)
+                )))
+                .build();
+        }
+
+        Manifest manifest;
+        if (reference.startsWith("sha256:")) {
+            manifest = Manifest.find("repository = ?1 and digest = ?2", repo, reference).firstResult();
+        } else {
+            manifest = Manifest.find("repository = ?1 and tag = ?2", repo, reference).firstResult();
+        }
+
+        if (manifest == null) {
+            return Response.status(404)
+                .entity(new ErrorResponse(List.of(
+                    new ErrorResponse.Error("MANIFEST_UNKNOWN", "manifest unknown", reference)
+                )))
+                .build();
+        }
+
+        return Response.ok(manifest.content)
+            .header("Content-Type", manifest.mediaType)
+            .header("Docker-Content-Digest", manifest.digest)
+            .header("Content-Length", manifest.contentLength)
+            .build();
+    }
+
+    @PUT
+    @Path("/{reference}")
+    @Transactional
+    public Response putManifest(@PathParam("name") String repositoryName,
+                              @PathParam("reference") String reference,
+                              @HeaderParam("Content-Type") String contentType,
+                              String manifestContent) {
+
+        if (manifestContent == null || manifestContent.trim().isEmpty()) {
+            return Response.status(400)
+                .entity(new ErrorResponse(List.of(
+                    new ErrorResponse.Error("MANIFEST_INVALID", "manifest invalid", "empty manifest")
+                )))
+                .build();
+        }
+
+        Repository repo = Repository.find("name", repositoryName).firstResult();
+        if (repo == null) {
+            repo = new Repository();
+            repo.name = repositoryName;
+            repo.persist();
+        }
+
+        String digest = digestService.calculateDigest(manifestContent);
+
+        // Check if manifest already exists
+        Manifest existingManifest = Manifest.find("digest", digest).firstResult();
+        if (existingManifest != null) {
+            // Update tag if reference is not a digest
+            if (!reference.startsWith("sha256:")) {
+                existingManifest.tag = reference;
+                existingManifest.persist();
+            }
+            return Response.status(201)
+                .header("Location", "/v2/" + repositoryName + "/manifests/" + digest)
+                .header("Docker-Content-Digest", digest)
+                .build();
+        }
+
+        Manifest manifest = new Manifest();
+        manifest.repository = repo;
+        manifest.digest = digest;
+        manifest.mediaType = contentType != null ? contentType : "application/vnd.docker.distribution.manifest.v2+json";
+        manifest.content = manifestContent;
+        manifest.contentLength = (long) manifestContent.getBytes().length;
+
+        if (!reference.startsWith("sha256:")) {
+            manifest.tag = reference;
+        }
+
+        manifest.persist();
+
+        return Response.status(201)
+            .header("Location", "/v2/" + repositoryName + "/manifests/" + digest)
+            .header("Docker-Content-Digest", digest)
+            .build();
+    }
+
+    @DELETE
+    @Path("/{reference}")
+    @Transactional
+    public Response deleteManifest(@PathParam("name") String repositoryName,
+                                 @PathParam("reference") String reference) {
+
+        Repository repo = Repository.find("name", repositoryName).firstResult();
+        if (repo == null) {
+            return Response.status(404)
+                .entity(new ErrorResponse(List.of(
+                    new ErrorResponse.Error("NAME_UNKNOWN", "repository name not known to registry", repositoryName)
+                )))
+                .build();
+        }
+
+        Manifest manifest;
+        if (reference.startsWith("sha256:")) {
+            manifest = Manifest.find("repository = ?1 and digest = ?2", repo, reference).firstResult();
+        } else {
+            manifest = Manifest.find("repository = ?1 and tag = ?2", repo, reference).firstResult();
+        }
+
+        if (manifest == null) {
+            return Response.status(404)
+                .entity(new ErrorResponse(List.of(
+                    new ErrorResponse.Error("MANIFEST_UNKNOWN", "manifest unknown", reference)
+                )))
+                .build();
+        }
+
+        manifest.delete();
+        return Response.status(202).build();
+    }
+}
+
+// src/main/java/io/oci/resource/BlobResource.java
+package io.oci.resource;
+
+import io.oci.dto.ErrorResponse;
+import io.oci.model.Blob;
+import io.oci.model.Repository;
+import io.oci.service.StorageService;
+import jakarta.inject.Inject;
+import jakarta.transaction.Transactional;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.*;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.List;
+import java.util.UUID;
+
+@Path("/v2/{name}/blobs")
+public class BlobResource {
+
+    @Inject
+    StorageService storageService;
+
+    @HEAD
+    @Path("/{digest}")
+    public Response headBlob(@PathParam("name") String repositoryName,
+                           @PathParam("digest") String digest) {
+
+        if (!storageService.blobExists(digest)) {
+            return Response.status(404)
+                .entity(new ErrorResponse(List.of(
+                    new ErrorResponse.Error("BLOB_UNKNOWN", "blob unknown to registry", digest)
+                )))
+                .build();
+        }
+
+        try {
+            long size = storageService.getBlobSize(digest);
+            return Response.ok()
+                .header("Content-Length", size)
+                .header("Docker-Content-Digest", digest)
+                .build();
+        } catch (IOException e) {
+            return Response.status(500).build();
+        }
+    }
+
+    @GET
+    @Path("/{digest}")
+    public Response getBlob(@PathParam("name") String repositoryName,
+                          @PathParam("digest") String digest) {
+
+        try {
+            InputStream blobStream = storageService.getBlobStream(digest);
+            if (blobStream == null) {
+                return Response.status(404)
+                    .entity(new ErrorResponse(List.of(
+                        new ErrorResponse.Error("BLOB_UNKNOWN", "blob unknown to registry", digest)
+                    )))
+                    .build();
+            }
+
+            long size = storageService.getBlobSize(digest);
+            return Response.ok(blobStream)
+                .header("Content-Length", size)
+                .header("Docker-Content-Digest", digest)
+                .build();
+
+        } catch (IOException e) {
+            return Response.status(500).build();
+        }
+    }
+
+    @POST
+    @Path("/uploads/")
+    @Transactional
+    public Response startBlobUpload(@PathParam("name") String repositoryName) {
+
+        Repository repo = Repository.find("name", repositoryName).firstResult();
+        if (repo == null) {
+            repo = new Repository();
+            repo.name = repositoryName;
+            repo.persist();
+        }
+
+        String uploadUuid = UUID.randomUUID().toString();
+        String location = "/v2/" + repositoryName + "/blobs/uploads/" + uploadUuid;
+
+        return Response.status(202)
+            .header("Location", location)
+            .header("Range", "0-0")
+            .header("Docker-Upload-UUID", uploadUuid)
+            .build();
+    }
+
+    @PUT
+    @Path("/uploads/{uuid}")
+    @Consumes(MediaType.APPLICATION_OCTET_STREAM)
+    @Transactional
+    public Response completeBlobUpload(@PathParam("name") String repositoryName,
+                                     @PathParam("uuid") String uploadUuid,
+                                     @QueryParam("digest") String expectedDigest,
+                                     InputStream uploadStream) {
+
+        if (expectedDigest == null) {
+            return Response.status(400)
+                .entity(new ErrorResponse(List.of(
+                    new ErrorResponse.Error("DIGEST_INVALID", "provided digest did not match uploaded content", "")
+                )))
+                .build();
+        }
+
+        try {
+            String actualDigest = storageService.storeBlob(uploadStream, expectedDigest);
+
+            // Store blob metadata
+            Blob existingBlob = Blob.find("digest", actualDigest).firstResult();
+            if (existingBlob == null) {
+                Blob blob = new Blob();
+                blob.digest = actualDigest;
+                blob.contentLength = storageService.getBlobSize(actualDigest);
+                blob.persist();
+            }
+
+            String location = "/v2/" + repositoryName + "/blobs/" + actualDigest;
+            return Response.status(201)
+                .header("Location", location)
+                .header("Docker-Content-Digest", actualDigest)
+                .build();
+
+        } catch (IllegalArgumentException e) {
+            return Response.status(400)
+                .entity(new ErrorResponse(List.of(
+                    new ErrorResponse.Error("DIGEST_INVALID", "provided digest did not match uploaded content", expectedDigest)
+                )))
+                .build();
+        } catch (IOException e) {
+            return Response.status(500).build();
+        }
+    }
+
+    @DELETE
+    @Path("/{digest}")
+    @Transactional
+    public Response deleteBlob(@PathParam("name") String repositoryName,
+                             @PathParam("digest") String digest) {
+
+        Blob blob = Blob.find("digest", digest).firstResult();
+        if (blob == null) {
+            return Response.status(404)
+                .entity(new ErrorResponse(List.of(
+                    new ErrorResponse.Error("BLOB_UNKNOWN", "blob unknown to registry", digest)
+                )))
+                .build();
+        }
+
+        blob.delete();
+        return Response.status(202).build();
+    }
+}
+
+// src/main/java/io/oci/resource/TagResource.java
+package io.oci.resource;
+
+import io.oci.dto.ErrorResponse;
+import io.oci.dto.TagsResponse;
+import io.oci.model.Manifest;
+import io.oci.model.Repository;
+import jakarta.ws.rs.*;
+import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
+import java.util.List;
+
+@Path("/v2/{name}/tags")
+@Produces(MediaType.APPLICATION_JSON)
+public class TagResource {
+
+    @GET
+    @Path("/list")
+    public Response listTags(@PathParam("name") String repositoryName,
+                           @QueryParam("n") @DefaultValue("100") int limit,
+                           @QueryParam("last") String last) {
+
+        Repository repo = Repository.find("name", repositoryName).firstResult();
+        if (repo == null) {
+            return Response.status(404)
+                .entity(new ErrorResponse(List.of(
+                    new ErrorResponse.Error("NAME_UNKNOWN", "repository name not known to registry", repositoryName)
+                )))
+                .build();
+        }
+
+        List<String> tags = Manifest.find("repository = ?1 and tag is not null", repo)
+            .project(String.class)
+            .list();
+
+        // Apply pagination if needed
+        if (last != null) {
+            int lastIndex = tags.indexOf(last);
+            if (lastIndex >= 0 && lastIndex + 1 < tags.size()) {
+                tags = tags.subList(lastIndex + 1, Math.min(tags.size(), lastIndex + 1 + limit));
+            }
+        } else {
+            tags = tags.subList(0, Math.min(tags.size(), limit));
+        }
+
+        return Response.ok(new TagsResponse(repositoryName, tags)).build();
+    }
+}
+
+// src/main/java/io/oci/resource/RegistryResource.java
+package io.oci.resource;
+
+import jakarta.ws.rs.GET;
+import jakarta.ws.rs.Path;
+import jakarta.ws.rs.core.Response;
+
+@Path("/v2")
+public class RegistryResource {
+
+    @GET
+    @Path("/")
+    public Response checkVersion() {
+        return Response.ok().build();
+    }
+}
+
+// src/main/resources/application.yml
+quarkus:
+  datasource:
+    db-kind: postgresql
+    username: ${DB_USERNAME:postgres}
+    password: ${DB_PASSWORD:postgres}
+    jdbc:
+      url: ${DB_URL:jdbc:postgresql://localhost:5432/oci_registry}
+  hibernate-orm:
+    database:
+      generation: drop-and-create
+    log:
+      sql: true
+  http:
+    port: 8080
+    cors:
+      ~: true
+      origins: "*"
+      headers: "*"
+      methods: "*"
+  smallrye-openapi:
+    info-title: OCI Distribution Registry API
+    info-version: 1.0.0
+    info-description: OCI Distribution Specification compliant registry
+
+oci:
+  storage:
+    root: ${OCI_STORAGE_ROOT:/tmp/oci-registry}

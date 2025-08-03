@@ -1,0 +1,80 @@
+api.interceptors.response.use(
+  response => response,
+  error => {
+    console.error('API Error:', error)
+    if (error.response?.data?.errors) {
+      const errorMessage = error.response.data.errors
+        .map(err => `${err.code}: ${err.message}`)
+        .join(', ')
+      throw new Error(errorMessage)
+    }
+    throw error
+  }
+)
+
+export default {
+  // Check registry version
+  async checkVersion() {
+    const response = await api.get('/')
+    return response.status === 200
+  },
+
+  // Get all repositories (this is a custom endpoint we'll need to add)
+  async getRepositories() {
+    try {
+      const response = await api.get('/repositories')
+      return response.data
+    } catch (error) {
+      // If custom endpoint doesn't exist, return empty array
+      if (error.response?.status === 404) {
+        return []
+      }
+      throw error
+    }
+  },
+
+  // Get repository details
+  async getRepository(name) {
+    const response = await api.get(`/${name}/tags/list`)
+    return response.data
+  },
+
+  // Get tags for a repository
+  async getTags(repositoryName) {
+    const response = await api.get(`/${repositoryName}/tags/list`)
+    return response.data
+  },
+
+  // Get manifest
+  async getManifest(repositoryName, reference) {
+    const response = await api.get(`/${repositoryName}/manifests/${reference}`)
+    return {
+      content: response.data,
+      digest: response.headers['docker-content-digest'],
+      contentType: response.headers['content-type']
+    }
+  },
+
+  // Delete manifest
+  async deleteManifest(repositoryName, reference) {
+    await api.delete(`/${repositoryName}/manifests/${reference}`)
+  },
+
+  // Get blob
+  async getBlob(repositoryName, digest) {
+    const response = await api.get(`/${repositoryName}/blobs/${digest}`, {
+      responseType: 'blob'
+    })
+    return response.data
+  },
+
+  // Check if blob exists
+  async checkBlob(repositoryName, digest) {
+    try {
+      await api.head(`/${repositoryName}/blobs/${digest}`)
+      return true
+    } catch {
+      return false
+    }
+  }
+}
