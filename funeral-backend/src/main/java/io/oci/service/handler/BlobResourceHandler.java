@@ -41,23 +41,18 @@ public class BlobResourceHandler {
             @CommentPathParam("name") String repositoryName,
             @CommentPathParam("digest") String digest
     ) {
-
-        if (!storageService.blobExists(digest)) {
-            return Response.status(404)
-                    .entity(new ErrorResponse(List.of(
-                            new ErrorResponse.Error("BLOB_UNKNOWN", "blob unknown to registry", digest)
-                    )))
-                    .build();
-        }
-
         try {
             long size = storageService.getBlobSize(digest);
             return Response.ok()
                     .header("Content-Length", size)
                     .header("Docker-Content-Digest", digest)
                     .build();
-        } catch (IOException e) {
-            return Response.status(500).build();
+        } catch (Exception e) {
+            return Response.status(404)
+                    .entity(new ErrorResponse(List.of(
+                            new ErrorResponse.Error("BLOB_UNKNOWN", "blob unknown to registry", digest)
+                    )))
+                    .build();
         }
     }
 
@@ -98,19 +93,17 @@ public class BlobResourceHandler {
             @CommentQueryParam("from") String from,
             InputStream uploadStream
     ) {
-        if (mount != null && !mount.isBlank()) {
-            return Response.status(400)
-                    .entity(new ErrorResponse(List.of(
-                            new ErrorResponse.Error("UNSUPPORTED", "mount in /uploads/", "")
-                    )))
-                    .build();
-        }
-        if (from != null && !from.isBlank()) {
-            return Response.status(400)
-                    .entity(new ErrorResponse(List.of(
-                            new ErrorResponse.Error("UNSUPPORTED", "from in /uploads/", "")
-                    )))
-                    .build();
+        if (StringUtils.isNotBlank(mount)) {
+            try {
+                if (storageService.getBlobSize(digest) > 0) {
+                    String responseLocationRepository = StringUtils.isNotBlank(from) ? from : repositoryName;
+                    return Response.status(201)
+                            .header("Location", "/v2/" + responseLocationRepository + "/blobs/" + digest)
+                            .header("OCI-Chunk-Min-Length", 1 << 24)
+                            .build();
+                }
+            } catch (Exception e) {
+            }
         }
 
         Repository repo = Repository.findByName(repositoryName);
@@ -122,7 +115,7 @@ public class BlobResourceHandler {
 
         String uploadUuid = UUID.randomUUID().toString();
 
-        if (digest != null && !digest.isBlank()) {
+        if (StringUtils.isNotBlank(digest)) {
             return completeBlobUpload(
                     repositoryName,
                     uploadUuid,

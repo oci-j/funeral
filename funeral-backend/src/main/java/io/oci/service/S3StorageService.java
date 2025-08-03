@@ -231,21 +231,6 @@ public class S3StorageService {
         }
     }
 
-    public boolean blobExists(String digest) {
-        try {
-            String objectKey = "blobs/" + digest.replace(":", "/");
-            minioClient.statObject(
-                    StatObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(objectKey)
-                            .build()
-            );
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
-    }
-
     public long getBlobSize(String digest) throws IOException {
         try {
             String objectKey = "blobs/" + digest.replace(":", "/");
