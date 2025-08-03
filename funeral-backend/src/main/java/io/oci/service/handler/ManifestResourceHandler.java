@@ -20,6 +20,7 @@ import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 
 @CommentPath("/v2/{name}/manifests")
 @ApplicationScoped
@@ -130,11 +131,23 @@ public class ManifestResourceHandler {
             repo = new Repository(repositoryName);
             repo.persist();
         }
+        Map<String, Object> manifestMap = null;
         String digest = null;
+        String subject = null;
         try {
-            Map<String, Object> manifestMap = JSON.std.mapFrom(manifestContent);
-            digest = manifestMap.get("digest").toString();
-        } catch (Exception e) {
+            manifestMap = JSON.std.mapFrom(manifestContent);
+        } catch (Exception ignored) {
+        }
+        if (manifestMap != null) {
+            try {
+                digest = manifestMap.get("digest").toString();
+            } catch (Exception ignored) {
+            }
+            try {
+                Object subjectMap = manifestMap.get("subject");
+                subject = ((Map) subjectMap).get("digest").toString();
+            } catch (Exception ignored) {
+            }
         }
         if (digest == null) {
             // just as a fallback, calculate digest from content
@@ -174,10 +187,13 @@ public class ManifestResourceHandler {
         repo.updateTimestamp();
         repo.update();
 
-        return Response.status(201)
+        Response.ResponseBuilder responseBuilder = Response.status(201)
                 .header("Location", "/v2/" + repositoryName + "/manifests/" + digest)
-                .header("Docker-Content-Digest", digest)
-                .build();
+                .header("Docker-Content-Digest", digest);
+        if (StringUtils.isNotBlank(subject)) {
+            responseBuilder = responseBuilder.header("OCI-Subject", subject);
+        }
+        return responseBuilder.build();
     }
 
     @CommentDELETE
