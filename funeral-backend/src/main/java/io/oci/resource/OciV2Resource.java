@@ -30,6 +30,10 @@ public class OciV2Resource {
     private static final Logger log = LoggerFactory.getLogger(OciV2Resource.class);
 
     private static final Pattern TAG_PATTERN = Pattern.compile("[a-zA-Z0-9_][a-zA-Z0-9._-]{0,127}");
+    private static final String MANIFESTS_PATH = "/manifests/";
+    private static final String BLOBS_PATH = "/blobs/";
+    private static final String TAGS_PATH = "/tags/";
+    private static final String UPLOADS_PATH = "/uploads/";
 
     @Inject
     RegistryResourceHandler registryResourceHandler;
@@ -50,35 +54,7 @@ public class OciV2Resource {
             @Context UriInfo uriInfo,
             @Context HttpHeaders httpHeaders
     ) {
-        {
-            /// @see ManifestResourceHandler
-            int lastIndexOfTags = fullPath.lastIndexOf("/manifests/");
-            if (lastIndexOfTags != -1) {
-                String suffix = fullPath.substring(lastIndexOfTags + "/manifests/".length());
-                if (!StringUtils.contains(suffix, '/')) {
-                    String name = fullPath.substring(0, lastIndexOfTags);
-                    return manifestResourceHandler.headManifest(
-                            name,
-                            suffix
-                    );
-                }
-            }
-        }
-        {
-            /// @see BlobResourceHandler
-            int lastIndexOfTags = fullPath.lastIndexOf("/blobs/");
-            if (lastIndexOfTags != -1) {
-                String suffix = fullPath.substring(lastIndexOfTags + "/blobs/".length());
-                String name = fullPath.substring(0, lastIndexOfTags);
-                return blobResourceHandler.headBlob(
-                        name,
-                        suffix
-                );
-            }
-        }
-
-        log.error("404 not found : HEAD /v2/{}", fullPath);
-        return Response.status(404).build();
+        return handleRequest(fullPath, "HEAD", uriInfo, httpHeaders, null);
     }
 
 
@@ -89,74 +65,7 @@ public class OciV2Resource {
             @Context UriInfo uriInfo,
             @Context HttpHeaders httpHeaders
     ) {
-        {
-            /// @see RegistryResourceHandler
-            switch (fullPath) {
-                case "":
-                    return registryResourceHandler.checkVersion();
-                case "repositories":
-                    return registryResourceHandler.listRepositories();
-                default:
-                    //pass
-            }
-        }
-        {
-            /// @see ManifestResourceHandler
-            int lastIndexOfTags = fullPath.lastIndexOf("/manifests/");
-            if (lastIndexOfTags != -1) {
-                String suffix = fullPath.substring(lastIndexOfTags + "/manifests/".length());
-                if (!StringUtils.contains(suffix, '/')) {
-                    String name = fullPath.substring(0, lastIndexOfTags);
-                    return manifestResourceHandler.getManifest(
-                            name,
-                            suffix
-                    );
-                }
-            }
-        }
-        {
-            /// @see TagResourceHandler
-            int lastIndexOfTags = fullPath.lastIndexOf("/tags/");
-            if (lastIndexOfTags != -1) {
-                String suffix = fullPath.substring(lastIndexOfTags + "/tags/".length());
-                switch (suffix) {
-                    case "list":
-                        String name = fullPath.substring(0, lastIndexOfTags);
-                        return tagResourceHandler.listTags(
-                                name,
-                                uriInfo.getQueryParameters().getFirst("n") != null ? Integer.parseInt(uriInfo.getQueryParameters().getFirst("n")) : 100,
-                                uriInfo.getQueryParameters().getFirst("last")
-                        );
-                    default:
-                        //pass
-                }
-            }
-        }
-        {
-            /// @see BlobResourceHandler
-            int lastIndexOfTags = fullPath.lastIndexOf("/blobs/");
-            if (lastIndexOfTags != -1) {
-                String name = fullPath.substring(0, lastIndexOfTags);
-                String suffix = fullPath.substring(lastIndexOfTags + "/blobs/".length());
-                if (suffix.startsWith("uploads/")) {
-                    // Handle blob uploads
-                    String uploadUuid = suffix.substring("uploads/".length());
-                    if (!StringUtils.contains(uploadUuid, '/')) {
-                        // Handle specific upload ID
-                        return blobResourceHandler.completeBlobUploadChunkGet(
-                                name,
-                                uploadUuid
-                        );
-                    }
-                }
-                return blobResourceHandler.getBlob(
-                        name,
-                        suffix
-                );
-            }
-        }
-        log.error("404 not found : GET /v2/{}", fullPath);
-        return Response.status(404).build();
+        return handleRequest(fullPath, "GET", uriInfo, httpHeaders, null);
     }
 
     @POST
@@ -167,40 +76,7 @@ public class OciV2Resource {
             @Context HttpHeaders httpHeaders,
             InputStream inputStream
     ) {
-        {
-            /// @see BlobResourceHandler
-            int lastIndexOfTags = fullPath.lastIndexOf("/blobs/");
-            if (lastIndexOfTags != -1) {
-                String name = fullPath.substring(0, lastIndexOfTags);
-                String suffix = fullPath.substring(lastIndexOfTags + "/blobs/".length());
-                switch (suffix) {
-                    case "uploads":
-                        return blobResourceHandler.startBlobUpload(
-                                name,
-                                uriInfo.getQueryParameters().getFirst("digest") != null ? uriInfo.getQueryParameters().getFirst("digest") : null,
-                                uriInfo.getQueryParameters().getFirst("mount") != null ? uriInfo.getQueryParameters().getFirst("mount") : null,
-                                uriInfo.getQueryParameters().getFirst("from") != null ? uriInfo.getQueryParameters().getFirst("from") : null,
-                                inputStream
-                        );
-                    default:
-                        //pass
-                }
-                if (suffix.startsWith("uploads/")) {
-                    String suffix2 = suffix.substring("uploads/".length());
-                    if (!StringUtils.contains(suffix2, '/')) {
-                        // Handle specific upload ID
-                        return blobResourceHandler.completeBlobUpload(
-                                name,
-                                suffix2,
-                                uriInfo.getQueryParameters().getFirst("digest") != null ? uriInfo.getQueryParameters().getFirst("digest") : null,
-                                inputStream
-                        );
-                    }
-                }
-            }
-        }
-        log.error("404 not found : POST /v2/{}", fullPath);
-        return Response.status(404).build();
+        return handleRequest(fullPath, "POST", uriInfo, httpHeaders, inputStream);
     }
 
     @PUT
@@ -211,58 +87,7 @@ public class OciV2Resource {
             @Context HttpHeaders httpHeaders,
             InputStream inputStream
     ) {
-        {
-            /// @see ManifestResourceHandler
-            int lastIndexOfTags = fullPath.lastIndexOf("/manifests/");
-            if (lastIndexOfTags != -1) {
-                String suffix = fullPath.substring(lastIndexOfTags + "/manifests/".length());
-                if (!StringUtils.contains(suffix, '/')) {
-                    String name = fullPath.substring(0, lastIndexOfTags);
-                    return manifestResourceHandler.putManifest(
-                            name,
-                            suffix,
-                            httpHeaders.getHeaderString("Content-Type"),
-                            inputStream
-                    );
-                }
-            }
-        }
-
-        {
-            /// @see BlobResourceHandler
-            int lastIndexOfTags = fullPath.lastIndexOf("/blobs/");
-            if (lastIndexOfTags != -1) {
-                String name = fullPath.substring(0, lastIndexOfTags);
-                String suffix = fullPath.substring(lastIndexOfTags + "/blobs/".length());
-                if (suffix.startsWith("uploads/")) {
-                    String suffix2 = suffix.substring("uploads/".length());
-                    if (!StringUtils.contains(suffix2, '/')) {
-                        // Handle specific upload ID
-                        return blobResourceHandler.completeBlobUploadPut(
-                                name,
-                                suffix2,
-                                uriInfo.getQueryParameters().getFirst("digest") != null ? uriInfo.getQueryParameters().getFirst("digest") : null,
-                                inputStream
-                        );
-                    }
-                    SplitAtFirstUtil.SplitAtFirstResult splitAtFirstResult = SplitAtFirstUtil.splitAtFirstIndex(suffix2, "/");
-                    if (!StringUtils.contains(splitAtFirstResult.first(), '/')) {
-                        // Handle specific upload ID
-                        return blobResourceHandler.completeBlobUploadChunkPut(
-                                name,
-                                splitAtFirstResult.first(),
-                                splitAtFirstResult.second(),
-                                uriInfo.getQueryParameters().getFirst("digest") != null ? uriInfo.getQueryParameters().getFirst("digest") : null,
-                                inputStream
-                        );
-                    }
-                }
-
-            }
-        }
-
-        log.error("404 not found : PUT /v2/{}", fullPath);
-        return Response.status(404).build();
+        return handleRequest(fullPath, "PUT", uriInfo, httpHeaders, inputStream);
     }
 
     @DELETE
@@ -272,34 +97,7 @@ public class OciV2Resource {
             @Context UriInfo uriInfo,
             @Context HttpHeaders httpHeaders
     ) {
-        {
-            /// @see ManifestResourceHandler
-            int lastIndexOfTags = fullPath.lastIndexOf("/manifests/");
-            if (lastIndexOfTags != -1) {
-                String suffix = fullPath.substring(lastIndexOfTags + "/manifests/".length());
-                if (!StringUtils.contains(suffix, '/')) {
-                    String name = fullPath.substring(0, lastIndexOfTags);
-                    return manifestResourceHandler.deleteManifest(
-                            name,
-                            suffix
-                    );
-                }
-            }
-        }
-        {
-            /// @see BlobResourceHandler
-            int lastIndexOfTags = fullPath.lastIndexOf("/blobs/");
-            if (lastIndexOfTags != -1) {
-                String suffix = fullPath.substring(lastIndexOfTags + "/blobs/".length());
-                String name = fullPath.substring(0, lastIndexOfTags);
-                return blobResourceHandler.deleteBlob(
-                        name,
-                        suffix
-                );
-            }
-        }
-        log.error("404 not found : DELETE /v2/{}", fullPath);
-        return Response.status(404).build();
+        return handleRequest(fullPath, "DELETE", uriInfo, httpHeaders, null);
     }
 
 
@@ -311,41 +109,221 @@ public class OciV2Resource {
             @Context HttpHeaders httpHeaders,
             InputStream inputStream
     ) {
-        {
-            /// @see BlobResourceHandler
-            int lastIndexOfTags = fullPath.lastIndexOf("/blobs/");
-            if (lastIndexOfTags != -1) {
-                String name = fullPath.substring(0, lastIndexOfTags);
-                String suffix = fullPath.substring(lastIndexOfTags + "/blobs/".length());
-                if (suffix.startsWith("uploads/")) {
-                    String suffix2 = suffix.substring("uploads/".length());
-                    if (!StringUtils.contains(suffix2, '/')) {
-                        // Handle specific upload ID
-                        return blobResourceHandler.completeBlobUploadChunkPatch(
-                                name,
-                                suffix2,
-                                httpHeaders.getHeaderString("Content-Range"),
-                                inputStream
-                        );
-                    }
-                    SplitAtFirstUtil.SplitAtFirstResult splitAtFirstResult = SplitAtFirstUtil.splitAtFirstIndex(suffix2, "/");
-                    if (!StringUtils.contains(splitAtFirstResult.first(), '/')) {
-                        // Handle specific upload ID
-                        return blobResourceHandler.completeBlobUploadChunkPatch(
-                                name,
-                                splitAtFirstResult.first(),
-                                splitAtFirstResult.second(),
-                                httpHeaders.getHeaderString("Content-Range"),
-                                inputStream
-                        );
-                    }
-                }
+        return handleRequest(fullPath, "PATCH", uriInfo, httpHeaders, inputStream);
+    }
 
+    private Response handleRequest(String fullPath, String method, UriInfo uriInfo, HttpHeaders httpHeaders, InputStream inputStream) {
+        // Handle registry-level requests
+        if ("GET".equals(method)) {
+            switch (fullPath) {
+                case "":
+                    return registryResourceHandler.checkVersion();
+                case "repositories":
+                    return registryResourceHandler.listRepositories();
             }
         }
 
-        log.error("404 not found : PUT /v2/{}", fullPath);
-        return Response.status(404).build();
+        // Parse path segments
+        PathInfo pathInfo = parsePath(fullPath);
+        if (pathInfo == null) {
+            logError(method, fullPath);
+            return Response.status(404).build();
+        }
+
+        // Route to appropriate handler
+        return routeRequest(pathInfo, method, uriInfo, httpHeaders, inputStream);
     }
 
+    private PathInfo parsePath(String fullPath) {
+        int manifestsIndex = fullPath.lastIndexOf(MANIFESTS_PATH);
+        if (manifestsIndex != -1) {
+            String suffix = fullPath.substring(manifestsIndex + MANIFESTS_PATH.length());
+            if (!StringUtils.contains(suffix, '/')) {
+                return new PathInfo(PathType.MANIFEST, fullPath.substring(0, manifestsIndex), suffix, null);
+            }
+        }
+
+        int blobsIndex = fullPath.lastIndexOf(BLOBS_PATH);
+        if (blobsIndex != -1) {
+            String name = fullPath.substring(0, blobsIndex);
+            String suffix = fullPath.substring(blobsIndex + BLOBS_PATH.length());
+            
+            if (suffix.startsWith("uploads")) {
+                String uploadPart = suffix.substring("uploads".length());
+                if (uploadPart.isEmpty() || uploadPart.equals("/")) {
+                    return new PathInfo(PathType.BLOB_UPLOAD_START, name, null, null);
+                }
+                if (uploadPart.startsWith("/")) {
+                    uploadPart = uploadPart.substring(1);
+                    if (!StringUtils.contains(uploadPart, '/')) {
+                        return new PathInfo(PathType.BLOB_UPLOAD_COMPLETE, name, uploadPart, null);
+                    }
+                    SplitAtFirstUtil.SplitAtFirstResult split = SplitAtFirstUtil.splitAtFirstIndex(uploadPart, "/");
+                    return new PathInfo(PathType.BLOB_UPLOAD_CHUNK, name, split.first(), split.second());
+                }
+            } else {
+                return new PathInfo(PathType.BLOB, name, suffix, null);
+            }
+        }
+
+        int tagsIndex = fullPath.lastIndexOf(TAGS_PATH);
+        if (tagsIndex != -1) {
+            String name = fullPath.substring(0, tagsIndex);
+            String suffix = fullPath.substring(tagsIndex + TAGS_PATH.length());
+            if ("list".equals(suffix)) {
+                return new PathInfo(PathType.TAG_LIST, name, null, null);
+            }
+        }
+
+        return null;
+    }
+
+    private Response routeRequest(PathInfo pathInfo, String method, UriInfo uriInfo, HttpHeaders httpHeaders, InputStream inputStream) {
+        switch (pathInfo.type) {
+            case MANIFEST:
+                return handleManifestRequest(pathInfo, method, httpHeaders, inputStream);
+            case BLOB:
+                return handleBlobRequest(pathInfo, method);
+            case BLOB_UPLOAD_START:
+                return handleBlobUploadStart(pathInfo, method, uriInfo, inputStream);
+            case BLOB_UPLOAD_COMPLETE:
+                return handleBlobUploadComplete(pathInfo, method, uriInfo, httpHeaders, inputStream);
+            case BLOB_UPLOAD_CHUNK:
+                return handleBlobUploadChunk(pathInfo, method, uriInfo, httpHeaders, inputStream);
+            case TAG_LIST:
+                return handleTagListRequest(pathInfo, method, uriInfo);
+            default:
+                logError(method, pathInfo.fullPath);
+                return Response.status(404).build();
+        }
+    }
+
+    private Response handleManifestRequest(PathInfo pathInfo, String method, HttpHeaders httpHeaders, InputStream inputStream) {
+        String name = pathInfo.repository;
+        String reference = pathInfo.reference;
+        
+        switch (method) {
+            case "HEAD":
+                return manifestResourceHandler.headManifest(name, reference);
+            case "GET":
+                return manifestResourceHandler.getManifest(name, reference);
+            case "PUT":
+                return manifestResourceHandler.putManifest(name, reference, httpHeaders.getHeaderString("Content-Type"), inputStream);
+            case "DELETE":
+                return manifestResourceHandler.deleteManifest(name, reference);
+            default:
+                return Response.status(405).build();
+        }
+    }
+
+    private Response handleBlobRequest(PathInfo pathInfo, String method) {
+        String name = pathInfo.repository;
+        String digest = pathInfo.reference;
+        
+        switch (method) {
+            case "HEAD":
+                return blobResourceHandler.headBlob(name, digest);
+            case "GET":
+                return blobResourceHandler.getBlob(name, digest);
+            case "DELETE":
+                return blobResourceHandler.deleteBlob(name, digest);
+            default:
+                return Response.status(405).build();
+        }
+    }
+
+    private Response handleBlobUploadStart(PathInfo pathInfo, String method, UriInfo uriInfo, InputStream inputStream) {
+        if (!"POST".equals(method)) {
+            return Response.status(405).build();
+        }
+        
+        String digest = getQueryParam(uriInfo, "digest");
+        String mount = getQueryParam(uriInfo, "mount");
+        String from = getQueryParam(uriInfo, "from");
+        
+        return blobResourceHandler.startBlobUpload(pathInfo.repository, digest, mount, from, inputStream);
+    }
+
+    private Response handleBlobUploadComplete(PathInfo pathInfo, String method, UriInfo uriInfo, HttpHeaders httpHeaders, InputStream inputStream) {
+        String digest = getQueryParam(uriInfo, "digest");
+        
+        switch (method) {
+            case "POST":
+                return blobResourceHandler.completeBlobUpload(pathInfo.repository, pathInfo.reference, digest, inputStream);
+            case "PUT":
+                return blobResourceHandler.completeBlobUploadPut(pathInfo.repository, pathInfo.reference, digest, inputStream);
+            case "GET":
+                return blobResourceHandler.completeBlobUploadChunkGet(pathInfo.repository, pathInfo.reference);
+            default:
+                return Response.status(405).build();
+        }
+    }
+
+    private Response handleBlobUploadChunk(PathInfo pathInfo, String method, UriInfo uriInfo, HttpHeaders httpHeaders, InputStream inputStream) {
+        switch (method) {
+            case "PATCH":
+                return blobResourceHandler.completeBlobUploadChunkPatch(
+                        pathInfo.repository,
+                        pathInfo.reference,
+                        pathInfo.chunkIndex,
+                        httpHeaders.getHeaderString("Content-Range"),
+                        inputStream
+                );
+            case "PUT":
+                String digest = getQueryParam(uriInfo, "digest");
+                return blobResourceHandler.completeBlobUploadChunkPut(
+                        pathInfo.repository,
+                        pathInfo.reference,
+                        pathInfo.chunkIndex,
+                        digest,
+                        inputStream
+                );
+            default:
+                return Response.status(405).build();
+        }
+    }
+
+    private Response handleTagListRequest(PathInfo pathInfo, String method, UriInfo uriInfo) {
+        if (!"GET".equals(method)) {
+            return Response.status(405).build();
+        }
+        
+        String last = getQueryParam(uriInfo, "last");
+        Integer n = getQueryParamInt(uriInfo, "n", 100);
+        
+        return tagResourceHandler.listTags(pathInfo.repository, n, last);
+    }
+
+    private String getQueryParam(UriInfo uriInfo, String param) {
+        return uriInfo.getQueryParameters().getFirst(param);
+    }
+
+    private Integer getQueryParamInt(UriInfo uriInfo, String param, int defaultValue) {
+        String value = uriInfo.getQueryParameters().getFirst(param);
+        return value != null ? Integer.parseInt(value) : defaultValue;
+    }
+
+    private void logError(String method, String fullPath) {
+        log.error("404 not found : {} /v2/{}", method, fullPath);
+    }
+
+    private enum PathType {
+        MANIFEST, BLOB, BLOB_UPLOAD_START, BLOB_UPLOAD_COMPLETE, BLOB_UPLOAD_CHUNK, TAG_LIST
+    }
+
+    private static class PathInfo {
+        final PathType type;
+        final String repository;
+        final String reference;
+        final String chunkIndex;
+        final String fullPath;
+
+        PathInfo(PathType type, String repository, String reference, String chunkIndex) {
+            this.type = type;
+            this.repository = repository;
+            this.reference = reference;
+            this.chunkIndex = chunkIndex;
+            this.fullPath = repository + "/" + type + "/" + reference;
+        }
+    }
 }

@@ -25,12 +25,16 @@ import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.oci.util.StringValidationUtil;
 
 @CommentPath("/v2/{name}/blobs")
 @ApplicationScoped
 public class BlobResourceHandler {
 
     private static final Logger log = LoggerFactory.getLogger(BlobResourceHandler.class);
+    private static final int CHUNK_MIN_LENGTH = 1 << 24; // 16MB
+    private static final String OCI_REGISTRY_BUCKET = "oci-registry";
+    private static final String BLOBS_PREFIX = "blobs/";
 
     @Inject
     S3StorageService storageService;
@@ -41,19 +45,7 @@ public class BlobResourceHandler {
             @CommentPathParam("name") String repositoryName,
             @CommentPathParam("digest") String digest
     ) {
-        try {
-            long size = storageService.getBlobSize(digest);
-            return Response.ok()
-                    .header("Content-Length", size)
-                    .header("Docker-Content-Digest", digest)
-                    .build();
-        } catch (Exception e) {
-            return Response.status(404)
-                    .entity(new ErrorResponse(List.of(
-                            new ErrorResponse.Error("BLOB_UNKNOWN", "blob unknown to registry", digest)
-                    )))
-                    .build();
-        }
+        return getBlobInfo(digest, false, null);
     }
 
     @CommentGET
@@ -62,25 +54,41 @@ public class BlobResourceHandler {
             @CommentPathParam("name") String repositoryName,
             @CommentPathParam("digest") String digest
     ) {
+        return getBlobInfo(digest, true, repositoryName);
+    }
 
+    private Response getBlobInfo(String digest, boolean includeContent, String repositoryName) {
         try {
-            InputStream blobStream = storageService.getBlobStream(digest);
-            if (blobStream == null) {
-                return Response.status(404)
-                        .entity(new ErrorResponse(List.of(
-                                new ErrorResponse.Error("BLOB_UNKNOWN", "blob unknown to registry", digest)
-                        )))
-                        .build();
+            if (!validateDigest(digest)) {
+                return createErrorResponse("DIGEST_INVALID", "invalid digest format", digest);
+            }
+            
+            long size = storageService.getBlobSize(digest);
+            if (size < 0) {
+                return createErrorResponse("BLOB_UNKNOWN", "blob unknown to registry", digest);
             }
 
-            long size = storageService.getBlobSize(digest);
-            return Response.ok(blobStream)
+            Response.ResponseBuilder responseBuilder = Response.ok()
                     .header("Content-Length", size)
                     .header("Docker-Content-Digest", digest)
-                    .build();
+                    .header("OCI-Chunk-Min-Length", CHUNK_MIN_LENGTH);
+
+            if (includeContent) {
+                InputStream blobStream = storageService.getBlobStream(digest);
+                if (blobStream == null) {
+                    return createErrorResponse("BLOB_UNKNOWN", "blob unknown to registry", digest);
+                }
+                responseBuilder.entity(blobStream);
+            }
+
+            return responseBuilder.build();
 
         } catch (IOException e) {
+            log.error("Error accessing blob: {}", digest, e);
             return Response.status(500).build();
+        } catch (Exception e) {
+            log.error("Unexpected error accessing blob: {}", digest, e);
+            return createErrorResponse("BLOB_UNKNOWN", "blob unknown to registry", digest);
         }
     }
 
@@ -93,44 +101,31 @@ public class BlobResourceHandler {
             @CommentQueryParam("from") String from,
             InputStream uploadStream
     ) {
-        if (StringUtils.isNotBlank(mount)) {
-            try {
-                if (storageService.getBlobSize(digest) > 0) {
-                    String responseLocationRepository = StringUtils.isNotBlank(from) ? from : repositoryName;
-                    return Response.status(201)
-                            .header("Location", "/v2/" + responseLocationRepository + "/blobs/" + digest)
-                            .header("OCI-Chunk-Min-Length", 1 << 24)
-                            .build();
+        try {
+            // Check for mount request
+            if (StringUtils.isNotBlank(mount) && StringUtils.isNotBlank(digest)) {
+                if (canMountBlob(digest)) {
+                    String targetRepository = StringUtils.isNotBlank(from) ? from : repositoryName;
+                    return createMountResponse(targetRepository, digest);
                 }
-            } catch (Exception e) {
             }
+
+            // Ensure repository exists
+            ensureRepositoryExists(repositoryName);
+
+            String uploadUuid = UUID.randomUUID().toString();
+
+            // If digest provided, complete upload immediately
+            if (StringUtils.isNotBlank(digest)) {
+                return completeBlobUpload(repositoryName, uploadUuid, digest, uploadStream);
+            }
+
+            return createUploadStartResponse(repositoryName, uploadUuid);
+
+        } catch (Exception e) {
+            log.error("Error starting blob upload for repository: {}", repositoryName, e);
+            return Response.status(500).build();
         }
-
-        Repository repo = Repository.findByName(repositoryName);
-        if (repo == null) {
-            repo = new Repository(repositoryName);
-            repo.persist();
-        }
-
-
-        String uploadUuid = UUID.randomUUID().toString();
-
-        if (StringUtils.isNotBlank(digest)) {
-            return completeBlobUpload(
-                    repositoryName,
-                    uploadUuid,
-                    digest,
-                    uploadStream
-            );
-        }
-
-        String location = "/v2/" + repositoryName + "/blobs/uploads/" + uploadUuid;
-
-        return Response.status(202)
-                .header("Location", location)
-                .header("Docker-Upload-UUID", uploadUuid)
-                .header("OCI-Chunk-Min-Length", 1 << 24)
-                .build();
     }
 
     @CommentPOST
@@ -157,20 +152,11 @@ public class BlobResourceHandler {
             // Store blob metadata
             Blob existingBlob = Blob.findByDigest(actualDigest);
             if (existingBlob == null) {
-                Blob blob = new Blob();
-                blob.digest = actualDigest;
-                blob.contentLength = storageService.getBlobSize(actualDigest);
-                blob.s3Key = "blobs/" + actualDigest.replace(":", "/");
-                blob.s3Bucket = "oci-registry"; // Should be configurable
+                Blob blob = createBlobMetadata(actualDigest);
                 blob.persist();
             }
 
-            String location = "/v2/" + repositoryName + "/blobs/" + actualDigest;
-            return Response.status(201)
-                    .header("Location", location)
-                    .header("Docker-Content-Digest", actualDigest)
-                    .header("OCI-Chunk-Min-Length", 1 << 24)
-                    .build();
+            return createBlobUploadCompleteResponse(repositoryName, actualDigest);
 
         } catch (IllegalArgumentException e) {
             return Response.status(400)
@@ -249,7 +235,7 @@ public class BlobResourceHandler {
             return Response.status(202)
                     .header("Location", location)
                     .header("Range", "0-" + (endBytes - 1))
-                    .header("OCI-Chunk-Min-Length", 1 << 24)
+                    .header("OCI-Chunk-Min-Length", CHUNK_MIN_LENGTH)
                     .build();
         } catch (WithResponseException e) {
             log.error("completeBlobUploadChunkPatch failed WithResponseException", e);
@@ -302,7 +288,7 @@ public class BlobResourceHandler {
             return Response.status(201)
                     .header("Location", location)
                     .header("Docker-Content-Digest", actualDigest)
-                    .header("OCI-Chunk-Min-Length", 1 << 24)
+                    .header("OCI-Chunk-Min-Length", CHUNK_MIN_LENGTH)
                     .build();
         } catch (WithResponseException e) {
             log.error("completeBlobUploadChunkPatch failed WithResponseException", e);
@@ -325,7 +311,7 @@ public class BlobResourceHandler {
             return Response.status(204)
                     .header("Location", location)
                     .header("Range", "0-" + (calculateTempChunkResult.bytesWritten() - 1))
-                    .header("OCI-Chunk-Min-Length", 1 << 24)
+                    .header("OCI-Chunk-Min-Length", CHUNK_MIN_LENGTH)
                     .build();
         } catch (Exception e) {
             log.error("completeBlobUploadChunkPatch failed", e);
@@ -339,23 +325,85 @@ public class BlobResourceHandler {
             @CommentPathParam("name") String repositoryName,
             @CommentPathParam("digest") String digest
     ) {
-
-        Blob blob = Blob.findByDigest(digest);
-        if (blob == null) {
-            return Response.status(404)
-                    .entity(new ErrorResponse(List.of(
-                            new ErrorResponse.Error("BLOB_UNKNOWN", "blob unknown to registry", digest)
-                    )))
-                    .build();
-        }
-
         try {
+            if (!validateDigest(digest)) {
+                return createErrorResponse("DIGEST_INVALID", "invalid digest format", digest);
+            }
+
+            Blob blob = Blob.findByDigest(digest);
+            if (blob == null) {
+                return createErrorResponse("BLOB_UNKNOWN", "blob unknown to registry", digest);
+            }
+
             storageService.deleteBlob(digest);
             blob.delete();
             return Response.status(202).build();
         } catch (IOException e) {
+            log.error("Error deleting blob: {}", digest, e);
             return Response.status(500).build();
         }
+    }
+
+    private boolean validateDigest(String digest) {
+        return StringValidationUtil.isValidDigest(digest);
+    }
+
+    private boolean canMountBlob(String digest) {
+        try {
+            return storageService.getBlobSize(digest) > 0;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    private void ensureRepositoryExists(String repositoryName) {
+        Repository repo = Repository.findByName(repositoryName);
+        if (repo == null) {
+            repo = new Repository(repositoryName);
+            repo.persist();
+        }
+    }
+
+    private Response createMountResponse(String repositoryName, String digest) {
+        return Response.status(201)
+                .header("Location", "/v2/" + repositoryName + "/blobs/" + digest)
+                .header("OCI-Chunk-Min-Length", CHUNK_MIN_LENGTH)
+                .build();
+    }
+
+    private Response createUploadStartResponse(String repositoryName, String uploadUuid) {
+        String location = "/v2/" + repositoryName + "/blobs/uploads/" + uploadUuid;
+        return Response.status(202)
+                .header("Location", location)
+                .header("Docker-Upload-UUID", uploadUuid)
+                .header("OCI-Chunk-Min-Length", CHUNK_MIN_LENGTH)
+                .build();
+    }
+
+    private Response createErrorResponse(String code, String message, String detail) {
+        return Response.status(404)
+                .entity(new ErrorResponse(List.of(
+                        new ErrorResponse.Error(code, message, detail)
+                )))
+                .build();
+    }
+
+    private Blob createBlobMetadata(String digest) throws IOException {
+        Blob blob = new Blob();
+        blob.digest = digest;
+        blob.contentLength = storageService.getBlobSize(digest);
+        blob.s3Key = BLOBS_PREFIX + digest.replace(":", "/");
+        blob.s3Bucket = OCI_REGISTRY_BUCKET;
+        return blob;
+    }
+
+    private Response createBlobUploadCompleteResponse(String repositoryName, String digest) {
+        String location = "/v2/" + repositoryName + "/blobs/" + digest;
+        return Response.status(201)
+                .header("Location", location)
+                .header("Docker-Content-Digest", digest)
+                .header("OCI-Chunk-Min-Length", CHUNK_MIN_LENGTH)
+                .build();
     }
 
 }
