@@ -1,5 +1,6 @@
 package io.oci.service.handler;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.jr.ob.JSON;
 import io.oci.annotation.CommentDELETE;
 import io.oci.annotation.CommentGET;
@@ -12,6 +13,7 @@ import io.oci.dto.ErrorResponse;
 import io.oci.model.Manifest;
 import io.oci.model.Repository;
 import io.oci.service.DigestService;
+import io.oci.util.JsonUtil;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
@@ -131,32 +133,20 @@ public class ManifestResourceHandler {
             repo = new Repository(repositoryName);
             repo.persist();
         }
-        Map<String, Object> manifestMap = null;
-        String digest = null;
-        String subject = null;
+        Manifest manifest = null;
         try {
-            manifestMap = JSON.std.mapFrom(manifestContent);
+            manifest = JsonUtil.fromJson(manifestContent, Manifest.class);
         } catch (Exception ignored) {
+            manifest = new Manifest();
         }
-        if (manifestMap != null) {
-            try {
-                digest = manifestMap.get("digest").toString();
-            } catch (Exception ignored) {
-            }
-            try {
-                Object subjectMap = manifestMap.get("subject");
-                subject = ((Map) subjectMap).get("digest").toString();
-            } catch (Exception ignored) {
-            }
-        }
-        if (digest == null) {
+        if (manifest.digest == null) {
             // just as a fallback, calculate digest from content
             // TODO I know this is wrong but we just do it for now.
-            digest = digestService.calculateDigest(manifestContent);
+            manifest.digest = digestService.calculateDigest(manifestContent);
         }
 
         // Check if manifest already exists
-        Manifest existingManifest = Manifest.findByRepositoryAndDigest(repositoryName, digest);
+        Manifest existingManifest = Manifest.findByRepositoryAndDigest(repositoryName, manifest.digest);
         if (existingManifest != null) {
             // Update tag if reference is not a digest
             if (!reference.startsWith("sha256:")) {
@@ -164,19 +154,17 @@ public class ManifestResourceHandler {
                 existingManifest.update();
             }
             return Response.status(201)
-                    .header("Location", "/v2/" + repositoryName + "/manifests/" + digest)
-                    .header("Docker-Content-Digest", digest)
+                    .header("Location", "/v2/" + repositoryName + "/manifests/" + manifest.digest)
+                    .header("Docker-Content-Digest", manifest.digest)
                     .build();
         }
 
-        Manifest manifest = new Manifest();
+
         manifest.repositoryId = repo.id;
         manifest.repositoryName = repositoryName;
-        manifest.digest = digest;
         manifest.mediaType = contentType != null ? contentType : "application/vnd.docker.distribution.manifest.v2+json";
         manifest.content = manifestContent;
         manifest.contentLength = (long) manifestContent.getBytes().length;
-
         if (!reference.startsWith("sha256:")) {
             manifest.tag = reference;
         }
@@ -188,10 +176,10 @@ public class ManifestResourceHandler {
         repo.update();
 
         Response.ResponseBuilder responseBuilder = Response.status(201)
-                .header("Location", "/v2/" + repositoryName + "/manifests/" + digest)
-                .header("Docker-Content-Digest", digest);
-        if (StringUtils.isNotBlank(subject)) {
-            responseBuilder = responseBuilder.header("OCI-Subject", subject);
+                .header("Location", "/v2/" + repositoryName + "/manifests/" + manifest.digest)
+                .header("Docker-Content-Digest", manifest.digest);
+        if (manifest.subject != null && StringUtils.isNotBlank(manifest.subject.digest)) {
+            responseBuilder = responseBuilder.header("OCI-Subject", manifest.subject.digest);
         }
         return responseBuilder.build();
     }

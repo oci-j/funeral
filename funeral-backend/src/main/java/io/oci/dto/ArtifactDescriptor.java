@@ -2,6 +2,7 @@ package io.oci.dto;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import java.util.Map;
 
 @RegisterForReflection
 public class ArtifactDescriptor {
@@ -18,10 +19,21 @@ public class ArtifactDescriptor {
     @JsonProperty("size")
     public Long size;
 
-    public ArtifactDescriptor(String mediaType, String artifactType, String digest, Long size) {
+    @JsonProperty("annotations")
+    public Map<String, Object> annotations;
+
+    public ArtifactDescriptor(
+            String mediaType,
+            String artifactType,
+            String digest,
+            Long size,
+            Map<String, Object> annotations
+    ) {
         this.mediaType = mediaType;
         this.artifactType = artifactType;
         this.digest = digest;
         this.size = size;
+        this.annotations = annotations;
     }
+
 }

@@ -8,10 +8,16 @@ import java.util.List;
 @RegisterForReflection
 public class ReferrersResponse {
 
-    @JsonProperty("referrers")
-    public List<ArtifactDescriptor> referrers;
+    @JsonProperty("schemaVersion")
+    public Integer schemaVersion = 2;
+
+    @JsonProperty("mediaType")
+    public String mediaType = "application/vnd.oci.image.index.v1+json";
+
+    @JsonProperty("manifests")
+    public List<ArtifactDescriptor> manifests;
 
     public ReferrersResponse(List<ArtifactDescriptor> referrers) {
-        this.referrers = referrers;
+        this.manifests = referrers;
     }
 }

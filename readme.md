@@ -13,20 +13,22 @@ in [oci-distribution-spec](https://github.com/opencontainers/distribution-spec.g
 failed, it still doesn't mean it's ready for production.
 
 ```
-Summarizing 4 Failures:
-  [FAIL] OCI Distribution Conformance Tests Content Discovery Test content discovery endpoints (listing references) [It] GET request to nonexistent blob should result in empty 200 response
-  /home/xenoamess/workspace/distribution-spec/conformance/03_discovery_test.go:307
-  [FAIL] OCI Distribution Conformance Tests Content Discovery Test content discovery endpoints (listing references) [It] GET request to existing blob should yield 200
-  /home/xenoamess/workspace/distribution-spec/conformance/03_discovery_test.go:322
-  [FAIL] OCI Distribution Conformance Tests Content Discovery Test content discovery endpoints (listing references) [It] GET request to existing blob with filter should yield 200
-  /home/xenoamess/workspace/distribution-spec/conformance/03_discovery_test.go:343
-  [FAIL] OCI Distribution Conformance Tests Content Discovery Test content discovery endpoints (listing references) [It] GET request to missing manifest should yield 200
-  /home/xenoamess/workspace/distribution-spec/conformance/03_discovery_test.go:374
+xenoamess@xenoamessum890pro:~/workspace/distribution-spec/conformance$ ./conformance.test
+Running Suite: conformance tests - /home/xenoamess/workspace/distribution-spec/conformance
+==========================================================================================
+Random Seed: 1755533753
 
-Ran 74 of 79 Specs in 2.254 seconds
-FAIL! -- 70 Passed | 4 Failed | 0 Pending | 5 Skipped
---- FAIL: TestConformance (2.27s)
-FAIL
+Will run 79 of 79 specs
+•••••S••••••••••••••••••••••••••••••••••••S•SS••••••••••S••••••
+    WARNING: filtering by artifact-type is not implemented
+    
+    /home/xenoamess/workspace/distribution-spec/conformance/03_discovery_test.go:364
+••••••••••••••••
+HTML report was created: /home/xenoamess/workspace/distribution-spec/conformance/report.html
+
+Ran 74 of 79 Specs in 1.636 seconds
+SUCCESS! -- 74 Passed | 0 Failed | 0 Pending | 5 Skipped
+PASS
 ```
 
 # Usage

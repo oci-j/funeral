@@ -3,6 +3,7 @@ package io.oci.model;
 import io.quarkus.mongodb.panache.PanacheMongoEntity;
 import io.quarkus.mongodb.panache.common.MongoEntity;
 import io.quarkus.runtime.annotations.RegisterForReflection;
+import java.util.Map;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 import org.bson.types.ObjectId;
 
@@ -17,10 +18,26 @@ public class Manifest extends PanacheMongoEntity {
 
     @RegisterForReflection
     public static class Subject {
+
         public String digest;
+
         @BsonProperty("media_type")
         public String mediaType;
+
         public Long size;
+
+        public Subject() {
+        }
+
+        public Subject(
+                String digest,
+                String mediaType,
+                Long size
+        ) {
+            this.digest = digest;
+            this.mediaType = mediaType;
+            this.size = size;
+        }
     }
 
     @BsonProperty("repository_id")
@@ -45,6 +62,8 @@ public class Manifest extends PanacheMongoEntity {
     public String artifactType;
 
     public Subject subject;
+
+    public Map<String, Object> annotations;
 
     @BsonProperty("created_at")
     public LocalDateTime createdAt;

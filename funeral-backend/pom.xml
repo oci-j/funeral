@@ -16,6 +16,7 @@
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.version>3.25.0</quarkus.platform.version>
+        <quarkus.jvm.additional-args>--add-opens java.base/java.lang=ALL-UNNAMED</quarkus.jvm.additional-args>
     </properties>
     <dependencyManagement>
         <dependencies>
