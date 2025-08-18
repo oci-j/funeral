@@ -1,7 +1,10 @@
 package io.oci.resource;
 
+import io.oci.annotation.CommentPathParam;
+import io.oci.annotation.CommentQueryParam;
 import io.oci.service.handler.BlobResourceHandler;
 import io.oci.service.handler.ManifestResourceHandler;
+import io.oci.service.handler.ReferrerResourceHandler;
 import io.oci.service.handler.RegistryResourceHandler;
 import io.oci.service.handler.TagResourceHandler;
 import io.oci.util.SplitAtFirstUtil;
@@ -42,6 +45,9 @@ public class OciV2Resource {
 
     @Inject
     BlobResourceHandler blobResourceHandler;
+
+    @Inject
+    ReferrerResourceHandler referrerResourceHandler;
 
     @HEAD
     @Path("/{fullPath:.*}")
@@ -152,6 +158,19 @@ public class OciV2Resource {
                 return blobResourceHandler.getBlob(
                         name,
                         suffix
+                );
+            }
+        }
+        {
+            /// @see BlobResourceHandler
+            int lastIndexOfTags = fullPath.lastIndexOf("/referrers/");
+            if (lastIndexOfTags != -1) {
+                String name = fullPath.substring(0, lastIndexOfTags);
+                String digest = fullPath.substring(lastIndexOfTags + "/referrers/".length());
+                return referrerResourceHandler.getReferrers(
+                        name,
+                        digest,
+                        uriInfo.getQueryParameters().getFirst("artifactType")
                 );
             }
         }
