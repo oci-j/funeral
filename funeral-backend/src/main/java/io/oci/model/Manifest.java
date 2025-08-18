@@ -5,13 +5,23 @@ import io.quarkus.mongodb.panache.common.MongoEntity;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 import org.bson.types.ObjectId;
+
 import java.time.LocalDateTime;
 import java.util.List;
+
 import org.jetbrains.annotations.Nullable;
 
 @RegisterForReflection
 @MongoEntity(collection = "manifests")
 public class Manifest extends PanacheMongoEntity {
+
+    @RegisterForReflection
+    public static class Subject {
+        public String digest;
+        @BsonProperty("media_type")
+        public String mediaType;
+        public Long size;
+    }
 
     @BsonProperty("repository_id")
     public ObjectId repositoryId;
@@ -30,6 +40,11 @@ public class Manifest extends PanacheMongoEntity {
     public Long contentLength;
 
     public String tag;
+
+    @BsonProperty("artifact_type")
+    public String artifactType;
+
+    public Subject subject;
 
     @BsonProperty("created_at")
     public LocalDateTime createdAt;
@@ -71,6 +86,14 @@ public class Manifest extends PanacheMongoEntity {
         System.out.println("limit : " + limit);
         System.out.println(result);
         return result;
+    }
+
+    public static List<Manifest> findBySubjectDigest(String repositoryName, String subjectDigest) {
+        return find("repositoryName = ?1 and subject.digest = ?2", repositoryName, subjectDigest).list();
+    }
+
+    public static List<Manifest> findBySubjectDigestAndArtifactType(String repositoryName, String subjectDigest, String artifactType) {
+        return find("repositoryName = ?1 and subject.digest = ?2 and artifactType = ?3", repositoryName, subjectDigest, artifactType).list();
     }
 
     public static long countByRepository(String repositoryName) {
