@@ -1,7 +1,5 @@
 package io.oci.service.handler;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.jr.ob.JSON;
 import io.oci.annotation.CommentDELETE;
 import io.oci.annotation.CommentGET;
 import io.oci.annotation.CommentHEAD;
@@ -21,7 +19,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 
 @CommentPath("/v2/{name}/manifests")
