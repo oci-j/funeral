@@ -2,6 +2,7 @@ package io.oci.model;
 
 import io.quarkus.mongodb.panache.PanacheMongoEntity;
 import io.quarkus.mongodb.panache.common.MongoEntity;
+import io.quarkus.panache.common.Sort;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 import java.time.LocalDateTime;
@@ -33,6 +34,6 @@ public class Repository extends PanacheMongoEntity {
     }
 
     public static Repository findByName(String name) {
-        return find("name", name).firstResult();
+        return find("name", Sort.by("updated_at", Sort.Direction.Descending), name).firstResult();
     }
 }

@@ -2,6 +2,7 @@ package io.oci.model;
 
 import io.quarkus.mongodb.panache.PanacheMongoEntity;
 import io.quarkus.mongodb.panache.common.MongoEntity;
+import io.quarkus.panache.common.Sort;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.util.Map;
 import org.bson.codecs.pojo.annotations.BsonProperty;
@@ -68,20 +69,24 @@ public class Manifest extends PanacheMongoEntity {
     @BsonProperty("created_at")
     public LocalDateTime createdAt;
 
+    @BsonProperty("updated_at")
+    public LocalDateTime updatedAt;
+
     public Manifest() {
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     public static Manifest findByRepositoryAndDigest(String repositoryName, String digest) {
-        return find("repositoryName = ?1 and digest = ?2", repositoryName, digest).firstResult();
+        return find("repositoryName = ?1 and digest = ?2", Sort.by("updated_at", Sort.Direction.Descending), repositoryName, digest).firstResult();
     }
 
     public static Manifest findByRepositoryAndTag(String repositoryName, String tag) {
-        return find("repositoryName = ?1 and tag = ?2", repositoryName, tag).firstResult();
+        return find("repositoryName = ?1 and tag = ?2", Sort.by("updated_at", Sort.Direction.Descending), repositoryName, tag).firstResult();
     }
 
     public static List<Manifest> findByRepository(String repositoryName) {
-        return find("repositoryName", repositoryName).list();
+        return find("repositoryName", Sort.by("updated_at", Sort.Direction.Descending), repositoryName).list();
     }
 
     public static List<String> findTagsByRepository(
@@ -91,11 +96,11 @@ public class Manifest extends PanacheMongoEntity {
     ) {
         List<Manifest> manifests;
         if (last == null) {
-            manifests = find("repositoryName = ?1 and tag != ?2", repositoryName, null)
+            manifests = find("repositoryName = ?1 and tag != ?2", Sort.by("updated_at", Sort.Direction.Descending), repositoryName, null)
                     .page(0, limit)
                     .list();
         } else {
-            manifests = find("repositoryName = ?1 and tag != ?2 and tag > ?3", repositoryName, null, last)
+            manifests = find("repositoryName = ?1 and tag != ?2 and tag > ?3", Sort.by("updated_at", Sort.Direction.Descending), repositoryName, null, last)
                     .page(0, limit)
                     .list();
         }
@@ -108,14 +113,14 @@ public class Manifest extends PanacheMongoEntity {
     }
 
     public static List<Manifest> findBySubjectDigest(String repositoryName, String subjectDigest) {
-        return find("repositoryName = ?1 and subject.digest = ?2", repositoryName, subjectDigest).list();
+        return find("repositoryName = ?1 and subject.digest = ?2", Sort.by("updated_at", Sort.Direction.Descending), repositoryName, subjectDigest).list();
     }
 
     public static List<Manifest> findBySubjectDigestAndArtifactType(String repositoryName, String subjectDigest, String artifactType) {
-        return find("repositoryName = ?1 and subject.digest = ?2 and artifactType = ?3", repositoryName, subjectDigest, artifactType).list();
+        return find("repositoryName = ?1 and subject.digest = ?2 and artifactType = ?3", Sort.by("updated_at", Sort.Direction.Descending), repositoryName, subjectDigest, artifactType).list();
     }
 
     public static long countByRepository(String repositoryName) {
-        return count("repositoryName = ?1 and tag != null", repositoryName);
+        return count("repositoryName = ?1 and tag != null", Sort.by("updated_at", Sort.Direction.Descending), repositoryName);
     }
 }
