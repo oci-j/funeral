@@ -2,9 +2,11 @@ package io.oci.model;
 
 import io.quarkus.mongodb.panache.PanacheMongoEntity;
 import io.quarkus.mongodb.panache.common.MongoEntity;
+import io.quarkus.panache.common.Sort;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 import org.bson.codecs.pojo.annotations.BsonProperty;
 import java.time.LocalDateTime;
+import java.util.List;
 
 @RegisterForReflection
 @MongoEntity(collection = "blobs")
@@ -27,11 +29,15 @@ public class Blob extends PanacheMongoEntity {
     @BsonProperty("created_at")
     public LocalDateTime createdAt;
 
+    @BsonProperty("updated_at")
+    public LocalDateTime updatedAt;
+
     public Blob() {
         this.createdAt = LocalDateTime.now();
+        this.updatedAt = LocalDateTime.now();
     }
 
     public static Blob findByDigest(String digest) {
-        return find("digest", digest).firstResult();
+        return find("digest", Sort.by("updated_at", Sort.Direction.Descending), digest).firstResult();
     }
 }
