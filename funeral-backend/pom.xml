@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.xenoamess.oci-j</groupId>
     <artifactId>funeral</artifactId>
-    <version>0.1.1</version>
+    <version>0.1.2</version>
     <properties>
         <compiler-plugin.version>3.11.0</compiler-plugin.version>
         <maven.compiler.release>17</maven.compiler.release>
@@ -17,9 +17,10 @@
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.version>3.25.0</quarkus.platform.version>
         <quarkus.jvm.additional-args>--add-opens java.base/java.lang=ALL-UNNAMED</quarkus.jvm.additional-args>
-        <quarkus.native.additional-build-args>-H:+RemoveUnusedSymbols,-march=compatibility</quarkus.native.additional-build-args>
-        <quarkus.native.compression.level>10</quarkus.native.compression.level>
-        <quarkus.native.compression.additional-args>--ultra-brute,-v</quarkus.native.compression.additional-args>
+        <quarkus.native.additional-build-args>-H:+RemoveUnusedSymbols,-march=compatibility,--static,--libc=musl</quarkus.native.additional-build-args>
+        <quarkus.native.container-build>true</quarkus.native.container-build>
+<!--        <quarkus.native.compression.level>10</quarkus.native.compression.level>-->
+<!--        <quarkus.native.compression.additional-args>&#45;&#45;ultra-brute,-v</quarkus.native.compression.additional-args>-->
     </properties>
     <dependencyManagement>
         <dependencies>
