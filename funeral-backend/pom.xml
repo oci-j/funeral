@@ -5,7 +5,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.xenoamess.oci-j</groupId>
     <artifactId>funeral</artifactId>
-    <version>0.1.4</version>
+    <version>0.1.5</version>
     <properties>
         <compiler-plugin.version>3.11.0</compiler-plugin.version>
         <maven.compiler.release>17</maven.compiler.release>
