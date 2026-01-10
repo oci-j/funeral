@@ -4,9 +4,10 @@
   "type": "module",
   "scripts": {
     "dev": "cd .. && ./sync-frontend-from-pom.sh && cd funeral-frontend && vite",
-    "build": "cd .. && ./sync-frontend-from-pom.sh && cd funeral-frontend && vite build",
+    "build": "cd .. && ./sync-frontend-from-pom.sh && cd funeral-frontend && rm -rf dist && vite build && cd .. && ./sync-dist-to-backend.sh",
     "preview": "vite preview",
-    "sync-version": "cd .. && ./sync-frontend-from-pom.sh"
+    "sync-version": "cd .. && ./sync-frontend-from-pom.sh",
+    "sync-to-backend": "cd .. && ./sync-dist-to-backend.sh"
   },
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
