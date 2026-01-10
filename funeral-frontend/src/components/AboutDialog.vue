@@ -1,65 +1,64 @@
 <template>
   <el-dialog
     v-model="visible"
-    title="About FUNERAL"
-    width="500px"
+    width="700px"
     :close-on-click-modal="true"
-    class="about-dialog"
+    :lock-scroll="false"
+    align-center
+    class="about-dialog centered-dialog"
   >
     <div class="about-content">
-      <div class="logo-section">
-        <img src="/image/funeral.jpg" alt="FUNERAL Logo" class="about-logo" />
-      </div>
+      <!-- Center wrapper -->
+      <div class="about-content-wrapper">
+        <div class="logo-section">
+          <img src="/image/funeral.jpg" alt="FUNERAL Logo" class="about-logo" />
+        </div>
 
-      <div class="info-section">
-        <h2 class="project-name">FUNERAL</h2>
-        <p class="project-description">Open Container Initiative (OCI) Registry</p>
+        <div class="info-section">
+          <h2 class="project-name">FUNERAL</h2>
+          <p class="project-description">Open Container Initiative (OCI) Registry</p>
+          <el-descriptions :column="1" border class="centered-table">
+            <el-descriptions-item label="Version">
+              <el-tag type="info">{{ version }}</el-tag>
+            </el-descriptions-item>
 
-        <el-descriptions :column="1" border>
-          <el-descriptions-item label="Version">
-            <el-tag type="info">{{ version }}</el-tag>
-          </el-descriptions-item>
+            <el-descriptions-item label="Project URL">
+              <el-link
+                type="primary"
+                href="https://github.com/oci-j/funeral.git"
+                target="_blank"
+              >
+                https://github.com/oci-j/funeral.git
+              </el-link>
+            </el-descriptions-item>
 
-          <el-descriptions-item label="Project URL">
-            <el-link
-              type="primary"
-              href="https://github.com/oci-j/funeral.git"
-              target="_blank"
-            >
-              https://github.com/oci-j/funeral.git
-            </el-link>
-          </el-descriptions-item>
+            <el-descriptions-item label="License">
+              <el-tag type="warning">Apache 2.0</el-tag>
+            </el-descriptions-item>
 
-          <el-descriptions-item label="License">
-            <el-tag type="warning">Apache 2.0</el-tag>
-          </el-descriptions-item>
+            <el-descriptions-item label="Author">
+              XenoAmess
+            </el-descriptions-item>
 
-          <el-descriptions-item label="Author">
-            XenoAmess
-          </el-descriptions-item>
+            <el-descriptions-item label="Description">
+              A lightweight OCI (Open Container Initiative) image registry implemented in Java that follows the OCI Distribution Specification.
+            </el-descriptions-item>
+          </el-descriptions>
 
-          <el-descriptions-item label="Description">
-            A lightweight OCI (Open Container Initiative) image registry implemented in Java that follows the OCI Distribution Specification.
-          </el-descriptions-item>
-        </el-descriptions>
-
-        <div class="tech-stack">
-          <h3>Technology Stack</h3>
-          <div class="tech-tags">
-            <el-tag size="small">Java/GraalVm</el-tag>
-            <el-tag size="small" type="success">Quarkus</el-tag>
-            <el-tag size="small" type="info">Vue.js 3</el-tag>
-            <el-tag size="small" type="warning">Element Plus</el-tag>
-            <el-tag size="small" type="danger">MongoDB</el-tag>
-            <el-tag size="small" type="info">MinIO</el-tag>
+          <div class="tech-stack">
+            <h3>Technology Stack</h3>
+            <div class="tech-tags">
+              <el-tag size="small">Java/GraalVm</el-tag>
+              <el-tag size="small" type="success">Quarkus</el-tag>
+              <el-tag size="small" type="info">Vue.js 3</el-tag>
+              <el-tag size="small" type="warning">Element Plus</el-tag>
+              <el-tag size="small" type="danger">MongoDB</el-tag>
+              <el-tag size="small" type="info">MinIO</el-tag>
+            </div>
           </div>
         </div>
       </div>
     </div>
-
-    <template #footer>
-      <el-button @click="visible = false">Close</el-button>
-    </template>
   </el-dialog>
 </template>
 
@@ -85,17 +84,50 @@ defineExpose({
 })
 </script>
 
-<style scoped>
+<style>
+/* Remove scoped to ensure styles are applied */
+
+/* Center the dialog vertically and horizontally */
+.centered-dialog {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.centered-dialog .el-dialog {
+  margin: 0 !important;
+}
+
 .about-dialog {
   --el-dialog-border-radius: 12px;
 }
 
-.about-content {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
+/* Center the dialog title - with higher specificity */
+.about-dialog .el-dialog__header {
+  text-align: center !important;
+  padding: 24px 20px !important;
 }
 
+.about-dialog .el-dialog__title {
+  font-size: 24px;
+  font-weight: bold;
+  color: #303133;
+  display: block;
+  width: 100%;
+  text-align: center;
+}
+
+/* Simple centering - remove flex to avoid issues */
+.about-content {
+  padding: 20px;
+}
+
+.about-content-wrapper {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+/* Logo styling */
 .logo-section {
   display: flex;
   justify-content: center;
@@ -103,54 +135,84 @@ defineExpose({
 }
 
 .about-logo {
-  width: 120px;
-  height: 120px;
+  width: 250px;
+  height: 250px;
   object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
+/* Info section with consistent spacing */
 .info-section {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
+/* Project name and description */
 .project-name {
   text-align: center;
   margin: 0;
   color: #303133;
-  font-size: 28px;
+  font-size: 32px;
+  font-weight: bold;
 }
 
 .project-description {
   text-align: center;
   margin: 0;
   color: #606266;
-  font-size: 16px;
+  font-size: 18px;
+  letter-spacing: 0.5px;
 }
 
+/* Center the descriptions table */
+.about-content .el-descriptions {
+  width: 100% !important;
+  max-width: 600px !important;
+  margin: 0 auto !important;
+}
+
+:global(.about-content .el-descriptions .el-descriptions__body) {
+  margin: 0 auto !important;
+}
+
+:global(.about-content .el-descriptions table) {
+  margin: 0 auto !important;
+}
+
+.about-dialog .el-descriptions-item__label {
+  width: 120px;
+  text-align: right;
+  font-weight: 600;
+}
+
+/* Tech stack section */
 .tech-stack {
-  margin-top: 20px;
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .tech-stack h3 {
-  margin: 0 0 12px 0;
+  margin: 0 0 20px 0;
   color: #303133;
-  font-size: 16px;
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
 }
 
 .tech-tags {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
+  justify-content: center;
+  max-width: 600px;
 }
 
-.tech-tags .el-tag {
+.tech-tags :deep(.el-tag) {
   font-weight: normal;
 }
 
-:deep(.el-descriptions-item__label) {
-  width: 100px;
-  text-align: right;
-  font-weight: 600;
-}
 </style>

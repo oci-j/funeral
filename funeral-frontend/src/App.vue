@@ -6,6 +6,14 @@
           <div class="logo-section">
             <img src="/image/funeral.jpg" alt="FUNERAL Logo" class="logo-image" />
             <h2>FUNERAL - OCI Registry</h2>
+            <el-button
+              type="info"
+              :icon="InfoFilled"
+              circle
+              @click="$refs.aboutDialog.open()"
+              title="About FUNERAL"
+              style="margin-left: 0;"
+            />
           </div>
           <div class="header-actions">
             <!-- Auth status tag -->
@@ -64,18 +72,6 @@
                 <span>Admin</span>
               </el-menu-item>
             </el-menu>
-
-            <div class="sidebar-footer">
-              <el-menu
-                class="el-menu-vertical"
-                @select="handleMenuSelect"
-              >
-                <el-menu-item index="about">
-                  <el-icon><InfoFilled /></el-icon>
-                  <span>About</span>
-                </el-menu-item>
-              </el-menu>
-            </div>
           </div>
         </el-aside>
 
@@ -162,12 +158,32 @@ body {
 .header-content {
   display: flex;
   align-items: center;
+  justify-content: space-between;
 }
 
 .logo-section {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+.logo-section h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.logo-section .el-button {
+  background-color: rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  margin-left: 12px;
+  transition: all 0.3s ease;
+}
+
+.logo-section .el-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-2px);
 }
 
 .logo-image {
@@ -182,7 +198,9 @@ body {
 }
 
 .header-actions {
-  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 16px;
 }
 
 .user-menu {

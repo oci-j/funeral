@@ -46,10 +46,27 @@
       <slot name="footer"></slot>
     </div>
   </div>
+
+  <!-- About Button - Fixed at bottom left -->
+  <div class="about-button-container">
+    <el-button
+      type="info"
+      plain
+      circle
+      @click="openAbout"
+      title="About FUNERAL"
+    >
+      <el-icon><InfoFilled /></el-icon>
+    </el-button>
+  </div>
+
+  <AboutDialog ref="aboutDialogRef" />
 </template>
 
 <script setup>
-import { computed } from 'vue'
+import { ref } from 'vue'
+import { InfoFilled } from '@element-plus/icons-vue'
+import AboutDialog from './AboutDialog.vue'
 
 const props = defineProps({
   // Page header
@@ -112,6 +129,12 @@ const props = defineProps({
     default: false
   }
 })
+
+const aboutDialogRef = ref(null)
+
+const openAbout = () => {
+  aboutDialogRef.value?.open?.()
+}
 </script>
 
 <style scoped>
@@ -169,5 +192,25 @@ const props = defineProps({
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
+}
+
+/* About button styles */
+:global(.about-button-container) {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 1000;
+}
+
+:global(.about-button-container .el-button) {
+  width: 48px;
+  height: 48px;
+  box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  transition: all 0.3s ease;
+}
+
+:global(.about-button-container .el-button:hover) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.15);
 }
 </style>

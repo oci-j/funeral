@@ -1,12 +1,17 @@
 <template>
-  <div class="home-container">
-    <div class="page-header">
-      <h1>Repositories</h1>
+  <CommonPageLayout
+    title="Repositories"
+    :loading="loading"
+    :empty="repositories.length === 0"
+    empty-text="No repositories found"
+    :items="repositories"
+  >
+    <template #actions>
       <el-button type="primary" @click="refreshRepositories">
         <el-icon><RefreshRight /></el-icon>
         Refresh
       </el-button>
-    </div>
+    </template>
 
     <el-table
       v-loading="loading"
@@ -43,12 +48,7 @@
         </template>
       </el-table-column>
     </el-table>
-
-    <el-empty
-      v-if="!loading && repositories.length === 0"
-      description="No repositories found"
-    />
-  </div>
+  </CommonPageLayout>
 </template>
 
 <script setup>
@@ -57,6 +57,8 @@ import { useRouter } from 'vue-router'
 import { RefreshRight } from '@element-plus/icons-vue'
 import { registryApi } from '../api/registry'
 import { useProtectedPage } from '../composables/useAuthCheck'
+import { formatDate } from '../utils/common'
+import CommonPageLayout from '../components/CommonPageLayout.vue'
 
 const router = useRouter()
 const repositories = ref([])
@@ -79,16 +81,6 @@ const fetchRepositories = async () => {
 
 const refreshRepositories = () => {
   fetchRepositories()
-}
-
-const formatDate = (dateString) => {
-  if (!dateString) return 'Unknown'
-  try {
-    const date = new Date(dateString)
-    return date.toLocaleString()
-  } catch (error) {
-    return dateString
-  }
 }
 
 const viewRepository = (name) => {
@@ -131,19 +123,5 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.home-container {
-  padding: 20px;
-}
-
-.page-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-}
-
-.page-header h1 {
-  margin: 0;
-  font-size: 24px;
-}
+/* No additional styles needed - CommonPageLayout handles it */
 </style>
