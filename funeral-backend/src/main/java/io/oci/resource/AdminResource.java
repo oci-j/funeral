@@ -37,9 +37,6 @@ public class AdminResource {
     @Named("repositoryPermissionStorage")
     RepositoryPermissionStorage permissionStorage;
 
-    @ConfigProperty(name = "quarkus.http.auth.basic", defaultValue = "false")
-    boolean basicAuthEnabled;
-
     @GET
     @Path("/users")
     @Produces(MediaType.APPLICATION_JSON)
