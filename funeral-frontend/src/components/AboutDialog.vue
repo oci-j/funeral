@@ -104,17 +104,7 @@ defineExpose({
 
 /* Center the dialog title - with higher specificity */
 .about-dialog .el-dialog__header {
-  text-align: center !important;
-  padding: 24px 20px !important;
-}
-
-.about-dialog .el-dialog__title {
-  font-size: 24px;
-  font-weight: bold;
-  color: #303133;
-  display: block;
-  width: 100%;
-  text-align: center;
+  display: none;
 }
 
 /* Simple centering - remove flex to avoid issues */
