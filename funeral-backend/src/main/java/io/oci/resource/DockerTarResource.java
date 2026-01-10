@@ -22,6 +22,7 @@ import jakarta.ws.rs.core.Response;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.commons.compress.compressors.zstandard.ZstdCompressorInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.io.BufferedInputStream;
@@ -172,7 +173,7 @@ public class DockerTarResource {
             ZipEntry entry;
             while ((entry = zis.getNextEntry()) != null) {
                 String entryName = entry.getName().toLowerCase();
-                if (entryName.endsWith(".tar") || entryName.endsWith(".tar.gz") || entryName.endsWith(".tgz")) {
+                if (entryName.endsWith(".tar") || entryName.endsWith(".tar.gz") || entryName.endsWith(".tgz") || entryName.endsWith(".tar.zst")) {
                     log.info("Found tar file in zip: {}", entry.getName());
 
                     // Extract the tar file
@@ -216,28 +217,79 @@ public class DockerTarResource {
 
         // Check if the file is gzip compressed by reading the first few bytes
         boolean isGzip = false;
+        boolean isZstd = false;
+        int bytesRead = 0;
+        byte[] signature = new byte[4];
         try (FileInputStream checkFis = new FileInputStream(tarFile)) {
-            byte[] signature = new byte[2];
-            int bytesRead = checkFis.read(signature);
+            bytesRead = checkFis.read(signature);
             // Gzip signature is 0x1f 0x8b (31, 139)
-            // Note: bytes in Java are signed, so we need to compare with & 0xFF
-            if (bytesRead == 2 && (signature[0] & 0xFF) == 0x1f && (signature[1] & 0xFF) == 0x8b) {
+            if (bytesRead >= 2 && (signature[0] & 0xFF) == 0x1f && (signature[1] & 0xFF) == 0x8b) {
                 isGzip = true;
+                log.info("Detected gzip signature: {}{} (0x1f 0x8b)",
+                    String.format("%02X", signature[0] & 0xFF), String.format("%02X", signature[1] & 0xFF));
+            }
+            // Zstandard signature is 0xFD, 0x2F, 0xB5, 0x28 (magic number)
+            // But some files may have 0x28, 0xB5, 0x2F, 0xFD (little-endian byte order)
+            else if (bytesRead >= 4 && signature[0] == (byte) 0xFD && signature[1] == (byte) 0x2F &&
+                     signature[2] == (byte) 0xB5 && signature[3] == (byte) 0x28) {
+                isZstd = true;
+                log.info("Detected Zstandard signature: {}{}{}{} (big-endian)",
+                    String.format("%02X", signature[0] & 0xFF),
+                    String.format("%02X", signature[1] & 0xFF),
+                    String.format("%02X", signature[2] & 0xFF),
+                    String.format("%02X", signature[3] & 0xFF));
+            }
+            // Check for little-endian Zstandard signature
+            else if (bytesRead >= 4 && signature[0] == (byte) 0x28 && signature[1] == (byte) 0xB5 &&
+                     signature[2] == (byte) 0x2F && signature[3] == (byte) 0xFD) {
+                isZstd = true;
+                log.info("Detected Zstandard signature: {}{}{}{} (little-endian)",
+                    String.format("%02X", signature[0] & 0xFF),
+                    String.format("%02X", signature[1] & 0xFF),
+                    String.format("%02X", signature[2] & 0xFF),
+                    String.format("%02X", signature[3] & 0xFF));
+            } else if (bytesRead >= 4) {
+                log.info("File signature: {}{}{}{} (not recognized as gzip or zstd)",
+                    String.format("%02X", signature[0] & 0xFF),
+                    String.format("%02X", signature[1] & 0xFF),
+                    String.format("%02X", signature[2] & 0xFF),
+                    String.format("%02X", signature[3] & 0xFF));
+            } else if (bytesRead >= 2) {
+                log.info("File signature: {}{} (too short, not recognized)",
+                    String.format("%02X", signature[0] & 0xFF),
+                    String.format("%02X", signature[1] & 0xFF));
+            } else {
+                log.warn("Could not read file signature, file might be too small or corrupted");
             }
         }
 
         // Now process the file with the appropriate stream
-        if (isGzip) {
+        if (isZstd) {
+            log.info("Detected Zstandard compressed tar file (.tar.zst), decompressing...");
+            try (FileInputStream fis = new FileInputStream(tarFile);
+                 BufferedInputStream bis = new BufferedInputStream(fis, 8192);
+                 ZstdCompressorInputStream zstdStream = new ZstdCompressorInputStream(bis)) {
+                processTarStream(zstdStream, result, manifestList, foundFiles, blobContentMap);
+            } catch (Exception e) {
+                log.error("Failed to decompress Zstandard stream", e);
+                throw new IOException("Failed to decompress Zstandard stream: " + e.getMessage(), e);
+            }
+        } else if (isGzip) {
             log.info("Detected gzip compressed tar file, decompressing...");
             try (FileInputStream fis = new FileInputStream(tarFile);
-                 GzipCompressorInputStream gzipStream = new GzipCompressorInputStream(fis)) {
+                 BufferedInputStream bis = new BufferedInputStream(fis, 8192);
+                 GzipCompressorInputStream gzipStream = new GzipCompressorInputStream(bis)) {
                 processTarStream(gzipStream, result, manifestList, foundFiles, blobContentMap);
+            } catch (Exception e) {
+                log.error("Failed to decompress gzip stream", e);
+                throw new IOException("Failed to decompress gzip stream: " + e.getMessage(), e);
             }
         } else {
             // Plain tar file
             log.info("Processing as plain tar file...");
-            try (FileInputStream fis = new FileInputStream(tarFile)) {
-                processTarStream(fis, result, manifestList, foundFiles, blobContentMap);
+            try (FileInputStream fis = new FileInputStream(tarFile);
+                 BufferedInputStream bis = new BufferedInputStream(fis, 8192)) {
+                processTarStream(bis, result, manifestList, foundFiles, blobContentMap);
             }
         }
 
@@ -305,10 +357,12 @@ public class DockerTarResource {
     private void processTarStream(InputStream inputStream, TarParseResult result,
                                   List<ManifestInfo> manifestList, List<String> foundFiles,
                                   Map<String, byte[]> blobContentMap) throws IOException {
+        int entryCount = 0;
         try (TarArchiveInputStream tarInput = new TarArchiveInputStream(inputStream)) {
             ArchiveEntry entry;
             boolean foundManifest = false;
             while ((entry = tarInput.getNextEntry()) != null) {
+                entryCount++;
                 if (entry.isDirectory()) {
                     continue;
                 }
@@ -351,7 +405,7 @@ public class DockerTarResource {
                     String digest = extractDigestFromFilename(entryName);
                     blobContentMap.put(digest, content);
                     log.info("Read {} bytes for config blob {}. Map size now: {}", content.length, digest, blobContentMap.size());
-                } else if (entryName.endsWith(".tar.gz") || entryName.endsWith(".tar")) {
+                } else if (entryName.endsWith(".tar.gz") || entryName.endsWith(".tar") || entryName.endsWith(".tar.zst")) {
                     // These are layer files (Docker format), read them as blobs
                     log.info("Reading layer blob: {}", entryName);
                     byte[] content = readEntryContent(tarInput, entry);
@@ -361,12 +415,21 @@ public class DockerTarResource {
                 }
             }
 
+            log.info("Successfully processed {} entries from tar archive", entryCount);
+
             if (!foundManifest) {
                 log.warn("No manifest.json found in tar file. Available files:");
                 for (String fileName : foundFiles) {
                     log.warn("Entry: {}", fileName);
                 }
+                throw new IOException("No manifest.json found in tar file. Processed " + entryCount + " entries.");
             }
+        } catch (IOException e) {
+            log.error("IO error while processing tar stream at entry {}: {}", entryCount, e.getMessage());
+            throw new IOException("IO error while processing tar stream at entry " + entryCount + ": " + e.getMessage(), e);
+        } catch (Exception e) {
+            log.error("Unexpected error while processing tar stream at entry {}: {}", entryCount, e.getMessage());
+            throw new IOException("Unexpected error while processing tar stream at entry " + entryCount + ": " + e.getMessage(), e);
         }
     }
 
@@ -420,8 +483,8 @@ public class DockerTarResource {
                         for (int i = 0; i < layersNode.size(); i++) {
                             String layerFile = layersNode.get(i).asText();
                             // Remove file extension and extract just the digest
-                            // Layer might be "abc...def.tar.gz" or "blobs/sha256/abc...def.tar.gz"
-                            String layerNoExt = layerFile.replace(".tar.gz", "").replace(".tar", "").replace(".layer", "");
+                            // Layer might be "abc...def.tar.gz" or "blobs/sha256/abc...def.tar.gz" or "abc...def.tar.zst"
+                            String layerNoExt = layerFile.replace(".tar.gz", "").replace(".tar.zst", "").replace(".tar", "").replace(".layer", "");
                             String layerDigest = extractDigestFromFilename(layerNoExt);
                             info.layers[i] = layerDigest;
                             log.debug("Layer file: {}, extracted digest: {}", layerFile, layerDigest);
@@ -514,14 +577,26 @@ public class DockerTarResource {
         byte[] buffer = new byte[8192];
         int bytesRead;
         long totalBytes = 0;
+        long entrySize = entry.getSize();
 
-        while ((bytesRead = tarInput.read(buffer)) != -1) {
-            baos.write(buffer, 0, bytesRead);
-            totalBytes += bytesRead;
-            if (totalBytes >= entry.getSize()) {
-                break; // We've read all the content
+        log.debug("Reading entry content for {} (expected size: {} bytes)", entry.getName(), entrySize);
+
+        try {
+            while ((bytesRead = tarInput.read(buffer)) != -1) {
+                baos.write(buffer, 0, bytesRead);
+                totalBytes += bytesRead;
+                if (totalBytes >= entrySize && entrySize > 0) {
+                    break; // We've read all the content
+                }
             }
+        } catch (IOException e) {
+            log.error("IO error reading entry {}: read {} of {} bytes - {}",
+                entry.getName(), totalBytes, entrySize, e.getMessage());
+            throw e;
         }
+
+        log.debug("Successfully read {} bytes for entry {} (expected: {})",
+            totalBytes, entry.getName(), entrySize);
 
         return baos.toByteArray();
     }
