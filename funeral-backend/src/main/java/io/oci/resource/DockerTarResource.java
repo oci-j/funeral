@@ -310,16 +310,21 @@ public class DockerTarResource {
                     tag = repoTag.substring(lastColonIndex + 1);
                     String repoPath = repoTag.substring(0, lastColonIndex);
                     // Remove registry host:port if present (take only the path after the last /)
-                    int lastSlashIndex = repoPath.lastIndexOf('/');
-                    repositoryName = lastSlashIndex != -1 ? repoPath.substring(lastSlashIndex + 1) : repoPath;
+                    repositoryName = repoPath;
                 } else {
                     // No tag specified, use latest
                     tag = "latest";
                     // Remove registry host:port if present
-                    int lastSlashIndex = repoTag.lastIndexOf('/');
-                    repositoryName = lastSlashIndex != -1 ? repoTag.substring(lastSlashIndex + 1) : repoTag;
+                    repositoryName = repoTag;
                 }
-
+                int indexOfFirstSlash = repositoryName.indexOf('/');
+                int indexOfFirstColon = repositoryName.indexOf(':');
+                int indexOfFirstDot = repositoryName.indexOf('.');
+                if ((indexOfFirstSlash > 0 && (indexOfFirstColon > 0 && indexOfFirstColon < indexOfFirstSlash) ||
+                     (indexOfFirstDot > 0 && indexOfFirstDot < indexOfFirstSlash))) {
+                    // There is a registry part, remove it
+                    repositoryName = repositoryName.substring(indexOfFirstSlash + 1);
+                }
                 log.debug("Parsed repoTag '{}': repository='{}', tag='{}'", repoTag, repositoryName, tag);
 
                 result.repositories.add(repositoryName);
