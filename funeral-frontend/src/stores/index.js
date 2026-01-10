@@ -8,7 +8,7 @@ export const useRegistryStore = defineStore('registry', () => {
   const fetchRepositories = async () => {
     loading.value = true
     try {
-      const response = await fetch('/api/v2/_catalog')
+      const response = await fetch('/v2/_catalog')
       if (response.ok) {
         const data = await response.json()
         repositories.value = data.repositories || []
@@ -23,7 +23,7 @@ export const useRegistryStore = defineStore('registry', () => {
   const fetchRepository = async (name) => {
     loading.value = true
     try {
-      const response = await fetch(`/api/v2/${name}/tags/list`)
+      const response = await fetch(`/v2/${name}/tags/list`)
       if (response.ok) {
         const data = await response.json()
         return data
@@ -37,7 +37,7 @@ export const useRegistryStore = defineStore('registry', () => {
 
   const deleteRepository = async (name) => {
     try {
-      const response = await fetch(`/api/v2/${name}/`, {
+      const response = await fetch(`/v2/${name}/`, {
         method: 'DELETE'
       })
       if (response.ok) {

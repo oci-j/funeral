@@ -259,7 +259,7 @@ const uploadTarFiles = async () => {
       headers['Authorization'] = authHeader
     }
 
-    const response = await fetch('/api/funeral_addition/write/upload/dockertar', {
+    const response = await fetch('/funeral_addition/write/upload/dockertar', {
       method: 'POST',
       headers,
       body: formData,

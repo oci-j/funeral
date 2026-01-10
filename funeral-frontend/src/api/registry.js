@@ -1,6 +1,6 @@
 import { useAuthStore } from '../stores/auth'
 
-const API_BASE = '/api'
+const API_BASE = ''
 
 const getAuthHeaders = () => {
   const authStore = useAuthStore()
