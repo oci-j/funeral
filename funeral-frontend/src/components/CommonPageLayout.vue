@@ -48,7 +48,7 @@
   </div>
 
   <!-- About Button - Fixed at bottom left -->
-  <div class="about-button-container">
+  <div class="about-button-container" v-if="showAboutButton">
     <el-button
       type="info"
       plain
@@ -125,6 +125,12 @@ const props = defineProps({
 
   // Footer
   showFooter: {
+    type: Boolean,
+    default: false
+  },
+
+  // About button
+  showAboutButton: {
     type: Boolean,
     default: false
   }

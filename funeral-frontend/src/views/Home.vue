@@ -5,6 +5,7 @@
     :empty="repositories.length === 0"
     empty-text="No repositories found"
     :items="repositories"
+    :show-about-button="false"
   >
     <template #actions>
       <el-button type="primary" @click="refreshRepositories">

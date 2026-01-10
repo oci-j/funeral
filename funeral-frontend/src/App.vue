@@ -1,87 +1,95 @@
 <template>
   <div id="app">
-    <el-container style="height: 100vh">
-      <el-header>
-        <div class="header-content">
-          <div class="logo-section">
-            <img src="/image/funeral.jpg" alt="FUNERAL Logo" class="logo-image" />
-            <h2>FUNERAL - OCI Registry</h2>
-            <el-button
-              type="info"
-              :icon="InfoFilled"
-              circle
-              @click="$refs.aboutDialog.open()"
-              title="About FUNERAL"
-              style="margin-left: 0;"
-            />
-          </div>
-          <div class="header-actions">
-            <!-- Auth status tag -->
-            <div v-if="authStore.isAuthenticated" class="user-menu">
-              <el-dropdown @command="handleUserCommand" :disabled = "!authStore.authEnabled">
-                <span class="user-dropdown">
-                  <el-icon>
-                    <el-icon v-if="authStore.checkingConfig"><Loading /></el-icon>
-                    <el-icon v-else><User v-if="authStore.authEnabled" /><Unlock v-else /></el-icon>
-                  </el-icon>
-                  {{ authStore.authEnabled ? authStore.user?.username : 'auth disabled' }}
-                  <el-icon class="el-icon--right" v-if= "authStore.authEnabled"><arrow-down /></el-icon>
-                </span>
-                <template #dropdown>
-                  <el-dropdown-menu>
-                    <el-dropdown-item command="logout">
-                      <el-icon><SwitchButton /></el-icon>
-                      Logout
-                    </el-dropdown-item>
-                  </el-dropdown-menu>
-                </template>
-              </el-dropdown>
-            </div>
-            <div v-else>
+    <!-- Login page - full screen without layout -->
+    <template v-if="$route.path === '/login'">
+      <router-view />
+    </template>
+
+    <!-- Main app layout with header/sidebar -->
+    <template v-else>
+      <el-container style="height: 100vh">
+        <el-header>
+          <div class="header-content">
+            <div class="logo-section">
+              <img src="/image/funeral.jpg" alt="FUNERAL Logo" class="logo-image" />
+              <h2>FUNERAL - OCI Registry</h2>
               <el-button
-                type="primary"
-                :disabled="!authStore.authEnabled"
-                @click="$router.push('/login')"
-              >
-                <span v-if="authStore.authEnabled">Login</span>
-                <span v-else>Login Disabled</span>
-              </el-button>
+                type="info"
+                :icon="InfoFilled"
+                circle
+                @click="$refs.aboutDialog.open()"
+                title="About FUNERAL"
+                style="margin-left: 0;"
+              />
+            </div>
+            <div class="header-actions">
+              <!-- Auth status tag -->
+              <div v-if="authStore.isAuthenticated" class="user-menu">
+                <el-dropdown @command="handleUserCommand" :disabled = "!authStore.authEnabled">
+                  <span class="user-dropdown">
+                    <el-icon>
+                      <el-icon v-if="authStore.checkingConfig"><Loading /></el-icon>
+                      <el-icon v-else><User v-if="authStore.authEnabled" /><Unlock v-else /></el-icon>
+                    </el-icon>
+                    {{ authStore.authEnabled ? authStore.user?.username : 'auth disabled' }}
+                    <el-icon class="el-icon--right" v-if= "authStore.authEnabled"><arrow-down /></el-icon>
+                  </span>
+                  <template #dropdown>
+                    <el-dropdown-menu>
+                      <el-dropdown-item command="logout">
+                        <el-icon><SwitchButton /></el-icon>
+                        Logout
+                      </el-dropdown-item>
+                    </el-dropdown-menu>
+                  </template>
+                </el-dropdown>
+              </div>
+              <div v-else>
+                <el-button
+                  type="primary"
+                  :disabled="!authStore.authEnabled"
+                  @click="$router.push('/login')"
+                >
+                  <span v-if="authStore.authEnabled">Login</span>
+                  <span v-else>Login Disabled</span>
+                </el-button>
+              </div>
             </div>
           </div>
-        </div>
-      </el-header>
+        </el-header>
 
-      <el-container>
-        <el-aside width="200px" class="sidebar">
-          <div class="sidebar-container">
-            <el-menu
-              router
-              :default-active="$route.path"
-              class="el-menu-vertical"
-            >
-              <el-menu-item index="/">
-                <el-icon><HomeFilled /></el-icon>
-                <span>Repositories</span>
-              </el-menu-item>
-              <el-menu-item index="/upload">
-                <el-icon><UploadFilled /></el-icon>
-                <span>Upload Image</span>
-              </el-menu-item>
-              <el-menu-item v-if="authStore.isAdmin" index="/admin">
-                <el-icon><Tools /></el-icon>
-                <span>Admin</span>
-              </el-menu-item>
-            </el-menu>
-          </div>
-        </el-aside>
+        <el-container>
+          <el-aside width="200px" class="sidebar">
+            <div class="sidebar-container">
+              <el-menu
+                router
+                :default-active="$route.path"
+                class="el-menu-vertical"
+              >
+                <el-menu-item index="/">
+                  <el-icon><HomeFilled /></el-icon>
+                  <span>Repositories</span>
+                </el-menu-item>
+                <el-menu-item index="/upload">
+                  <el-icon><UploadFilled /></el-icon>
+                  <span>Upload Image</span>
+                </el-menu-item>
+                <el-menu-item v-if="authStore.isAdmin" index="/admin">
+                  <el-icon><Tools /></el-icon>
+                  <span>Admin</span>
+                </el-menu-item>
+              </el-menu>
+            </div>
+          </el-aside>
 
-        <el-main>
-          <router-view />
-        </el-main>
+          <el-main>
+            <router-view />
+          </el-main>
+        </el-container>
       </el-container>
-    </el-container>
 
-    <AboutDialog ref="aboutDialog" />
+      <AboutDialog ref="aboutDialog" />
+    </template>
   </div>
 </template>
 

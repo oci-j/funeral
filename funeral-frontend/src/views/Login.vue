@@ -1,5 +1,5 @@
 <template>
-  <div class="login-container">
+  <div class="login-page">
     <el-card class="login-card">
       <template #header>
         <div class="login-header">
@@ -140,12 +140,14 @@ loginForm.password = 'password'
 </script>
 
 <style scoped>
-.login-container {
+.login-page {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 100vh;
+  min-height: 100vh;
   background-color: #f5f7fa;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .login-card {
@@ -158,24 +160,35 @@ loginForm.password = 'password'
 }
 
 .login-header h2 {
-  margin: 0;
+  margin: 0 0 10px 0;
   color: #409EFF;
+  font-size: 24px;
 }
 
 .login-form {
-  margin-top: 20px;
+  margin-top: 10px;
 }
 
 .login-button {
   width: 100%;
+  height: 40px;
 }
 
 .error-message {
-  margin-bottom: 20px;
+  margin: 10px 0;
 }
 
 .login-info {
   text-align: center;
-  margin-top: 20px;
+  margin-top: 15px;
+}
+
+/* Reduce form item spacing */
+:deep(.el-form-item) {
+  margin-bottom: 18px;
+}
+
+:deep(.el-form-item:last-child) {
+  margin-bottom: 0;
 }
 </style>
