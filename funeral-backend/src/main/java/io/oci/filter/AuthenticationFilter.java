@@ -7,21 +7,23 @@ import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.json.JsonString;
-import jakarta.json.JsonValue;
 import jakarta.ws.rs.Priorities;
 import jakarta.ws.rs.container.ContainerRequestContext;
 import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
-import java.util.Collection;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.jwt.JsonWebToken;
 
 import java.util.Set;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Provider
 @Priority(Priorities.AUTHENTICATION)
 public class AuthenticationFilter implements ContainerRequestFilter {
+
+    private static final Logger log = LoggerFactory.getLogger(AuthenticationFilter.class);
 
     @Inject
     JsonWebToken jwt;
@@ -181,6 +183,8 @@ public class AuthenticationFilter implements ContainerRequestFilter {
                 authServiceName,
                 scope != null ? ",scope=\"" + scope + "\"" : ""
         );
+
+        log.warn("WWW-Authenticate: {}", wwwAuthenticate);
 
         requestContext.abortWith(
                 Response.status(Response.Status.UNAUTHORIZED)
