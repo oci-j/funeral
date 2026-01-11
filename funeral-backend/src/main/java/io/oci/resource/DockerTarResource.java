@@ -89,7 +89,12 @@ public class DockerTarResource {
             // Save to storage
             saveToStorage(result);
 
-            return Response.ok(result).build();
+            // Create response without blobData to avoid serialization issues
+            return Response.ok(new UploadResponse(
+                result.repositories,
+                result.manifests,
+                result.blobs
+            )).build();
 
         } catch (Exception e) {
             log.error("Failed to process Docker tar file", e);
@@ -553,5 +558,20 @@ public class DockerTarResource {
         public long configSize;
         public String[] repoTags;
         public String[] layers;
+    }
+
+    /**
+     * Response DTO for upload endpoint (excludes binary blob data)
+     */
+    static class UploadResponse {
+        public Set<String> repositories;
+        public List<TarManifest> manifests;
+        public List<BlobInfo> blobs;
+
+        public UploadResponse(Set<String> repositories, List<TarManifest> manifests, List<BlobInfo> blobs) {
+            this.repositories = repositories;
+            this.manifests = manifests;
+            this.blobs = blobs;
+        }
     }
 }
