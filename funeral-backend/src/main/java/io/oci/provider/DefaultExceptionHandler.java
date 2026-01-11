@@ -1,11 +1,13 @@
 package io.oci.provider;
 
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.ws.rs.NotFoundException;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.ExceptionMapper;
 import jakarta.ws.rs.ext.Provider;
 
 @Provider
+@ApplicationScoped
 public class DefaultExceptionHandler implements ExceptionMapper<Exception> {
 
     @Override

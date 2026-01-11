@@ -4,6 +4,7 @@ import io.oci.model.User;
 import io.oci.service.UserStorage;
 import io.oci.service.RepositoryPermissionStorage;
 import jakarta.annotation.Priority;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.json.JsonString;
@@ -21,6 +22,7 @@ import org.slf4j.LoggerFactory;
 
 @Provider
 @Priority(Priorities.AUTHENTICATION)
+@ApplicationScoped
 public class AuthenticationFilter implements ContainerRequestFilter {
 
     private static final Logger log = LoggerFactory.getLogger(AuthenticationFilter.class);
