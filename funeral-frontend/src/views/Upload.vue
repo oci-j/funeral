@@ -16,14 +16,14 @@
       <div class="upload-section">
         <el-upload
           ref="uploadRef"
+          v-model:file-list="fileList"
           class="tar-uploader"
           drag
           action="#"
           accept=".tar,.tar.gz,.tgz"
           :auto-upload="false"
-          :on-change="handleFileChange"
+          :before-upload="handleBeforeUpload"
           :on-remove="handleFileRemove"
-          :file-list="fileList"
           multiple
         >
           <el-icon class="el-icon--upload"><upload-filled /></el-icon>
@@ -186,6 +186,7 @@
 import { ref, computed } from 'vue'
 import { DocumentCopy, UploadFilled } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
+import { useAuthStore } from '../stores/auth'
 
 // Tar upload state
 const uploadRef = ref()
@@ -215,11 +216,10 @@ const loginCommand = computed(() => {
 })
 
 // Tar file upload handlers
-const handleFileChange = (file) => {
+const handleBeforeUpload = (file) => {
   const isTar = file.name.endsWith('.tar') || file.name.endsWith('.tar.gz') || file.name.endsWith('.tgz')
   if (!isTar) {
     ElMessage.error('Only .tar, .tar.gz, and .tgz files are allowed')
-    fileList.value = []
     return false
   }
   return true
@@ -244,11 +244,28 @@ const uploadTarFiles = async () => {
       formData.append('file', file.raw)
     })
 
+    // Get auth headers from auth store
+    const authStore = useAuthStore()
+    const authHeader = authStore.getAuthHeader()
+    const headers = {
+      // Don't set Content-Type for FormData - browser will set it with boundary
+    }
+
+    if (authHeader) {
+      headers['Authorization'] = authHeader
+    }
+
     const response = await fetch('/api/admin/upload/dockertar', {
       method: 'POST',
+      headers,
       body: formData,
       credentials: 'include' // Include cookies for authentication
     })
+
+    if (response.status === 401) {
+      authStore.logout()
+      throw new Error('Authentication required. Please log in.')
+    }
 
     if (!response.ok) {
       throw new Error(`Upload failed: ${response.statusText}`)

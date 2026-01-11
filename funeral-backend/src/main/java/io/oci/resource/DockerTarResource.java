@@ -8,6 +8,9 @@ import io.oci.service.AbstractStorageService;
 import io.oci.service.BlobStorage;
 import io.oci.service.ManifestStorage;
 import io.oci.service.RepositoryStorage;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
 import io.quarkus.security.Authenticated;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -30,12 +33,13 @@ import java.util.stream.Collectors;
  * Resource for uploading and analyzing Docker tar files created by 'docker save' command.
  * Automatically extracts image metadata and stores it in the registry.
  */
-@Path("/api/admin/upload")
+@Path("/admin/upload")
 @ApplicationScoped
 @Authenticated
 public class DockerTarResource {
 
     private static final Logger log = LoggerFactory.getLogger(DockerTarResource.class);
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @Inject
     @Named("manifestStorage")
@@ -177,182 +181,62 @@ public class DockerTarResource {
     }
 
     /**
-     * Parses manifest.json from Docker tar file.
+     * Using proper JSON parsing to parse manifest.json from Docker tar file.
+     * This replaces the error-prone manual string parsing with a more reliable approach.
      */
     private List<ManifestInfo> parseManifestJson(InputStream inputStream) throws IOException {
         List<ManifestInfo> manifests = new ArrayList<>();
 
-        // Read the entire JSON content
-        String jsonContent = new BufferedReader(new InputStreamReader(inputStream))
-                .lines()
-                .collect(Collectors.joining("\n"));
+        try {
+            JsonNode root = objectMapper.readTree(inputStream);
+            if (root.isArray()) {
+                for (JsonNode manifestNode : root) {
+                    ManifestInfo info = new ManifestInfo();
 
-        // Parse JSON array
-        String trimmed = jsonContent.trim();
-        if (trimmed.startsWith("[")) {
-            // It's a JSON array
-            String arrayContent = trimmed.substring(1, trimmed.length() - 1);
-            String[] manifestObjects = splitJsonObjects(arrayContent);
+                    // Extract Config digest
+                    if (manifestNode.has("Config")) {
+                        String config = manifestNode.get("Config").asText();
+                        // Remove file extension to get just the digest
+                        info.config = config.replace(".json", "");
+                    }
 
-            for (String manifestStr : manifestObjects) {
-                ManifestInfo info = parseManifestObject(manifestStr);
-                if (info != null) {
+                    // Extract RepoTags array
+                    if (manifestNode.has("RepoTags")) {
+                        JsonNode repoTagsNode = manifestNode.get("RepoTags");
+                        info.repoTags = new String[repoTagsNode.size()];
+                        for (int i = 0; i < repoTagsNode.size(); i++) {
+                            info.repoTags[i] = repoTagsNode.get(i).asText();
+                        }
+                    }
+
+                    // Extract Layers array
+                    if (manifestNode.has("Layers")) {
+                        JsonNode layersNode = manifestNode.get("Layers");
+                        info.layers = new String[layersNode.size()];
+                        for (int i = 0; i < layersNode.size(); i++) {
+                            String layerFile = layersNode.get(i).asText();
+                            // Remove file extension to get just the digest
+                            info.layers[i] = layerFile.replace(".tar.gz", "").replace(".tar", "").replace(".layer", "");
+                        }
+                    }
+
+                    // Extract config size if available
+                    if (manifestNode.has("ConfigSize")) {
+                        info.configSize = manifestNode.get("ConfigSize").asLong();
+                    }
+
                     manifests.add(info);
                 }
+                log.info("Parsed {} manifests from tar file", manifests.size());
+            } else {
+                log.warn("Manifest.json is not an array as expected");
             }
+        } catch (Exception e) {
+            log.error("Failed to parse manifest.json", e);
+            throw new IOException("Failed to parse manifest.json: " + e.getMessage(), e);
         }
 
         return manifests;
-    }
-
-    /**
-     * Splits JSON array into individual objects.
-     */
-    private String[] splitJsonObjects(String arrayContent) {
-        List<String> objects = new ArrayList<>();
-        int braceCount = 0;
-        int start = 0;
-
-        for (int i = 0; i < arrayContent.length(); i++) {
-            char c = arrayContent.charAt(i);
-            if (c == '{') {
-                if (braceCount == 0) {
-                    start = i;
-                }
-                braceCount++;
-            } else if (c == '}') {
-                braceCount--;
-                if (braceCount == 0) {
-                    objects.add(arrayContent.substring(start, i + 1));
-                }
-            }
-        }
-
-        return objects.toArray(new String[0]);
-    }
-
-    /**
-     * Parses a single manifest JSON object.
-     */
-    private ManifestInfo parseManifestObject(String jsonStr) {
-        try {
-            ManifestInfo info = new ManifestInfo();
-
-            // Extract Config digest
-            int configIndex = jsonStr.indexOf("\"Config\":");
-            if (configIndex != -1) {
-                String configValue = extractStringValue(jsonStr, configIndex + 9);
-                info.config = configValue.replace(".json", "");
-            }
-
-            // Extract RepoTags array
-            int repoTagsIndex = jsonStr.indexOf("\"RepoTags\":");
-            if (repoTagsIndex != -1) {
-                String repoTagsArray = extractArrayValue(jsonStr, repoTagsIndex + 11);
-                info.repoTags = parseStringArray(repoTagsArray);
-            }
-
-            // Extract Layers array
-            int layersIndex = jsonStr.indexOf("\"Layers\":");
-            if (layersIndex != -1) {
-                String layersArray = extractArrayValue(jsonStr, layersIndex + 9);
-                info.layers = parseStringArray(layersArray);
-            }
-
-            // Extract config size if available
-            int configSizeIndex = jsonStr.indexOf("\"ConfigSize\":");
-            if (configSizeIndex != -1) {
-                info.configSize = extractNumberValue(jsonStr, configSizeIndex + 13);
-            }
-
-            return info;
-        } catch (Exception e) {
-            log.error("Failed to parse manifest JSON object", e);
-            return null;
-        }
-    }
-
-    /**
-     * Extracts string value from JSON.
-     */
-    private String extractStringValue(String json, int startIndex) {
-        int quoteIndex = json.indexOf('"', startIndex);
-        if (quoteIndex == -1) return "";
-        int endQuoteIndex = json.indexOf('"', quoteIndex + 1);
-        if (endQuoteIndex == -1) return "";
-        return json.substring(quoteIndex + 1, endQuoteIndex);
-    }
-
-    /**
-     * Extracts array value from JSON.
-     */
-    private String extractArrayValue(String json, int startIndex) {
-        int bracketIndex = json.indexOf('[', startIndex);
-        if (bracketIndex == -1) return "[]";
-        int endBracketIndex = findMatchingBracket(json, bracketIndex);
-        if (endBracketIndex == -1) return "[]";
-        return json.substring(bracketIndex, endBracketIndex + 1);
-    }
-
-    /**
-     * Finds matching closing bracket.
-     */
-    private int findMatchingBracket(String json, int startIndex) {
-        int bracketCount = 1;
-        for (int i = startIndex + 1; i < json.length(); i++) {
-            char c = json.charAt(i);
-            if (c == '[') {
-                bracketCount++;
-            } else if (c == ']') {
-                bracketCount--;
-                if (bracketCount == 0) {
-                    return i;
-                }
-            }
-        }
-        return -1;
-    }
-
-    /**
-     * Parses string array from JSON array string.
-     */
-    private String[] parseStringArray(String arrayStr) {
-        String content = arrayStr.substring(1, arrayStr.length() - 1);
-        if (content.trim().isEmpty()) {
-            return new String[0];
-        }
-
-        String[] items = content.split(",");
-        List<String> result = new ArrayList<>();
-
-        for (String item : items) {
-            item = item.trim();
-            if (item.startsWith("\"") && item.endsWith("\"")) {
-                result.add(item.substring(1, item.length() - 1));
-            }
-        }
-
-        return result.toArray(new String[0]);
-    }
-
-    /**
-     * Extracts number value from JSON.
-     */
-    private long extractNumberValue(String json, int startIndex) {
-        try {
-            StringBuilder numStr = new StringBuilder();
-            for (int i = startIndex; i < json.length(); i++) {
-                char c = json.charAt(i);
-                if (Character.isDigit(c)) {
-                    numStr.append(c);
-                } else if (numStr.length() > 0) {
-                    break;
-                }
-            }
-            return Long.parseLong(numStr.toString());
-        } catch (Exception e) {
-            return 0;
-        }
     }
 
     /**
@@ -369,6 +253,9 @@ public class DockerTarResource {
      * Saves parsed data to storage.
      */
     private void saveToStorage(TarParseResult result) {
+        log.info("Saving {} repositories, {} manifests, and {} blobs to storage",
+                result.repositories.size(), result.manifests.size(), result.blobs.size());
+
         // Save repositories
         for (String repositoryName : result.repositories) {
             Repository repository = repositoryStorage.findByName(repositoryName);
