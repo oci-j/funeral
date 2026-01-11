@@ -215,6 +215,7 @@ import TarViewer from '../components/TarViewer.vue'
 import { registryApi } from '../api/registry'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '../stores/auth'
+import {useProtectedPage} from "../composables/useAuthCheck.js";
 
 // Define props
 const props = defineProps({
