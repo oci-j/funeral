@@ -27,7 +27,18 @@ public class RegistryResourceHandler {
     public Response listRepositories() {
         List<Repository> repos = Repository.listAll();
 
+        // Group by name and keep only the one with max updatedAt
         List<RepositoryInfo> repoList = repos.stream()
+                .collect(Collectors.groupingBy(
+                        repo -> repo.name,
+                        Collectors.collectingAndThen(
+                                Collectors.maxBy((r1, r2) -> r1.updatedAt.compareTo(r2.updatedAt)),
+                                optRepo -> optRepo.orElse(null)
+                        )
+                ))
+                .values()
+                .stream()
+                .filter(repo -> repo != null)
                 .map(repo -> {
                     long tagCount = Manifest.countByRepository(repo.name);
                     return new RepositoryInfo(repo.name, repo.createdAt, repo.updatedAt, tagCount);
