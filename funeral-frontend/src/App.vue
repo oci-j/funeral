@@ -5,12 +5,16 @@
         <div class="header-content">
           <h2>FUNERAL - OCI Registry</h2>
           <div class="header-actions">
+            <!-- Auth status tag -->
             <div v-if="authStore.isAuthenticated" class="user-menu">
-              <el-dropdown @command="handleUserCommand">
+              <el-dropdown @command="handleUserCommand" :disabled = "!authStore.authEnabled">
                 <span class="user-dropdown">
-                  <el-icon><User /></el-icon>
-                  {{ authStore.user?.username }}
-                  <el-icon class="el-icon--right"><arrow-down /></el-icon>
+                  <el-icon>
+                    <el-icon v-if="authStore.checkingConfig"><Loading /></el-icon>
+                    <el-icon v-else><User v-if="authStore.authEnabled" /><Unlock v-else /></el-icon>
+                  </el-icon>
+                  {{ authStore.authEnabled ? authStore.user?.username : 'auth disabled' }}
+                  <el-icon class="el-icon--right" v-if= "authStore.authEnabled"><arrow-down /></el-icon>
                 </span>
                 <template #dropdown>
                   <el-dropdown-menu>
@@ -23,8 +27,13 @@
               </el-dropdown>
             </div>
             <div v-else>
-              <el-button type="primary" @click="$router.push('/login')">
-                Login
+              <el-button
+                type="primary"
+                :disabled="!authStore.authEnabled"
+                @click="$router.push('/login')"
+              >
+                <span v-if="authStore.authEnabled">Login</span>
+                <span v-else>Login Disabled</span>
               </el-button>
             </div>
           </div>
@@ -62,12 +71,34 @@
 </template>
 
 <script setup>
-import { HomeFilled, UploadFilled, User, SwitchButton, Tools } from '@element-plus/icons-vue'
+import {
+  HomeFilled,
+  UploadFilled,
+  User,
+  SwitchButton,
+  Tools,
+  Lock,
+  Unlock,
+  Loading,
+  ArrowDown
+} from '@element-plus/icons-vue'
 import { useAuthStore } from './stores/auth'
 import { useRouter } from 'vue-router'
+import { computed } from 'vue'
+import { ElMessage } from 'element-plus'
 
 const authStore = useAuthStore()
 const router = useRouter()
+
+const authStatusText = computed(() => {
+  if (authStore.checkingConfig) return 'Checking Auth...'
+  return authStore.authEnabled ? 'Auth Enabled' : 'Auth Disabled (Admin)'
+})
+
+const authStatusType = computed(() => {
+  if (authStore.checkingConfig) return 'info'
+  return authStore.authEnabled ? 'danger' : 'success'
+})
 
 const handleUserCommand = (command) => {
   if (command === 'logout') {
@@ -129,6 +160,13 @@ body {
 
 .user-dropdown:hover {
   opacity: 0.8;
+}
+
+.auth-status-tag {
+  margin-right: 15px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .sidebar {

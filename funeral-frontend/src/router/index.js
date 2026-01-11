@@ -40,26 +40,44 @@ const router = createRouter({
   routes
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const authStore = useAuthStore()
 
+  // Skip auth check for login page
+  if (to.path === '/login') {
+    // If auth is disabled, don't allow access to login page
+    if (!authStore.authEnabled) {
+      next('/')
+      return
+    }
+    // Redirect logged-in users away from login page
+    if (authStore.isAuthenticated) {
+      next('/')
+      return
+    }
+    next()
+    return
+  }
+
   // Check if route requires authentication
-  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
-    // Redirect to login with intended page
+  // If auth is enabled and user is not authenticated, redirect to login
+  if (to.meta.requiresAuth && authStore.authEnabled && !authStore.isAuthenticated) {
     next({
       path: '/login',
       query: { redirect: to.fullPath }
     })
-  } else if (to.path === '/login' && authStore.isAuthenticated) {
-    // Redirect logged-in users away from login page
-    next('/')
-  } else if (to.meta.requiresAdmin && !authStore.isAdmin) {
-    // Check if route requires admin privileges
+    return
+  }
+
+  // Check if route requires admin privileges
+  if (to.meta.requiresAdmin && authStore.authEnabled && !authStore.isAdmin) {
     ElMessage.error('Access denied: Admin privileges required')
     next('/')
-  } else {
-    next()
+    return
   }
+
+  // Allow access
+  next()
 })
 
 export default router
