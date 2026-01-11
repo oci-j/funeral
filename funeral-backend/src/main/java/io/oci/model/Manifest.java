@@ -72,6 +72,13 @@ public class Manifest extends PanacheMongoEntity {
     @BsonProperty("updated_at")
     public LocalDateTime updatedAt;
 
+    // Additional fields for Docker tar import
+    @BsonProperty("config_digest")
+    public String configDigest;
+
+    @BsonProperty("layer_digests")
+    public List<String> layerDigests;
+
     public Manifest() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
