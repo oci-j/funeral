@@ -19,7 +19,7 @@ const getAuthHeaders = () => {
 export const registryApi = {
   async getRepositories() {
     try {
-      const response = await fetch(`${API_BASE}/v2/_catalog`, {
+      const response = await fetch(`${API_BASE}/v2/repositories`, {
         headers: getAuthHeaders()
       })
 
@@ -100,17 +100,12 @@ export const registryApi = {
 
   async login(username, password) {
     try {
-      const response = await fetch(`${API_BASE}/v2/token`, {
+      const credentials = btoa(`${username}:${password}`)
+      const response = await fetch(`${API_BASE}/v2/token?service=funeral-registry&scope=repository:*:pull,push`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          username,
-          password,
-          service: 'funeral-registry',
-          scope: 'pull,push'
-        })
+          'Authorization': `Basic ${credentials}`
+        }
       })
 
       if (!response.ok) {

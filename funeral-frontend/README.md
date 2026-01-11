@@ -42,8 +42,8 @@ The frontend will run on http://localhost:3000 and proxy API requests to the bac
 ## API Integration
 
 The frontend integrates with the backend OCI registry API:
-- `/v2/token` - Authentication endpoint
-- `/v2/_catalog` - List repositories
+- `/v2/token` - Authentication endpoint (uses Basic Auth)
+- `/v2/repositories` - List repositories
 - `/v2/{name}/tags/list` - List repository tags
 - `/v2/{name}/` - Delete repository
 
