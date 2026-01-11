@@ -10,12 +10,12 @@
       <el-form
         ref="loginFormRef"
         :model="loginForm"
-        :rules="loginRules"
+        :rules="isAnonymous ? {} : loginRules"
         label-width="80px"
         class="login-form"
         @submit.prevent="handleLogin"
       >
-        <el-form-item label="Username" prop="username">
+        <el-form-item label="Username" prop="username" v-if="!isAnonymous">
           <el-input
             v-model="loginForm.username"
             placeholder="Enter username"
@@ -24,7 +24,7 @@
           />
         </el-form-item>
 
-        <el-form-item label="Password" prop="password">
+        <el-form-item label="Password" prop="password" v-if="!isAnonymous">
           <el-input
             v-model="loginForm.password"
             type="password"
@@ -36,13 +36,19 @@
         </el-form-item>
 
         <el-form-item>
+          <el-checkbox v-model="isAnonymous">
+            Anonymous Access
+          </el-checkbox>
+        </el-form-item>
+
+        <el-form-item>
           <el-button
             type="primary"
             :loading="loading"
             class="login-button"
             @click="handleLogin"
           >
-            Login
+            {{ isAnonymous ? 'Access as Anonymous' : 'Login' }}
           </el-button>
         </el-form-item>
 
@@ -77,6 +83,7 @@ const authStore = useAuthStore()
 const loginFormRef = ref()
 const loading = ref(false)
 const errorMessage = ref('')
+const isAnonymous = ref(false)
 
 const loginForm = reactive({
   username: '',
@@ -93,32 +100,38 @@ const loginRules = {
 }
 
 const handleLogin = async () => {
-  if (!loginFormRef.value) return
+  if (!isAnonymous.value && !loginFormRef.value) return
 
-  await loginFormRef.value.validate(async (valid) => {
+  if (!isAnonymous.value) {
+    const valid = await loginFormRef.value.validate()
     if (!valid) return
+  }
 
-    loading.value = true
-    errorMessage.value = ''
+  loading.value = true
+  errorMessage.value = ''
 
-    try {
-      const result = await authStore.login(loginForm.username, loginForm.password)
-
-      if (result.success) {
-        ElMessage.success('Login successful')
-
-        // Redirect to intended page or home
-        const redirect = route.query.redirect || '/'
-        router.push(redirect)
-      } else {
-        errorMessage.value = result.error || 'Login failed'
-      }
-    } catch (error) {
-      errorMessage.value = error.message || 'Login failed'
-    } finally {
-      loading.value = false
+  try {
+    let result
+    if (isAnonymous.value) {
+      result = await authStore.loginAnonymous()
+    } else {
+      result = await authStore.login(loginForm.username, loginForm.password)
     }
-  })
+
+    if (result.success) {
+      ElMessage.success(isAnonymous.value ? 'Anonymous access enabled' : 'Login successful')
+
+      // Redirect to intended page or home
+      const redirect = route.query.redirect || '/'
+      router.push(redirect)
+    } else {
+      errorMessage.value = result.error || (isAnonymous.value ? 'Anonymous access failed' : 'Login failed')
+    }
+  } catch (error) {
+    errorMessage.value = error.message || (isAnonymous.value ? 'Anonymous access failed' : 'Login failed')
+  } finally {
+    loading.value = false
+  }
 }
 
 // Auto-fill default credentials for demo

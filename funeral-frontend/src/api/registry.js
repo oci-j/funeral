@@ -164,5 +164,26 @@ export const registryApi = {
       console.error('Login error:', error)
       throw error
     }
+  },
+
+  async loginAnonymous() {
+    try {
+      // Call token endpoint without authentication headers for anonymous access
+      const response = await fetch(`${API_BASE}/v2/token?service=funeral-registry&scope=repository:*:pull`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error('Anonymous access not supported')
+      }
+
+      return await response.json()
+    } catch (error) {
+      console.error('Anonymous login error:', error)
+      throw error
+    }
   }
 }

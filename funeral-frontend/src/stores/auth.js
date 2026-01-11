@@ -32,6 +32,28 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const loginAnonymous = async () => {
+    try {
+      const data = await registryApi.loginAnonymous()
+      token.value = data.access_token || data.token
+
+      // Anonymous user info
+      user.value = {
+        username: 'anonymous',
+        roles: []
+      }
+
+      // Save to localStorage
+      localStorage.setItem('token', token.value)
+      localStorage.setItem('user', JSON.stringify(user.value))
+
+      return { success: true }
+    } catch (error) {
+      console.error('Anonymous login error:', error)
+      return { success: false, error: error.message }
+    }
+  }
+
   const logout = () => {
     token.value = ''
     user.value = null
@@ -63,6 +85,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     isAdmin,
     login,
+    loginAnonymous,
     logout,
     getAuthHeader
   }
