@@ -21,8 +21,10 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
+import java.io.BufferedInputStream;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -195,6 +197,7 @@ public class DockerTarResource {
 
     /**
      * Parses Docker tar file and extracts image metadata and actual blob content.
+     * Handles both plain tar and gzip-compressed tar files.
      */
     private TarParseResult parseDockerTar(File tarFile) throws IOException {
         TarParseResult result = new TarParseResult();
@@ -211,9 +214,98 @@ public class DockerTarResource {
         List<String> foundFiles = new ArrayList<>();
         Map<String, byte[]> blobContentMap = new HashMap<>(); // Store all blob content
 
-        try (FileInputStream fis = new FileInputStream(tarFile);
-             TarArchiveInputStream tarInput = new TarArchiveInputStream(fis)) {
+        // Check if the file is gzip compressed by reading the first few bytes
+        boolean isGzip = false;
+        try (FileInputStream checkFis = new FileInputStream(tarFile)) {
+            byte[] signature = new byte[2];
+            int bytesRead = checkFis.read(signature);
+            // Gzip signature is 0x1f 0x8b (31, 139)
+            // Note: bytes in Java are signed, so we need to compare with & 0xFF
+            if (bytesRead == 2 && (signature[0] & 0xFF) == 0x1f && (signature[1] & 0xFF) == 0x8b) {
+                isGzip = true;
+            }
+        }
 
+        // Now process the file with the appropriate stream
+        if (isGzip) {
+            log.info("Detected gzip compressed tar file, decompressing...");
+            try (FileInputStream fis = new FileInputStream(tarFile);
+                 GzipCompressorInputStream gzipStream = new GzipCompressorInputStream(fis)) {
+                processTarStream(gzipStream, result, manifestList, foundFiles, blobContentMap);
+            }
+        } else {
+            // Plain tar file
+            log.info("Processing as plain tar file...");
+            try (FileInputStream fis = new FileInputStream(tarFile)) {
+                processTarStream(fis, result, manifestList, foundFiles, blobContentMap);
+            }
+        }
+
+        log.info("Finished processing tar. blobContentMap has {} entries", blobContentMap.size());
+
+        // Process manifests and create database entries
+        for (ManifestInfo manifestInfo : manifestList) {
+            // Each manifest represents an image with potentially multiple tags
+            for (String repoTag : manifestInfo.repoTags) {
+                // Parse repository and tag from format: registry:port/repository:tag
+                // Example: 192.168.8.9:8911/ubuntu:25.04 -> repository: ubuntu, tag: 25.04
+                String repositoryName;
+                String tag;
+
+                // Find the last colon which separates the tag from the repository path
+                int lastColonIndex = repoTag.lastIndexOf(':');
+                if (lastColonIndex != -1) {
+                    tag = repoTag.substring(lastColonIndex + 1);
+                    String repoPath = repoTag.substring(0, lastColonIndex);
+                    // Remove registry host:port if present (take only the path after the last /)
+                    int lastSlashIndex = repoPath.lastIndexOf('/');
+                    repositoryName = lastSlashIndex != -1 ? repoPath.substring(lastSlashIndex + 1) : repoPath;
+                } else {
+                    // No tag specified, use latest
+                    tag = "latest";
+                    // Remove registry host:port if present
+                    int lastSlashIndex = repoTag.lastIndexOf('/');
+                    repositoryName = lastSlashIndex != -1 ? repoTag.substring(lastSlashIndex + 1) : repoTag;
+                }
+
+                log.debug("Parsed repoTag '{}': repository='{}', tag='{}'", repoTag, repositoryName, tag);
+
+                result.repositories.add(repositoryName);
+
+                // Save manifest info
+                TarManifest tarManifest = new TarManifest();
+                tarManifest.repository = repositoryName;
+                tarManifest.tag = tag;
+                tarManifest.configDigest = "sha256:" + manifestInfo.config;
+                // Layer digests are already extracted to just the hash part
+                tarManifest.layerDigests = Arrays.stream(manifestInfo.layers)
+                        .map(layer -> "sha256:" + layer)
+                        .collect(Collectors.toList());
+                result.manifests.add(tarManifest);
+
+                // Track config as a blob (config is already extracted to just the hash part)
+                result.blobs.add(createBlobInfo("sha256:" + manifestInfo.config, manifestInfo.configSize));
+            }
+
+            // Track layers as blobs (layer digests are already extracted to just the hash part)
+            for (String layer : manifestInfo.layers) {
+                result.blobs.add(createBlobInfo("sha256:" + layer, 0)); // Size unknown from manifest
+            }
+        }
+
+        // Store all blob content
+        result.blobData = blobContentMap;
+
+        return result;
+    }
+
+    /**
+     * Processes a tar input stream and extracts metadata and blob content.
+     */
+    private void processTarStream(InputStream inputStream, TarParseResult result,
+                                  List<ManifestInfo> manifestList, List<String> foundFiles,
+                                  Map<String, byte[]> blobContentMap) throws IOException {
+        try (TarArchiveInputStream tarInput = new TarArchiveInputStream(inputStream)) {
             ArchiveEntry entry;
             boolean foundManifest = false;
             while ((entry = tarInput.getNextEntry()) != null) {
@@ -276,63 +368,6 @@ public class DockerTarResource {
                 }
             }
         }
-
-        log.info("Finished processing tar. blobContentMap has {} entries", blobContentMap.size());
-
-        // Process manifests and create database entries
-        for (ManifestInfo manifestInfo : manifestList) {
-            // Each manifest represents an image with potentially multiple tags
-            for (String repoTag : manifestInfo.repoTags) {
-                // Parse repository and tag from format: registry:port/repository:tag
-                // Example: 192.168.8.9:8911/ubuntu:25.04 -> repository: ubuntu, tag: 25.04
-                String repositoryName;
-                String tag;
-
-                // Find the last colon which separates the tag from the repository path
-                int lastColonIndex = repoTag.lastIndexOf(':');
-                if (lastColonIndex != -1) {
-                    tag = repoTag.substring(lastColonIndex + 1);
-                    String repoPath = repoTag.substring(0, lastColonIndex);
-                    // Remove registry host:port if present (take only the path after the last /)
-                    int lastSlashIndex = repoPath.lastIndexOf('/');
-                    repositoryName = lastSlashIndex != -1 ? repoPath.substring(lastSlashIndex + 1) : repoPath;
-                } else {
-                    // No tag specified, use latest
-                    tag = "latest";
-                    // Remove registry host:port if present
-                    int lastSlashIndex = repoTag.lastIndexOf('/');
-                    repositoryName = lastSlashIndex != -1 ? repoTag.substring(lastSlashIndex + 1) : repoTag;
-                }
-
-                log.debug("Parsed repoTag '{}': repository='{}', tag='{}'", repoTag, repositoryName, tag);
-
-                result.repositories.add(repositoryName);
-
-                // Save manifest info
-                TarManifest tarManifest = new TarManifest();
-                tarManifest.repository = repositoryName;
-                tarManifest.tag = tag;
-                tarManifest.configDigest = "sha256:" + manifestInfo.config;
-                // Layer digests are already extracted to just the hash part
-                tarManifest.layerDigests = Arrays.stream(manifestInfo.layers)
-                        .map(layer -> "sha256:" + layer)
-                        .collect(Collectors.toList());
-                result.manifests.add(tarManifest);
-
-                // Track config as a blob (config is already extracted to just the hash part)
-                result.blobs.add(createBlobInfo("sha256:" + manifestInfo.config, manifestInfo.configSize));
-            }
-
-            // Track layers as blobs (layer digests are already extracted to just the hash part)
-            for (String layer : manifestInfo.layers) {
-                result.blobs.add(createBlobInfo("sha256:" + layer, 0)); // Size unknown from manifest
-            }
-        }
-
-        // Store all blob content
-        result.blobData = blobContentMap;
-
-        return result;
     }
 
     /**
