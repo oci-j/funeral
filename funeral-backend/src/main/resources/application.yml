@@ -1,6 +1,6 @@
 quarkus:
   mongodb:
-    connection-string: ${MONGO_URL:mongodb://localhost:27017}
+    connection-string: ${MONGO_URL:mongodb://192.168.8.9:27017}
     database: ${MONGO_DATABASE:oci_registry}
   http:
     limits:
@@ -19,8 +19,35 @@ quarkus:
 
 oci:
   s3:
-    endpoint: ${S3_ENDPOINT:http://localhost:19000}
+    endpoint: ${S3_ENDPOINT:http://192.168.8.9:19000}
     access-key: ${S3_ACCESS_KEY:minioadmin}
     secret-key: ${S3_SECRET_KEY:minioadmin}
   storage:
     bucket: ${S3_BUCKET:oci-registry}
+  auth:
+    # true if we enable auth system.
+    enabled: ${AUTH_ENABLED:true}
+    realm: ${AUTH_REALM:http://192.168.8.9:8911/v2/token}
+    service: ${AUTH_SERVICE:funeral-registry}
+    jwt:
+      issuer: ${JWT_ISSUER:funeral-registry}
+      expiration-seconds: ${JWT_EXPIRATION:3600}
+    auto-create:
+      enabled: ${AUTH_AUTO_CREATE_ENABLED:true}
+      username: ${AUTH_AUTO_CREATE_USERNAME:admin}
+      password: ${AUTH_AUTO_CREATE_PASSWORD:password}
+      email: ${AUTH_AUTO_CREATE_EMAIL:admin@funeral.local}
+      roles: ${AUTH_AUTO_CREATE_ROLES:ADMIN;USER;PUSH_ALL;PULL_ALL}
+
+smallrye-jwt:
+  sign:
+    key:
+      location: classpath:privateKey.pem
+    algorithm: RS256
+
+mp:
+  jwt:
+    verify:
+      publickey:
+        location: classpath:publicKey.pem
+      issuer: ${JWT_ISSUER:funeral-registry}

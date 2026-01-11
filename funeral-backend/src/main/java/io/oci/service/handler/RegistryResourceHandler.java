@@ -17,7 +17,9 @@ public class RegistryResourceHandler {
     @CommentGET
     @CommentPath("/")
     public Response checkVersion() {
-        return Response.ok().build();
+        return Response.ok()
+                .header("Docker-Distribution-API-Version", "registry/2.0")
+                .build();
     }
 
     @CommentGET

@@ -7,6 +7,7 @@ import io.oci.service.handler.ManifestResourceHandler;
 import io.oci.service.handler.ReferrerResourceHandler;
 import io.oci.service.handler.RegistryResourceHandler;
 import io.oci.service.handler.TagResourceHandler;
+import io.oci.service.handler.TokenResourceHandler;
 import io.oci.util.SplitAtFirstUtil;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.DELETE;
@@ -17,6 +18,7 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
@@ -48,6 +50,9 @@ public class OciV2Resource {
 
     @Inject
     ReferrerResourceHandler referrerResourceHandler;
+
+    @Inject
+    TokenResourceHandler tokenResourceHandler;
 
     @HEAD
     @Path("/{fullPath:.*}")
@@ -174,6 +179,17 @@ public class OciV2Resource {
                 );
             }
         }
+        {
+            /// @see TagResourceHandler
+            if (fullPath.equals("/v2/token/") || fullPath.equals("/v2/token")) {
+                return tokenResourceHandler.getToken(
+                        uriInfo.getQueryParameters().getFirst("service"),
+                        uriInfo.getQueryParameters().getFirst("scope"),
+                        uriInfo.getQueryParameters().getFirst("account"),
+                        httpHeaders
+                );
+            }
+        }
         log.error("404 not found : GET /v2/{}", fullPath);
         return Response.status(404).build();
     }
@@ -216,6 +232,17 @@ public class OciV2Resource {
                         );
                     }
                 }
+            }
+        }
+        {
+            /// @see TagResourceHandler
+            if (fullPath.equals("/v2/token/") || fullPath.equals("/v2/token")) {
+                return tokenResourceHandler.postToken(
+                        uriInfo.getQueryParameters().getFirst("service"),
+                        uriInfo.getQueryParameters().getFirst("scope"),
+                        uriInfo.getQueryParameters().getFirst("account"),
+                        httpHeaders
+                );
             }
         }
         log.error("404 not found : POST /v2/{}", fullPath);

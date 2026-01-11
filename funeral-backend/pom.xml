@@ -16,7 +16,7 @@
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.version>3.25.0</quarkus.platform.version>
-        <quarkus.jvm.additional-args>--add-opens java.base/java.lang=ALL-UNNAMED</quarkus.jvm.additional-args>
+        <jvm.args>--add-opens java.base/java.lang=ALL-UNNAMED</jvm.args>
         <quarkus.native.additional-build-args>-H:+RemoveUnusedSymbols,-march=compatibility</quarkus.native.additional-build-args>
         <quarkus.native.container-build>true</quarkus.native.container-build>
         <quarkus.native.compression.level>10</quarkus.native.compression.level>
@@ -50,6 +50,21 @@
             <groupId>io.minio</groupId>
             <artifactId>minio</artifactId>
             <version>8.5.17</version>
+        </dependency>
+        <!-- JWT support -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-smallrye-jwt</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-smallrye-jwt-build</artifactId>
+        </dependency>
+        <!-- Password hashing -->
+        <dependency>
+            <groupId>at.favre.lib</groupId>
+            <artifactId>bcrypt</artifactId>
+            <version>0.10.2</version>
         </dependency>
     </dependencies>
     <build>

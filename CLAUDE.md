@@ -33,35 +33,6 @@ mvn clean package -Pnative
 mvn test
 ```
 
-### Frontend Development
-```bash
-# Navigate to frontend directory
-cd funeral-frontend
-
-# Install dependencies
-npm install
-
-# Run development server (hot reload)
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-```
-
-### Infrastructure Setup
-```bash
-# Start MongoDB and MinIO using Docker Compose
-cd docker_bak
-docker-compose up -d
-
-# Or run individually:
-# MongoDB on localhost:27017
-# MinIO on localhost:9000 (API) and 9001 (Console)
-```
-
 ## Key Configuration
 
 Backend configuration in `funeral-backend/src/main/resources/application.yml`:
@@ -135,3 +106,8 @@ Current conformance: 74/79 tests passing from OCI Distribution Spec test suite. 
 - Focus on OCI Pull/Push API compliance over advanced features
 - GraalVM native compilation supported for lightweight deployments
 - Frontend is optional - backend provides full OCI API functionality
+
+## 本地自测登录:
+
+docker login 192.168.8.9:8911 -u admin -p password
+docker push 192.168.8.9:8911/ai-mss-analyst/gop/gop-frontend:0.0.1.20260104_200506
