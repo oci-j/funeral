@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.bson.types.ObjectId;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,15 +45,11 @@ public class BlobResourceHandler {
     @Inject
     io.oci.service.StorageService storageService;
 
-    private Object getBlobStorageService() {
-        if (storageService == null) {
-            return s3StorageService;
-        }
-        return storageService;
-    }
+    @ConfigProperty(name = "oci.storage.no-minio", defaultValue = "false")
+    boolean noMinio;
 
     private boolean isUsingMinio() {
-        return getBlobStorageService() instanceof io.oci.service.S3StorageService;
+        return !noMinio;
     }
 
     @CommentHEAD
