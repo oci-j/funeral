@@ -129,13 +129,63 @@
             <el-alert :title="dialogError" type="error" :closable="false" />
           </div>
           <div v-else-if="blobContent" class="content-viewer">
+            <!-- Docker Layer Tar.GZip Format -->
+            <div v-if="blobContent.type === 'blob' && (blobContent.mediaType?.includes('rootfs.diff') || blobContent.mediaType?.includes('tar.gzip'))" class="layer-binary-container">
+              <el-card class="binary-info-card">
+                <template #header>
+                  <div class="binary-header">
+                    <el-icon><Box /></el-icon>
+                    <span>Filesystem Layer ({{ currentBlob?.digest?.substring(7, 19) || 'Unknown' }})</span>
+                  </div>
+                </template>
+                <div class="binary-details">
+                  <div class="detail-item">
+                    <el-text type="info">Media Type:</el-text>
+                    <el-tag type="success" size="small">
+                      {{ blobContent.mediaType || 'Unknown' }}
+                    </el-tag>
+                  </div>
+                  <div class="detail-item">
+                    <el-text type="info">Content Encoding:</el-text>
+                    <el-tag type="warning" size="small">
+                      gzip-compressed tar archive
+                    </el-tag>
+                  </div>
+                  <div class="detail-item">
+                    <el-text type="info">Size:</el-text>
+                    <el-text><strong>{{ formatSize(blobContent.content?.size || 0) }}</strong></el-text>
+                  </div>
+                  <el-divider />
+                  <el-alert
+                    title="Content Preview Not Available"
+                    type="info"
+                    :closable="false"
+                    description="This is a compressed filesystem layer. To inspect its contents, pull the image and extract the layer."
+                  />
+                  <div class="extraction-guide">
+                    <el-divider>How to Inspect</el-divider>
+                    <el-text type="info">1. Save the image to a tar file:</el-text>
+                    <pre class="command-example">docker save {{ repositoryName.value }}:{{ tagName.value }} -o image.tar</pre>
+
+                    <el-text type="info">2. Extract the specific layer:</el-text>
+                    <pre class="command-example">tar -xf image.tar {{ currentBlob?.digest?.replace(':', '_') || 'layer' }}/layer.tar
+# Then extract the gzip to see files:
+gunzip -c {{ currentBlob?.digest?.replace(':', '_') || 'layer' }}/layer.tar | tar -tf -</pre>
+                  </div>
+                </div>
+              </el-card>
+            </div>
+
+            <!-- Generic Binary Content -->
             <el-alert
-              v-if="blobContent.type === 'blob'"
+              v-else-if="blobContent.type === 'blob'"
               title="This is a binary blob. Content preview is not available."
               type="info"
               :closable="false"
             />
-            <div v-if="vueJsonPrettyAvailable && isJsonContent && jsonData" class="json-pretty-container">
+
+            <!-- JSON Content -->
+            <div v-else-if="vueJsonPrettyAvailable && isJsonContent && jsonData" class="json-pretty-container">
               <vue-json-pretty
                 :data="jsonData"
                 :deep="3"
@@ -145,6 +195,8 @@
               />
             </div>
             <pre v-else-if="isJsonContent && jsonData" class="json-viewer">{{ JSON.stringify(jsonData, null, 2) }}</pre>
+
+            <!-- Plain Text Content -->
             <pre v-else class="text-viewer">{{ blobContent.content }}</pre>
           </div>
         </div>
@@ -166,7 +218,7 @@
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Back, DocumentCopy, Document, Loading } from '@element-plus/icons-vue'
+import { Back, DocumentCopy, Document, Loading, Box } from '@element-plus/icons-vue'
 
 import { registryApi } from '../api/registry'
 import { ElMessage } from 'element-plus'
@@ -587,6 +639,73 @@ onMounted(() => {
 .json-viewer::-webkit-scrollbar-thumb:hover,
 .text-viewer::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+/* Docker Layer Binary Styles */
+.layer-binary-container {
+  padding: 10px;
+}
+
+.binary-info-card {
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4edf5 100%);
+}
+
+.binary-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: bold;
+}
+
+.binary-details {
+  padding: 16px 0;
+}
+
+.detail-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.binary-alert {
+  margin: 16px 0;
+}
+
+.extraction-guide {
+  margin-top: 24px;
+  padding: 16px;
+  background-color: #f0f7ff;
+  border-radius: 4px;
+  border-left: 4px solid #409eff;
+}
+
+.extraction-guide .el-text {
+  display: block;
+  margin-top: 16px;
+  margin-bottom: 8px;
+  font-weight: 500;
+}
+
+.extraction-guide .el-text:first-child {
+  margin-top: 0;
+}
+
+.command-example {
+  margin: 8px 0 16px;
+  padding: 12px 16px;
+  background-color: #f5f7fa;
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 12px;
+  line-height: 1.5;
+  overflow-x: auto;
+  white-space: pre;
+}
+
+.layer-info {
+  margin-top: 16px;
 }
 
 </style>
