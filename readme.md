@@ -39,6 +39,12 @@ use funeral-backend folder, it is a quarkus maven project, you can use it as `mv
 
 modify the resources/application.yml to config minio & mongo connection & other configs
 
+cli demo usage is like:
+
+```shell
+./funeral-0.1.2-runner -Dquarkus.config.locations=file:/home/xenoamess/funeral/application.yml
+```
+
 # Short-Term Goal
 
 This repo is a subject of a bigger project to make oci better, with less bandwidth.
