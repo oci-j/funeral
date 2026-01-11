@@ -50,6 +50,7 @@ public class RegistryResourceHandler {
                     long tagCount = manifestStorage.countByRepository(repo.name);
                     return new RepositoryInfo(repo.name, repo.createdAt, repo.updatedAt, tagCount);
                 })
+                .sorted(java.util.Comparator.comparing(r -> r.name))
                 .collect(Collectors.toList());
 
         return Response.ok(repoList).build();
