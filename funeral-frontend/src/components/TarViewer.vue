@@ -20,43 +20,38 @@
         <el-alert :title="error" type="error" :closable="false" />
       </div>
 
-      <!-- File listing -->
-      <div v-else class="file-listing">
-        <div class="listing-header">
-          <span class="header-filename">Filename</span>
+      <!-- File tree -->
+      <div v-else-if="treeData.length > 0" class="file-tree-container">
+        <div class="tree-header">
+          <span class="header-name">Name</span>
           <span class="header-size">Size</span>
           <span class="header-type">Type</span>
         </div>
 
-        <div class="file-tree">
-          <div
-            v-for="file in sortedFiles"
-            :key="file.path"
-            class="file-entry"
-            :class="{ 'is-directory': file.type === 'directory' }"
-          >
-            <div class="file-info">
-              <el-icon class="file-icon">
-                <Folder v-if="file.type === 'directory'" />
-                <Document v-else-if="file.type === 'symlink'" />
-                <Files v-else />
-              </el-icon>
-              <span class="file-name" :title="file.path">{{ file.path }}</span>
-            </div>
-            <span class="file-size">{{ formatSize(file.size) }}</span>
-            <span class="file-type">{{ getFileType(file) }}</span>
-          </div>
+        <div class="tree-view">
+          <TreeItem
+            v-for="node in treeData"
+            :key="node.path"
+            :node="node"
+            :level="0"
+          />
         </div>
+      </div>
+
+      <!-- Empty state -->
+      <div v-else class="empty-state">
+        <el-empty description="No files in archive" />
       </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { Box, Loading, Folder, Document, Files } from '@element-plus/icons-vue'
+import { ref, computed, onMounted, provide } from 'vue'
+import { Box, Loading } from '@element-plus/icons-vue'
 import pako from 'pako'
 import untar from 'js-untar'
+import TreeItem from './TreeItem.vue'
 
 const props = defineProps({
   arrayBuffer: {
@@ -72,6 +67,11 @@ const props = defineProps({
 const loading = ref(true)
 const error = ref('')
 const files = ref([])
+const treeData = ref([])
+
+// Provide utilities to child components
+provide('formatSize', formatSize)
+provide('getFileType', getFileType)
 
 // Parse tar.gz file using js-untar
 const parseTarGz = async () => {
@@ -116,6 +116,9 @@ const parseTarGz = async () => {
 
       console.log('Tar parsing completed, found', parsedFiles.length, 'files')
       files.value = parsedFiles
+
+      // Build tree structure
+      treeData.value = buildTree(parsedFiles)
       loading.value = false
     } catch (tarErr) {
       console.error('Tar parsing error:', tarErr)
@@ -148,7 +151,7 @@ const getEntryType = (type) => {
   }
 }
 
-const formatSize = (size) => {
+function formatSize(size) {
   if (size === 0) return '0 B'
   if (size < 1024) return `${size} B`
   if (size < 1024 * 1024) return `${(size / 1024).toFixed(2)} KB`
@@ -156,7 +159,7 @@ const formatSize = (size) => {
   return `${(size / (1024 * 1024 * 1024)).toFixed(2)} GB`
 }
 
-const getFileType = (file) => {
+function getFileType(file) {
   if (file.type === 'directory') return 'Directory'
   if (file.type === 'symlink') return 'Symlink'
   if (file.type === 'hardlink') return 'Hard Link'
@@ -186,17 +189,83 @@ const getFileType = (file) => {
   return typeMap[ext] || 'File'
 }
 
-// Computed properties
-const sortedFiles = computed(() => {
-  return [...files.value].sort((a, b) => {
-    // Directories first
-    if (a.type === 'directory' && b.type !== 'directory') return -1
-    if (a.type !== 'directory' && b.type === 'directory') return 1
-    // Then sort by path
-    return a.path.localeCompare(b.path)
-  })
-})
+// Build tree structure from flat file list
+function buildTree(files) {
+  const root = { name: '', path: '', type: 'directory', children: [] }
+  const pathMap = new Map()
+  pathMap.set('', root)
 
+  // Sort files by path depth to ensure parent directories are created first
+  const sortedFiles = [...files].sort((a, b) => {
+    const depthA = a.path.split('/').filter(p => p).length
+    const depthB = b.path.split('/').filter(p => p).length
+    return depthA - depthB
+  })
+
+  sortedFiles.forEach(file => {
+    const parts = file.path.split('/').filter(p => p)
+    let currentPath = ''
+    let parent = root
+
+    // Create intermediate directories (for all files and directories)
+    for (let i = 0; i < parts.length - (file.type === 'file' ? 1 : 0); i++) {
+      const part = parts[i]
+      const path = currentPath ? `${currentPath}/${part}` : part
+
+      if (!pathMap.has(path)) {
+        const dirNode = {
+          name: part,
+          path: path,
+          type: 'directory',
+          size: 0,
+          children: []
+        }
+        pathMap.set(path, dirNode)
+        parent.children.push(dirNode)
+      }
+
+      currentPath = path
+      parent = pathMap.get(path)
+    }
+
+    // For file entries, add them to their parent directory
+    if (file.type === 'file' || file.type === 'symlink' || file.type === 'hardlink') {
+      const fileName = parts[parts.length - 1]
+      const filePath = file.path
+
+      // Skip if already exists (handles duplicate entries)
+      if (!pathMap.has(filePath)) {
+        const fileNode = {
+          ...file,
+          name: fileName,
+          path: filePath,
+          children: undefined
+        }
+        pathMap.set(filePath, fileNode)
+        parent.children.push(fileNode)
+      }
+    }
+    // For directory entries, they've already been created in the intermediate loop above
+    // so we don't need to add them again
+  })
+
+  // Sort children in each node (directories first, then files alphabetically)
+  const sortNodeChildren = (node) => {
+    if (node.children && node.children.length > 0) {
+      node.children.sort((a, b) => {
+        if (a.type === 'directory' && b.type !== 'directory') return -1
+        if (a.type !== 'directory' && b.type === 'directory') return 1
+        return a.name.localeCompare(b.name)
+      })
+      node.children.forEach(sortNodeChildren)
+    }
+  }
+  sortNodeChildren(root)
+
+  return root.children
+}
+
+// Computed properties
 const fileCount = computed(() => files.value.length)
 
 const totalSize = computed(() => {
@@ -241,13 +310,20 @@ onMounted(() => {
   gap: 8px;
 }
 
-.file-listing {
+.empty-state {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 200px;
+}
+
+.file-tree-container {
   height: 100%;
   display: flex;
   flex-direction: column;
 }
 
-.listing-header {
+.tree-header {
   display: grid;
   grid-template-columns: 1fr 100px 120px;
   gap: 16px;
@@ -261,67 +337,9 @@ onMounted(() => {
   z-index: 10;
 }
 
-.file-tree {
+.tree-view {
   flex: 1;
   overflow-y: auto;
-}
-
-.file-entry {
-  display: grid;
-  grid-template-columns: 1fr 100px 120px;
-  gap: 16px;
-  padding: 10px 16px;
-  border-bottom: 1px solid #f0f0f0;
-  align-items: center;
-  transition: background-color 0.2s;
-}
-
-.file-entry:hover {
-  background-color: #f9f9f9;
-}
-
-.file-entry.is-directory {
-  background-color: #f8fbff;
-}
-
-.file-info {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  overflow: hidden;
-}
-
-.file-icon {
-  flex-shrink: 0;
-  color: #909399;
-}
-
-.file-name {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
-  font-size: 13px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.file-size {
-  font-size: 13px;
-  color: #606266;
-  text-align: right;
-}
-
-.file-type {
-  font-size: 12px;
-  color: #909399;
-  text-transform: uppercase;
-}
-
-.file-entry.is-directory .file-name {
-  font-weight: 600;
-  color: #303133;
-}
-
-.file-entry.is-directory .file-icon {
-  color: #409eff;
 }
 </style>
