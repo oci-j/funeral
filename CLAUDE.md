@@ -33,6 +33,22 @@ mvn clean package -Pnative
 mvn test
 ```
 
+### Frontend Development
+```bash
+# Navigate to frontend directory
+cd funeral-frontend
+
+# install missing packages
+pnpm install
+
+# Run in development mode (hot reload)
+pnpm run dev
+
+# Build package
+pnpm build
+
+```
+
 ## Key Configuration
 
 Backend configuration in `funeral-backend/src/main/resources/application.yml`:
@@ -95,7 +111,7 @@ Current conformance: 74/79 tests passing from OCI Distribution Spec test suite. 
 
 ## Deployment Options
 
-1. **Development**: `mvn quarkus:dev` + `npm run dev`
+1. **Development**: `mvn quarkus:dev` + `pnpm run dev`
 2. **JVM Production**: `mvn clean package` then run JAR
 3. **Native Binary**: `mvn clean package -Pnative` for minimal footprint
 4. **Docker**: Multi-stage build with UBI base images (see `docker_bak/Dockerfile`)

@@ -254,11 +254,68 @@ const detectContentType = async () => {
   }
 }
 
-// Hash calculation functions
-const calculateHash = async (buffer, algorithm) => {
-  const hashBuffer = await crypto.subtle.digest(algorithm, buffer)
-  const hashArray = Array.from(new Uint8Array(hashBuffer))
-  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+// Calculate MD5 using crypto-js
+const calculateMD5 = (buffer) => {
+  return new Promise((resolve) => {
+    try {
+      import('crypto-js').then(CryptoJS => {
+        let wordArray
+        if (buffer instanceof ArrayBuffer) {
+          const bytes = new Uint8Array(buffer)
+          const len = bytes.length
+          const words = []
+          for (let i = 0; i < len; i++) {
+            words[i >>> 2] |= (bytes[i] & 0xff) << (24 - (i % 4) * 8)
+          }
+          wordArray = new CryptoJS.lib.WordArray.init(words, len)
+        } else {
+          // For string content
+          resolve(CryptoJS.MD5(buffer).toString())
+          return
+        }
+
+        resolve(CryptoJS.MD5(wordArray).toString())
+      }).catch((err) => {
+        console.warn('Failed to import crypto-js:', err)
+        resolve('N/A')
+      })
+    } catch (err) {
+      console.warn('MD5 calculation failed:', err)
+      resolve('N/A')
+    }
+  })
+}
+
+// Calculate SHA256 using crypto-js
+const calculateSHA256 = (buffer) => {
+  return new Promise((resolve) => {
+    try {
+      import('crypto-js').then(CryptoJS => {
+        let wordArray
+        if (buffer instanceof ArrayBuffer) {
+          const bytes = new Uint8Array(buffer)
+          const len = bytes.length
+          const words = []
+          for (let i = 0; i < len; i++) {
+            words[i >>> 2] |= (bytes[i] & 0xff) << (24 - (i % 4) * 8)
+          }
+          wordArray = new CryptoJS.lib.WordArray.init(words, len)
+        } else {
+          // For string content
+          resolve(CryptoJS.SHA256(buffer).toString())
+          return
+        }
+
+        resolve(CryptoJS.SHA256(wordArray).toString())
+      }).catch((err) => {
+        console.warn('Failed to import crypto-js:', err)
+        resolve('N/A')
+      })
+    } catch (err) {
+      console.warn('SHA256 calculation failed:', err)
+      resolve('N/A')
+    }
+  })
 }
 
 const calculateFileHashes = async () => {
@@ -275,9 +332,10 @@ const calculateFileHashes = async () => {
       return null
     }
 
+    // Calculate both hashes using crypto-js
     const [md5, sha256] = await Promise.all([
-      calculateHash(buffer, 'MD5').catch(() => 'N/A'),
-      calculateHash(buffer, 'SHA-256').catch(() => 'N/A')
+      calculateMD5(buffer),
+      calculateSHA256(buffer)
     ])
 
     return { md5, sha256 }
