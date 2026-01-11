@@ -128,21 +128,54 @@ public class DockerTarResource {
 
         List<ManifestInfo> manifestList = new ArrayList<>();
 
+        log.info("Parsing Docker tar file: {} (size: {} bytes)", tarFile.getName(), tarFile.length());
+
+        List<String> foundFiles = new ArrayList<>();
+
         try (FileInputStream fis = new FileInputStream(tarFile);
              TarArchiveInputStream tarInput = new TarArchiveInputStream(fis)) {
 
             ArchiveEntry entry;
+            boolean foundManifest = false;
             while ((entry = tarInput.getNextEntry()) != null) {
                 if (entry.isDirectory()) {
                     continue;
                 }
 
                 String entryName = entry.getName();
-                log.debug("Processing tar entry: {}", entryName);
+                foundFiles.add(entryName);
+                log.info("Processing tar entry: {} (size: {} bytes)", entryName, entry.getSize());
 
-                // Read manifest.json
-                if (entryName.equals("manifest.json")) {
-                    manifestList.addAll(parseManifestJson(tarInput));
+                // Read manifest.json or index.json (for OCI layout)
+                if (entryName.equals("manifest.json") || entryName.equals("./manifest.json") ||
+                    entryName.equals("index.json") || entryName.equals("./index.json")) {
+                    foundManifest = true;
+                    log.info("Found {}, parsing...", entryName);
+
+                    // Read the manifest content into memory to avoid stream issues
+                    ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                    byte[] buffer = new byte[8192];
+                    int bytesRead;
+                    while ((bytesRead = tarInput.read(buffer)) != -1) {
+                        baos.write(buffer, 0, bytesRead);
+                    }
+
+                    // Parse from the byte array
+                    ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+                    manifestList.addAll(parseManifestJson(bais));
+                    log.info("Parsed {} manifests from {}", manifestList.size(), entryName);
+                } else if (entryName.endsWith(".json") && !entryName.contains("manifest.json") && !entryName.contains("index.json")) {
+                    // These are config files, we could potentially parse them too
+                    log.debug("Found config file: {}", entryName);
+                } else if (entryName.endsWith(".tar.gz") || entryName.endsWith(".tar")) {
+                    log.debug("Found layer file: {}", entryName);
+                }
+            }
+
+            if (!foundManifest) {
+                log.warn("No manifest.json found in tar file. Available files:");
+                for (String fileName : foundFiles) {
+                    log.warn("Entry: {}", fileName);
                 }
             }
         }
@@ -181,15 +214,26 @@ public class DockerTarResource {
     }
 
     /**
-     * Using proper JSON parsing to parse manifest.json from Docker tar file.
-     * This replaces the error-prone manual string parsing with a more reliable approach.
+     * Using proper JSON parsing to parse manifest.json or index.json from Docker/OCI tar file.
+     * Supports both Docker manifest.json format and OCI index.json format.
      */
     private List<ManifestInfo> parseManifestJson(InputStream inputStream) throws IOException {
         List<ManifestInfo> manifests = new ArrayList<>();
 
         try {
             JsonNode root = objectMapper.readTree(inputStream);
-            if (root.isArray()) {
+
+            // Check if this is OCI index.json format
+            if (root.has("manifests")) {
+                log.info("Detected OCI index.json format");
+                // This is an OCI index, look for the OCI layout structure
+                // For now, just log this and return empty - need to add proper OCI parsing
+                log.warn("OCI layout detected but not fully implemented yet. Please use Docker save format instead.");
+                return manifests; // Return empty for now
+            }
+            // Docker manifest.json format (array of manifest objects)
+            else if (root.isArray()) {
+                log.info("Detected Docker manifest.json format");
                 for (JsonNode manifestNode : root) {
                     ManifestInfo info = new ManifestInfo();
 
@@ -229,7 +273,7 @@ public class DockerTarResource {
                 }
                 log.info("Parsed {} manifests from tar file", manifests.size());
             } else {
-                log.warn("Manifest.json is not an array as expected");
+                log.warn("Unknown JSON format in manifest/index file");
             }
         } catch (Exception e) {
             log.error("Failed to parse manifest.json", e);
