@@ -130,7 +130,7 @@
           </div>
           <div v-else-if="blobContent" class="content-viewer">
             <!-- Docker Layer Tar.GZip Format -->
-            <div v-if="blobContent.type === 'blob' && (blobContent.mediaType?.includes('rootfs.diff') || blobContent.mediaType?.includes('tar.gzip'))" class="layer-binary-container">
+            <div v-if="blobContent.type === 'blob' && (blobContent.mediaType?.includes('rootfs.diff') || blobContent.mediaType?.includes('tar.gzip') || blobContent.mediaType?.includes('tar+gzip'))" class="layer-binary-container">
               <!-- Show TarViewer for docker layers -->
               <TarViewer
                 v-if="blobContent.arrayBuffer"
@@ -143,7 +143,7 @@
                 <template #header>
                   <div class="binary-header">
                     <el-icon><Box /></el-icon>
-                    <span>Filesystem Layer ({{ currentBlob?.digest?.substring(7, 19) || 'Unknown' }})</span>
+                    <span>Archive Content ({{ currentBlob?.digest?.substring(7, 19) || 'Unknown' }})</span>
                   </div>
                 </template>
                 <div class="binary-details">
