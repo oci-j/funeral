@@ -11,16 +11,23 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @ApplicationScoped
 public class StorageService {
 
-    @jakarta.ws.rs.core.Context
-    private static final String STORAGE_ROOT = System.getProperty("oci.storage.root", "/tmp/oci-registry");
-    private static final String TEMP_ROOT = System.getProperty("oci.storage.temp", "/tmp/oci-registry-temp");
+    @ConfigProperty(name = "oci.storage.local-storage-path", defaultValue = "/tmp/funeral-storage")
+    String storagePath;
+
+    String tempPath;
+
+    @jakarta.annotation.PostConstruct
+    void init() {
+        tempPath = storagePath + "/temp";
+    }
 
     public String storeBlob(InputStream inputStream, String expectedDigest) throws IOException {
-        Path storageDir = Paths.get(STORAGE_ROOT, "blobs");
+        Path storageDir = Paths.get(storagePath, "blobs");
         Files.createDirectories(storageDir);
 
         // Create temp file first
@@ -68,7 +75,7 @@ public class StorageService {
 
     public InputStream getBlobStream(String digest) throws IOException {
         String digestPath = digest.replace(":", "/");
-        Path blobPath = Paths.get(STORAGE_ROOT, "blobs", digestPath);
+        Path blobPath = Paths.get(storagePath, "blobs", digestPath);
 
         if (!Files.exists(blobPath)) {
             return null;
@@ -79,24 +86,24 @@ public class StorageService {
 
     public boolean blobExists(String digest) {
         String digestPath = digest.replace(":", "/");
-        Path blobPath = Paths.get(STORAGE_ROOT, "blobs", digestPath);
+        Path blobPath = Paths.get(storagePath, "blobs", digestPath);
         return Files.exists(blobPath);
     }
 
     public long getBlobSize(String digest) throws IOException {
         String digestPath = digest.replace(":", "/");
-        Path blobPath = Paths.get(STORAGE_ROOT, "blobs", digestPath);
+        Path blobPath = Paths.get(storagePath, "blobs", digestPath);
         return Files.size(blobPath);
     }
 
     public void deleteBlob(String digest) throws IOException {
         String digestPath = digest.replace(":", "/");
-        Path blobPath = Paths.get(STORAGE_ROOT, "blobs", digestPath);
+        Path blobPath = Paths.get(storagePath, "blobs", digestPath);
         Files.deleteIfExists(blobPath);
     }
 
     public long storeTempChunk(InputStream inputStream, String uploadUuid, int index) throws IOException, WithResponseException {
-        Path tempDir = Paths.get(TEMP_ROOT, uploadUuid);
+        Path tempDir = Paths.get(tempPath, uploadUuid);
         Files.createDirectories(tempDir);
 
         Path chunkFile = tempDir.resolve("chunk-" + index + ".tmp");
@@ -121,13 +128,13 @@ public class StorageService {
     }
 
     public void mergeTempChunks(String uploadUuid, int maxIndex, String digest) throws IOException {
-        Path tempDir = Paths.get(TEMP_ROOT, uploadUuid);
+        Path tempDir = Paths.get(tempPath, uploadUuid);
         if (!Files.exists(tempDir)) {
             throw new IOException("Upload UUID not found");
         }
 
         // Read all chunks and merge them
-        Path targetFile = Paths.get(STORAGE_ROOT, "blobs", digest.replace(":", "/"));
+        Path targetFile = Paths.get(storagePath, "blobs", digest.replace(":", "/"));
         Files.createDirectories(targetFile.getParent());
 
         try (OutputStream os = Files.newOutputStream(targetFile)) {
@@ -151,7 +158,7 @@ public class StorageService {
     ) {}
 
     public CalculateTempChunkResult calculateTempChunks(String uploadUuid) throws IOException {
-        Path tempDir = Paths.get(TEMP_ROOT, uploadUuid);
+        Path tempDir = Paths.get(tempPath, uploadUuid);
         if (!Files.exists(tempDir)) {
             return new CalculateTempChunkResult(0, 0);
         }
