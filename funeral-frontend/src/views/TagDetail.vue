@@ -214,6 +214,7 @@ import TarViewer from '../components/TarViewer.vue'
 
 import { registryApi } from '../api/registry'
 import { ElMessage } from 'element-plus'
+import { useAuthStore } from '../stores/auth'
 
 // Define props
 const props = defineProps({
@@ -246,6 +247,7 @@ const loadVueJsonPretty = async () => {
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 
 // Use props instead of route.params
 const repositoryName = ref(props.name)
@@ -382,9 +384,22 @@ const goBack = () => {
   router.back()
 }
 
-onMounted(() => {
+onMounted(async () => {
   // Load vue-json-pretty asynchronously without blocking
   loadVueJsonPretty()
+
+  // Check authentication status before loading tag details
+  if (!authStore.isAuthenticated) {
+    // Wait for auth config to be checked
+    await authStore.checkAuthConfig()
+
+    // If still not authenticated and auth is enabled, redirect to login
+    if (!authStore.isAuthenticated && authStore.authEnabled !== false) {
+      ElMessage.warning('Please login to access the registry')
+      router.push('/login')
+      return
+    }
+  }
 
   fetchTagDetails()
 })

@@ -72,9 +72,11 @@ import { useRoute, useRouter } from 'vue-router'
 import { Back, DocumentCopy, Delete, InfoFilled } from '@element-plus/icons-vue'
 import { registryApi } from '../api/registry'
 import { ElMessage, ElMessageBox } from "element-plus";
+import { useAuthStore } from '../stores/auth'
 
 const route = useRoute()
 const router = useRouter()
+const authStore = useAuthStore()
 
 // Decode the repository name from URL to handle special characters
 const repositoryName = ref(decodeURIComponent(route.params.name))
@@ -184,7 +186,22 @@ const goBack = () => {
   router.back()
 }
 
-onMounted(() => {
+onMounted(async () => {
+  // Check authentication status before loading repository tags
+  if (!authStore.isAuthenticated) {
+    loading.value = true
+    // Wait for auth config to be checked
+    await authStore.checkAuthConfig()
+
+    // If still not authenticated and auth is enabled, redirect to login
+    if (!authStore.isAuthenticated && authStore.authEnabled !== false) {
+      ElMessage.warning('Please login to access the registry')
+      router.push('/login')
+      loading.value = false
+      return
+    }
+  }
+
   fetchRepositoryTags()
 })
 </script>
