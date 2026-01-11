@@ -131,7 +131,15 @@
           <div v-else-if="blobContent" class="content-viewer">
             <!-- Docker Layer Tar.GZip Format -->
             <div v-if="blobContent.type === 'blob' && (blobContent.mediaType?.includes('rootfs.diff') || blobContent.mediaType?.includes('tar.gzip'))" class="layer-binary-container">
-              <el-card class="binary-info-card">
+              <!-- Show TarViewer for docker layers -->
+              <TarViewer
+                v-if="blobContent.arrayBuffer"
+                :array-buffer="blobContent.arrayBuffer"
+                :media-type="blobContent.mediaType"
+              />
+
+              <!-- Fallback: show extraction guide if parsing fails -->
+              <el-card v-else class="binary-info-card">
                 <template #header>
                   <div class="binary-header">
                     <el-icon><Box /></el-icon>
@@ -146,32 +154,15 @@
                     </el-tag>
                   </div>
                   <div class="detail-item">
-                    <el-text type="info">Content Encoding:</el-text>
-                    <el-tag type="warning" size="small">
-                      gzip-compressed tar archive
-                    </el-tag>
-                  </div>
-                  <div class="detail-item">
                     <el-text type="info">Size:</el-text>
                     <el-text><strong>{{ formatSize(blobContent.content?.size || 0) }}</strong></el-text>
                   </div>
-                  <el-divider />
                   <el-alert
-                    title="Content Preview Not Available"
-                    type="info"
+                    title="Failed to load ArrayBuffer"
+                    type="warning"
                     :closable="false"
-                    description="This is a compressed filesystem layer. To inspect its contents, pull the image and extract the layer."
+                    description="The layer content could not be loaded for parsing."
                   />
-                  <div class="extraction-guide">
-                    <el-divider>How to Inspect</el-divider>
-                    <el-text type="info">1. Save the image to a tar file:</el-text>
-                    <pre class="command-example">docker save {{ repositoryName.value }}:{{ tagName.value }} -o image.tar</pre>
-
-                    <el-text type="info">2. Extract the specific layer:</el-text>
-                    <pre class="command-example">tar -xf image.tar {{ currentBlob?.digest?.replace(':', '_') || 'layer' }}/layer.tar
-# Then extract the gzip to see files:
-gunzip -c {{ currentBlob?.digest?.replace(':', '_') || 'layer' }}/layer.tar | tar -tf -</pre>
-                  </div>
                 </div>
               </el-card>
             </div>
@@ -219,6 +210,7 @@ gunzip -c {{ currentBlob?.digest?.replace(':', '_') || 'layer' }}/layer.tar | ta
 import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Back, DocumentCopy, Document, Loading, Box } from '@element-plus/icons-vue'
+import TarViewer from '../components/TarViewer.vue'
 
 import { registryApi } from '../api/registry'
 import { ElMessage } from 'element-plus'

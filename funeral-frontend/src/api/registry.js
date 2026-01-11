@@ -390,7 +390,7 @@ export const registryApi = {
         throw new Error(`HTTP error! status: ${response.status}`)
       }
 
-      // Return both text and blob for different content types
+      // Return both text and blob/arrayBuffer for different content types
       const contentType = response.headers.get('content-type') || ''
       // Check for JSON types including vendor-specific JSON types
       const lowerContentType = contentType.toLowerCase()
@@ -407,9 +407,12 @@ export const registryApi = {
         console.log(`Blob content type: ${contentType}, media type: ${expectedMediaType}, size: ${text.length} characters`)
         return { type: 'text', content: text, contentType, mediaType: expectedMediaType }
       } else {
+        // For binary content, return both blob and arrayBuffer
+        // Blob for display purposes, arrayBuffer for parsing
         const blob = await response.blob()
+        const arrayBuffer = await blob.arrayBuffer()
         console.log(`Blob content type: ${contentType}, media type: ${expectedMediaType}, size: ${blob.size} bytes (binary)`)
-        return { type: 'blob', content: blob, contentType, mediaType: expectedMediaType }
+        return { type: 'blob', content: blob, arrayBuffer, contentType, mediaType: expectedMediaType }
       }
     } catch (error) {
       console.error('Error fetching blob content:', error)
