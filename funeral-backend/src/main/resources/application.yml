@@ -27,6 +27,7 @@ oci:
   auth:
     # true if we enable auth system.
     enabled: ${AUTH_ENABLED:true}
+    allow-anonymous-pull: ${AUTH_ALLOW_ANONYMOUS_PULL:true}
     realm: ${AUTH_REALM:http://192.168.8.9:8911/v2/token}
     service: ${AUTH_SERVICE:funeral-registry}
     jwt:

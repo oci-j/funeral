@@ -181,7 +181,7 @@ public class OciV2Resource {
         }
         {
             /// @see TagResourceHandler
-            if (fullPath.equals("/v2/token/") || fullPath.equals("/v2/token")) {
+            if (fullPath.equals("token/") || fullPath.equals("token")) {
                 return tokenResourceHandler.getToken(
                         uriInfo.getQueryParameters().getFirst("service"),
                         uriInfo.getQueryParameters().getFirst("scope"),
@@ -236,7 +236,7 @@ public class OciV2Resource {
         }
         {
             /// @see TagResourceHandler
-            if (fullPath.equals("/v2/token/") || fullPath.equals("/v2/token")) {
+            if (fullPath.equals("token/") || fullPath.equals("token")) {
                 return tokenResourceHandler.postToken(
                         uriInfo.getQueryParameters().getFirst("service"),
                         uriInfo.getQueryParameters().getFirst("scope"),

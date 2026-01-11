@@ -5,6 +5,7 @@ import io.oci.dto.TokenResponse;
 import io.oci.model.User;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import java.util.UUID;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 import java.util.List;
@@ -37,6 +38,21 @@ public class AuthService {
             return null;
         }
 
+        String accessToken = jwtService.generateToken(user, scope);
+        return new TokenResponse(accessToken, "Bearer", expirationSeconds);
+    }
+
+    public TokenResponse authenticateWithAnonymousUser(String service) {
+        User user = new User();
+        user.username = "temp_" + UUID.randomUUID().toString();
+        user.passwordHash = user.username;
+        user.email = user.username;
+
+        String scope = "pull";
+        String repositoryName = parseScopeRepository(scope);
+        if (repositoryName != null && !user.hasAccessToRepository(repositoryName)) {
+            return null;
+        }
         String accessToken = jwtService.generateToken(user, scope);
         return new TokenResponse(accessToken, "Bearer", expirationSeconds);
     }

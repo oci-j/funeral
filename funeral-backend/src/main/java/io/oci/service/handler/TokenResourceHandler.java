@@ -9,18 +9,12 @@ import io.oci.resource.OciV2Resource;
 import io.oci.service.AuthService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
-import jakarta.ws.rs.GET;
-import jakarta.ws.rs.POST;
-import jakarta.ws.rs.Path;
-import jakarta.ws.rs.Produces;
-import jakarta.ws.rs.QueryParam;
-import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
-import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
 import java.nio.charset.StandardCharsets;
 import java.util.Base64;
+import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +24,9 @@ import org.slf4j.LoggerFactory;
 public class TokenResourceHandler {
 
     private static final Logger log = LoggerFactory.getLogger(OciV2Resource.class);
+
+    @ConfigProperty(name = "oci.auth.allow-anonymous-pull", defaultValue = "false")
+    boolean allowAnonymousPull;
 
     @Inject
     AuthService authService;
@@ -61,9 +58,14 @@ public class TokenResourceHandler {
 
         String authHeader = headers.getHeaderString("Authorization");
         if (authHeader == null || !authHeader.startsWith("Basic ")) {
-            return Response.status(Response.Status.UNAUTHORIZED)
-                    .header("WWW-Authenticate", "Basic realm=\"funeral-registry\"")
-                    .build();
+            if (!allowAnonymousPull) {
+                return Response.status(Response.Status.UNAUTHORIZED)
+                        .header("WWW-Authenticate", "Basic realm=\"funeral-registry\"")
+                        .build();
+            } else {
+                TokenResponse tokenResponse = authService.authenticateWithAnonymousUser(scope);
+                return Response.ok(tokenResponse).build();
+            }
         }
 
         String credentials = authHeader.substring("Basic ".length());
