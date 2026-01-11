@@ -4,6 +4,30 @@
       <el-header>
         <div class="header-content">
           <h2>FUNERAL - OCI Registry</h2>
+          <div class="header-actions">
+            <div v-if="authStore.isAuthenticated" class="user-menu">
+              <el-dropdown @command="handleUserCommand">
+                <span class="user-dropdown">
+                  <el-icon><User /></el-icon>
+                  {{ authStore.user?.username }}
+                  <el-icon class="el-icon--right"><arrow-down /></el-icon>
+                </span>
+                <template #dropdown>
+                  <el-dropdown-menu>
+                    <el-dropdown-item command="logout">
+                      <el-icon><SwitchButton /></el-icon>
+                      Logout
+                    </el-dropdown-item>
+                  </el-dropdown-menu>
+                </template>
+              </el-dropdown>
+            </div>
+            <div v-else>
+              <el-button type="primary" @click="$router.push('/login')">
+                Login
+              </el-button>
+            </div>
+          </div>
         </div>
       </el-header>
 
@@ -34,7 +58,20 @@
 </template>
 
 <script setup>
-import { HomeFilled, UploadFilled } from '@element-plus/icons-vue'
+import { HomeFilled, UploadFilled, User, SwitchButton } from '@element-plus/icons-vue'
+import { useAuthStore } from './stores/auth'
+import { useRouter } from 'vue-router'
+
+const authStore = useAuthStore()
+const router = useRouter()
+
+const handleUserCommand = (command) => {
+  if (command === 'logout') {
+    authStore.logout()
+    ElMessage.success('Logged out successfully')
+    router.push('/login')
+  }
+}
 </script>
 
 <style>
@@ -67,6 +104,27 @@ body {
 .header-content h2 {
   margin: 0;
   font-size: 20px;
+}
+
+.header-actions {
+  margin-left: auto;
+}
+
+.user-menu {
+  display: flex;
+  align-items: center;
+}
+
+.user-dropdown {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  color: white;
+}
+
+.user-dropdown:hover {
+  opacity: 0.8;
 }
 
 .sidebar {
