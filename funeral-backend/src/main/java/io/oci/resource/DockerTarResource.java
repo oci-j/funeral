@@ -21,6 +21,8 @@ import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.compress.archivers.ArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipInputStream;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -79,12 +81,16 @@ public class DockerTarResource {
         log.info("Received Docker tar file upload request");
 
         File tempFile = null;
+        File tarFile = null;
         try {
             // Save uploaded file to temporary location
             tempFile = saveToTempFile(fileInputStream);
 
+            // Check if it's a zip file and extract tar if needed
+            tarFile = extractTarFromZipIfNeeded(tempFile);
+
             // Parse the tar file
-            TarParseResult result = parseDockerTar(tempFile);
+            TarParseResult result = parseDockerTar(tarFile != null ? tarFile : tempFile);
 
             // Save to storage
             saveToStorage(result);
@@ -104,9 +110,12 @@ public class DockerTarResource {
                     )))
                     .build();
         } finally {
-            // Clean up temp file
+            // Clean up temp files
             if (tempFile != null && tempFile.exists()) {
                 tempFile.delete();
+            }
+            if (tarFile != null && tarFile.exists()) {
+                tarFile.delete();
             }
         }
     }
@@ -115,7 +124,7 @@ public class DockerTarResource {
      * Saves input stream to a temporary file.
      */
     private File saveToTempFile(InputStream inputStream) throws IOException {
-        File tempFile = File.createTempFile("docker-tar-", ".tar");
+        File tempFile = File.createTempFile("docker-tar-", ".tmp");
         try (FileOutputStream fos = new FileOutputStream(tempFile)) {
             byte[] buffer = new byte[8192];
             int bytesRead;
@@ -124,6 +133,64 @@ public class DockerTarResource {
             }
         }
         return tempFile;
+    }
+
+    /**
+     * Extracts tar file from zip archive if the uploaded file is a zip.
+     * Returns the extracted tar file or null if no extraction was needed.
+     */
+    private File extractTarFromZipIfNeeded(File uploadedFile) throws IOException {
+        // Check if the file is a zip by reading the first few bytes
+        try (FileInputStream fis = new FileInputStream(uploadedFile)) {
+            byte[] signature = new byte[4];
+            if (fis.read(signature) != 4) {
+                return null; // File too small
+            }
+
+            // ZIP file signature is 0x504B0304 (PK..)
+            if (signature[0] == 0x50 && signature[1] == 0x4B) {
+                log.info("Detected zip file, extracting tar archive...");
+                return extractTarFromZip(uploadedFile);
+            }
+        }
+
+        // Not a zip file, assume it's already a tar
+        return null;
+    }
+
+    /**
+     * Extracts the first tar file found in a zip archive.
+     */
+    private File extractTarFromZip(File zipFile) throws IOException {
+        File extractedTar = File.createTempFile("docker-tar-extracted-", ".tar");
+
+        try (FileInputStream fis = new FileInputStream(zipFile);
+             ZipInputStream zis = new ZipInputStream(fis)) {
+
+            ZipEntry entry;
+            while ((entry = zis.getNextEntry()) != null) {
+                String entryName = entry.getName().toLowerCase();
+                if (entryName.endsWith(".tar") || entryName.endsWith(".tar.gz") || entryName.endsWith(".tgz")) {
+                    log.info("Found tar file in zip: {}", entry.getName());
+
+                    // Extract the tar file
+                    try (FileOutputStream fos = new FileOutputStream(extractedTar)) {
+                        byte[] buffer = new byte[8192];
+                        int bytesRead;
+                        while ((bytesRead = zis.read(buffer)) != -1) {
+                            fos.write(buffer, 0, bytesRead);
+                        }
+                    }
+                    log.info("Successfully extracted tar file from zip");
+                    return extractedTar;
+                }
+                zis.closeEntry();
+            }
+        }
+
+        // No tar file found in zip
+        extractedTar.delete();
+        throw new IOException("No tar file found in zip archive");
     }
 
     /**

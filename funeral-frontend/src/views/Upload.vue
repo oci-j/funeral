@@ -20,7 +20,7 @@
           class="tar-uploader"
           drag
           action="#"
-          accept=".tar,.tar.gz,.tgz"
+          accept=".tar,.tar.gz,.tgz,.zip"
           :auto-upload="false"
           :before-upload="handleBeforeUpload"
           :on-remove="handleFileRemove"
@@ -32,6 +32,7 @@
           </div>
           <template #tip>
             <div class="el-upload__tip">
+              Supports: .tar, .tar.gz, .tgz, and .zip (containing tar files)<br/>
               Use <code>docker save image:tag -o image.tar</code> to create tar file
             </div>
           </template>
@@ -217,9 +218,12 @@ const loginCommand = computed(() => {
 
 // Tar file upload handlers
 const handleBeforeUpload = (file) => {
-  const isTar = file.name.endsWith('.tar') || file.name.endsWith('.tar.gz') || file.name.endsWith('.tgz')
-  if (!isTar) {
-    ElMessage.error('Only .tar, .tar.gz, and .tgz files are allowed')
+  const isSupported = file.name.endsWith('.tar') ||
+                     file.name.endsWith('.tar.gz') ||
+                     file.name.endsWith('.tgz') ||
+                     file.name.endsWith('.zip')
+  if (!isSupported) {
+    ElMessage.error('Only .tar, .tar.gz, .tgz, and .zip files are supported')
     return false
   }
   return true
