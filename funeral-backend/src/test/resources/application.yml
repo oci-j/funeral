@@ -1,0 +1,37 @@
+quarkus:
+  http:
+    port: 8081
+    cors:
+      enabled: true
+      origins: "*"
+  mongodb:
+    connection-string: mongodb://localhost:27017
+    database: funeral-test
+  smallrye-jwt:
+    enabled: true
+
+oci:
+  auth:
+    enabled: true
+    allow-anonymous-pull: true
+    realm: http://localhost:8081/v2/token
+    service: funeral-registry
+    auto-create:
+      enabled: true
+      username: admin
+      password: password
+      email: admin@funeral.local
+      roles: ADMIN;USER;PUSH_ALL;PULL_ALL
+
+smallrye-jwt:
+  sign:
+    key:
+      location: classpath:privateKey.pem
+    algorithm: RS256
+
+mp:
+  jwt:
+    verify:
+      publickey:
+        location: classpath:publicKey.pem
+      issuer: funeral-registry

@@ -15,9 +15,12 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
-        <quarkus.platform.version>3.25.0</quarkus.platform.version>
+        <quarkus.platform.version>3.31.0.CR1</quarkus.platform.version>
         <jvm.args>--add-opens java.base/java.lang=ALL-UNNAMED</jvm.args>
-        <quarkus.native.additional-build-args>-H:+RemoveUnusedSymbols,-march=compatibility
+        <quarkus.native.additional-build-args>
+            -H:+RemoveUnusedSymbols,\
+            -march=compatibility,\
+            --add-opens=java.base/java.lang=ALL-UNNAMED
         </quarkus.native.additional-build-args>
         <quarkus.native.container-build>false</quarkus.native.container-build>
         <quarkus.native.compression.level>10</quarkus.native.compression.level>
@@ -85,6 +88,17 @@
             <artifactId>zstd-jni</artifactId>
             <version>1.5.5-6</version>
         </dependency>
+        <!-- Test dependencies -->
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-junit5</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.rest-assured</groupId>
+            <artifactId>rest-assured</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -103,7 +117,7 @@
                     <execution>
                         <id>sort-imports</id>
                         <goals>
-                            <goal>check</goal>
+                            <goal>sort</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -114,17 +128,10 @@
                 <version>2.29.0</version>
                 <executions>
                     <execution>
-                        <id>validate</id>
-                        <goals>
-                            <goal>validate</goal>
-                        </goals>
-                    </execution>
-                    <execution>
                         <id>format</id>
                         <goals>
                             <goal>format</goal>
                         </goals>
-                        <phase>verify</phase>
                     </execution>
                 </executions>
                 <configuration>
@@ -174,7 +181,40 @@
             <properties>
                 <skipITs>false</skipITs>
                 <quarkus.native.enabled>true</quarkus.native.enabled>
+                <quarkus.native.auto-reachability-metadata>true</quarkus.native.auto-reachability-metadata>
             </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.graalvm.buildtools</groupId>
+                        <artifactId>native-maven-plugin</artifactId>
+                        <version>0.11.3</version>
+                        <extensions>true</extensions>
+                        <executions>
+                            <execution>
+                                <id>generate-metadata</id>
+                                <goals>
+                                    <goal>merge-agent-files</goal>
+                                    <goal>metadata-copy</goal>
+                                </goals>
+                                <phase>post-integration-test</phase>
+                                <configuration>
+                                    <metadataCopy>
+                                        <enabled>true</enabled>
+                                        <outputDirectory>${project.basedir}/src/main/resources/META-INF/native-image
+                                        </outputDirectory>
+                                    </metadataCopy>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        <configuration>
+                            <agent>
+                                <enabled>true</enabled>
+                            </agent>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>

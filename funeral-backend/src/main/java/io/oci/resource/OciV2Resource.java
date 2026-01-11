@@ -90,6 +90,17 @@ public class OciV2Resource {
             HttpHeaders httpHeaders
     ) {
         {
+            /// @see RegistryResourceHandler
+            switch (fullPath) {
+                case "":
+                    return registryResourceHandler.checkVersion();
+                case "repositories":
+                    return registryResourceHandler.listRepositories();
+                default:
+                    // pass
+            }
+        }
+        {
             /// @see ManifestResourceHandler
             int lastIndexOfTags = fullPath.lastIndexOf(
                     "/manifests/"

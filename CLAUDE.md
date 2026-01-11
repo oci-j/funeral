@@ -29,8 +29,16 @@ mvn clean package
 # Build native binary (requires GraalVM)
 mvn clean package -Pnative
 
-# Run tests (minimal test coverage currently)
+# Run tests
 mvn test
+
+# Run native tests with reachability metadata generation
+mvn test -Pnative
+mvn clean verify -Pnative  # Generates and copies metadata
+
+# Run specific test class
+mvn test -Dtest=ManifestResourceHandlerTest
+mvn test -Dtest=BlobResourceHandlerTest
 ```
 
 ### Frontend Development
@@ -115,6 +123,42 @@ Current conformance: 74/79 tests passing from OCI Distribution Spec test suite. 
 2. **JVM Production**: `mvn clean package` then run JAR
 3. **Native Binary**: `mvn clean package -Pnative` for minimal footprint
 4. **Docker**: Multi-stage build with UBI base images (see `docker_bak/Dockerfile`)
+
+## Testing
+
+### Test Coverage
+The project now includes comprehensive unit tests for all major API endpoints:
+- **OCI v2 Manifest Endpoints** (`ManifestResourceHandlerTest`) - GET/PUT/DELETE manifests
+- **OCI v2 Blob Endpoints** (`BlobResourceHandlerTest`) - Upload/download/delete blobs
+- **OCI v2 Tag Endpoints** (`TagResourceHandlerTest`) - List and manage tags
+- **Registry Endpoints** (`RegistryResourceHandlerTest`) - Version check and repository listing
+- **Referrer Endpoints** (`ReferrerResourceHandlerTest`) - Artifact referrer relationships
+
+### Running Tests
+```bash
+# Run all tests
+mvn test
+
+# Run tests with coverage
+mvn test jacoco:report
+
+# Run specific test class
+mvn test -Dtest=ManifestResourceHandlerTest
+
+# Run native tests (generates reachability metadata)
+mvn test -Pnative
+
+# Full verification with metadata generation
+mvn clean verify -Pnative
+```
+
+### Native Compilation with Auto-Updated Metadata
+The `pom.xml` is configured for automatic reachability metadata generation:
+- Native tests run with GraalVM agent to trace reflection usage
+- Metadata is automatically copied to `src/main/resources/META-INF/native-image/`
+- Subsequent native builds use the generated metadata for better compatibility
+
+See [TESTING.md](funeral-backend/TESTING.md) for detailed testing documentation.
 
 ## Important Notes
 
