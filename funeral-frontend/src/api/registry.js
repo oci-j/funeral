@@ -348,5 +348,29 @@ export const registryApi = {
       console.error('Error deleting user permission:', error)
       throw error
     }
+  },
+
+  async getManifest(repositoryName, reference) {
+    try {
+      const response = await fetch(`${API_BASE}/v2/${repositoryName}/manifests/${reference}`, {
+        headers: getAuthHeaders()
+      })
+
+      if (response.status === 401) {
+        const authStore = useAuthStore()
+        authStore.logout()
+        throw new Error('Authentication required')
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      return data
+    } catch (error) {
+      console.error('Error fetching manifest:', error)
+      throw error
+    }
   }
 }

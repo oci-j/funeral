@@ -17,6 +17,14 @@
               {{ formatSize(tag.size) }}
             </el-text>
             <el-button
+              type="primary"
+              size="small"
+              @click="goToTagDetail(tag.name)"
+            >
+              <el-icon><InfoFilled /></el-icon>
+              Details
+            </el-button>
+            <el-button
               type="danger"
               size="small"
               @click="handleDeleteTag(tag.name)"
@@ -61,7 +69,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Back, DocumentCopy, Delete } from '@element-plus/icons-vue'
+import { Back, DocumentCopy, Delete, InfoFilled } from '@element-plus/icons-vue'
 import { registryApi } from '../api/registry'
 import { ElMessage, ElMessageBox } from "element-plus";
 
@@ -163,6 +171,13 @@ const handleDeleteTag = async (tagName) => {
   } finally {
     deletingTag.value = null
   }
+}
+
+const goToTagDetail = (tagName) => {
+  router.push({
+    name: 'TagDetail',
+    params: { name: repositoryName.value, tag: tagName }
+  })
 }
 
 const goBack = () => {

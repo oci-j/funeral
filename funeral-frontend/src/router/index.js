@@ -16,6 +16,13 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/repository/:name/tag/:tag',
+    name: 'TagDetail',
+    component: () => import('../views/TagDetail.vue'),
+    props: true,
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/upload',
     name: 'Upload',
     component: () => import('../views/Upload.vue'),
