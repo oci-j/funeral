@@ -3,6 +3,7 @@ package io.oci.resource;
 import java.io.*;
 import java.io.BufferedInputStream;
 import java.util.*;
+import java.util.ArrayList;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
@@ -611,6 +612,18 @@ public class DockerTarResource {
                 tarManifest.repository = repositoryName;
                 tarManifest.tag = tag;
                 tarManifest.configDigest = "sha256:" + manifestInfo.config;
+
+                // Get actual config size from blob content if available
+                byte[] configContent = result.blobData.get(
+                        manifestInfo.config
+                );
+                if (configContent == null) {
+                    // Try with full path
+                    configContent = result.blobData.get(
+                            "blobs/sha256/" + manifestInfo.config
+                    );
+                }
+                tarManifest.configSize = configContent != null ? configContent.length : manifestInfo.configSize;
                 // Layer digests are already extracted to just the hash part
                 tarManifest.layerDigests = Arrays.stream(
                         manifestInfo.layers
@@ -621,32 +634,75 @@ public class DockerTarResource {
                         .collect(
                                 Collectors.toList()
                         );
+
+                // Create layer sizes list and track blob sizes
+                tarManifest.layerSizes = new ArrayList<>();
+                for (String layer : manifestInfo.layers) {
+                    String fullLayerDigest = "sha256:" + layer;
+                    // Try to find the actual size from blob data
+                    byte[] layerContent = result.blobData.get(
+                            layer
+                    );
+                    if (layerContent == null) {
+                        // Try with full path
+                        layerContent = result.blobData.get(
+                                "blobs/sha256/" + layer
+                        );
+                    }
+                    // CRITICAL: Always use actual content length, never trust manifest.json size
+                    long layerSize = layerContent != null ? layerContent.length : 0;
+                    if (layerSize == 0) {
+                        log.warn(
+                                "Layer {} has size 0 - blob content not found in tar!",
+                                fullLayerDigest
+                        );
+                    }
+                    tarManifest.layerSizes.add(
+                            layerSize
+                    );
+
+                    // Track blob with actual size
+                    result.blobs.add(
+                            createBlobInfo(
+                                    fullLayerDigest,
+                                    layerSize
+                            )
+                    );
+                }
+
                 result.manifests.add(
                         tarManifest
                 );
 
                 // Track config as a blob (config is already extracted to just the hash part)
+                // Get actual size from blob content if available
+                configContent = result.blobData.get(
+                        manifestInfo.config
+                );
+                if (configContent == null) {
+                    // Try with full path
+                    configContent = result.blobData.get(
+                            "blobs/sha256/" + manifestInfo.config
+                    );
+                }
+                long actualConfigSize = configContent != null ? configContent.length : manifestInfo.configSize;
+
                 result.blobs.add(
                         createBlobInfo(
                                 "sha256:" + manifestInfo.config,
-                                manifestInfo.configSize
+                                actualConfigSize
                         )
                 );
-            }
-
-            // Track layers as blobs (layer digests are already extracted to just the hash part)
-            for (String layer : manifestInfo.layers) {
-                result.blobs.add(
-                        createBlobInfo(
-                                "sha256:" + layer,
-                                0
-                        )
-                ); // Size unknown from manifest
             }
         }
 
         // Store all blob content
         result.blobData = blobContentMap;
+
+        // Update manifest sizes from actual blob data
+        updateManifestSizesFromBlobData(
+                result
+        );
 
         return result;
     }
@@ -1047,6 +1103,105 @@ public class DockerTarResource {
     }
 
     /**
+     * Updates manifest sizes from actual blob data to ensure correct sizes in manifest.
+     */
+    private void updateManifestSizesFromBlobData(
+            TarParseResult result
+    ) {
+        log.info(
+                "Updating manifest sizes from blob data for {} manifests",
+                result.manifests.size()
+        );
+        log.info(
+                "Available blob data keys: {}",
+                result.blobData.keySet()
+        );
+
+        for (TarManifest tarManifest : result.manifests) {
+            log.info(
+                    "Processing manifest for {}:{}",
+                    tarManifest.repository,
+                    tarManifest.tag
+            );
+
+            // Update config size
+            String configHash = tarManifest.configDigest.replace(
+                    "sha256:",
+                    ""
+            );
+            log.info(
+                    "Looking for config blob: {}",
+                    configHash
+            );
+            byte[] configContent = result.blobData.get(
+                    configHash
+            );
+            if (configContent == null) {
+                configContent = result.blobData.get(
+                        "blobs/sha256/" + configHash
+                );
+                log.info(
+                        "Tried full path, found: {}",
+                        configContent != null
+                );
+            }
+            if (configContent != null) {
+                tarManifest.configSize = configContent.length;
+                log.info(
+                        "Updated config size for {}:{} to {} bytes",
+                        tarManifest.repository,
+                        tarManifest.tag,
+                        tarManifest.configSize
+                );
+            }
+            else {
+                log.warn(
+                        "Config blob not found for {}:{} - size will be {}",
+                        tarManifest.repository,
+                        tarManifest.tag,
+                        tarManifest.configSize
+                );
+            }
+
+            // Update layer sizes
+            tarManifest.layerSizes = new ArrayList<>();
+            for (String layerDigest : tarManifest.layerDigests) {
+                String layerHash = layerDigest.replace(
+                        "sha256:",
+                        ""
+                );
+                log.info(
+                        "Looking for layer blob: {}",
+                        layerHash
+                );
+                byte[] layerContent = result.blobData.get(
+                        layerHash
+                );
+                if (layerContent == null) {
+                    layerContent = result.blobData.get(
+                            "blobs/sha256/" + layerHash
+                    );
+                    log.info(
+                            "Tried full path, found: {}",
+                            layerContent != null
+                    );
+                }
+                long layerSize = layerContent != null ? layerContent.length : 0;
+                tarManifest.layerSizes.add(
+                        layerSize
+                );
+                log.info(
+                        "Updated layer size for {}:{} - {} to {} bytes",
+                        tarManifest.repository,
+                        tarManifest.tag,
+                        layerDigest,
+                        layerSize
+                );
+            }
+        }
+    }
+
+    /**
      * Builds a proper Docker/OCI manifest JSON from the parsed manifest info.
      */
     private String buildManifestJson(
@@ -1059,14 +1214,22 @@ public class DockerTarResource {
                             "config": {
                                 "digest": \"%s\",
                                 "mediaType": "application/vnd.docker.container.image.v1+json",
-                                "size": 0
+                                "size": %d
                             }""",
-                    tarManifest.configDigest
+                    tarManifest.configDigest,
+                    tarManifest.configSize
             );
 
             // Build the layers array
             StringBuilder layersJson = new StringBuilder();
-            for (String layerDigest : tarManifest.layerDigests) {
+            for (int i = 0; i < tarManifest.layerDigests.size(); i++) {
+                String layerDigest = tarManifest.layerDigests.get(
+                        i
+                );
+                long layerSize = tarManifest.layerSizes.get(
+                        i
+                );
+
                 if (layersJson.length() > 0) {
                     layersJson.append(
                             ","
@@ -1078,9 +1241,10 @@ public class DockerTarResource {
                                         {
                                             "digest": \"%s\",
                                             "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
-                                            "size": 0
+                                            "size": %d
                                         }""",
-                                layerDigest
+                                layerDigest,
+                                layerSize
                         )
                 );
             }
@@ -1094,11 +1258,12 @@ public class DockerTarResource {
                                 "config": {
                                     "digest": \"%s\",
                                     "mediaType": "application/vnd.docker.container.image.v1+json",
-                                    "size": 0
+                                    "size": %d
                                 },
                                 "layers": [%s]
                             }""",
                     tarManifest.configDigest,
+                    tarManifest.configSize,
                     layersJson.toString()
             );
         }
@@ -1141,8 +1306,9 @@ public class DockerTarResource {
                         bytesRead
                 );
                 totalBytes += bytesRead;
-                if (totalBytes >= entrySize && entrySize > 0) {
-                    break; // We've read all the content
+                // Only break early if we know the exact size and have read it all
+                if (entrySize > 0 && totalBytes >= entrySize) {
+                    break;
                 }
             }
         }
@@ -1303,6 +1469,20 @@ public class DockerTarResource {
                         blobInfo.digest
                 );
             }
+            else {
+                // Update existing blob with correct size if it's different
+                if (existingBlob.contentLength == null || existingBlob.contentLength != blobInfo.size) {
+                    existingBlob.contentLength = blobInfo.size;
+                    blobStorage.persist(
+                            existingBlob
+                    );
+                    log.info(
+                            "Updated blob metadata for: {} (size: {})",
+                            blobInfo.digest,
+                            blobInfo.size
+                    );
+                }
+            }
 
             // Store actual blob content
             String digestWithoutPrefix = blobInfo.digest.replace(
@@ -1345,6 +1525,31 @@ public class DockerTarResource {
                             blobInfo.digest,
                             storedDigest
                     );
+
+                    // Update blob metadata with actual size from storage
+                    try {
+                        long actualSize = storageService.getBlobSize(
+                                blobInfo.digest
+                        );
+                        if (existingBlob != null && existingBlob.contentLength != actualSize) {
+                            existingBlob.contentLength = actualSize;
+                            blobStorage.persist(
+                                    existingBlob
+                            );
+                            log.info(
+                                    "Updated blob size for {} from storage: {}",
+                                    blobInfo.digest,
+                                    actualSize
+                            );
+                        }
+                    }
+                    catch (Exception e) {
+                        log.warn(
+                                "Could not verify blob size from storage for {}: {}",
+                                blobInfo.digest,
+                                e.getMessage()
+                        );
+                    }
                 }
                 catch (Exception e) {
                     log.error(
@@ -1384,6 +1589,10 @@ public class DockerTarResource {
         public String configDigest;
 
         public List<String> layerDigests;
+
+        public long configSize;
+
+        public List<Long> layerSizes;
     }
 
     static class BlobInfo {
