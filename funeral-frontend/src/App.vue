@@ -1,43 +1,80 @@
 <template>
-  <div id="app" class="min-h-screen bg-gray-50">
-    <nav class="bg-white shadow-sm border-b">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-          <div class="flex items-center">
-            <router-link to="/" class="flex items-center space-x-2">
-              <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
-                <span class="text-white font-bold text-sm">OCI</span>
-              </div>
-              <span class="text-xl font-semibold text-gray-900">Registry</span>
-            </router-link>
-          </div>
-          <div class="flex items-center space-x-4">
-            <router-link
-              to="/"
-              class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium"
-              :class="{ 'bg-gray-100 text-gray-900': $route.path === '/' }"
-            >
-              Repositories
-            </router-link>
-            <router-link
-              to="/upload"
-              class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md text-sm font-medium"
-            >
-              Upload
-            </router-link>
-          </div>
+  <div id="app">
+    <el-container style="height: 100vh">
+      <el-header>
+        <div class="header-content">
+          <h2>FUNERAL - OCI Registry</h2>
         </div>
-      </div>
-    </nav>
+      </el-header>
 
-    <main class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-      <router-view />
-    </main>
+      <el-container>
+        <el-aside width="200px" class="sidebar">
+          <el-menu
+            router
+            :default-active="$route.path"
+            class="el-menu-vertical"
+          >
+            <el-menu-item index="/">
+              <el-icon><HomeFilled /></el-icon>
+              <span>Repositories</span>
+            </el-menu-item>
+            <el-menu-item index="/upload">
+              <el-icon><UploadFilled /></el-icon>
+              <span>Upload Image</span>
+            </el-menu-item>
+          </el-menu>
+        </el-aside>
+
+        <el-main>
+          <router-view />
+        </el-main>
+      </el-container>
+    </el-container>
   </div>
 </template>
 
-<script>
-export default {
-  name: 'App'
-}
+<script setup>
+import { HomeFilled, UploadFilled } from '@element-plus/icons-vue'
 </script>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.el-header {
+  background-color: #409EFF;
+  color: white;
+  line-height: 60px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+}
+
+.header-content h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.sidebar {
+  background-color: #f5f7fa;
+  border-right: 1px solid #e4e7ed;
+}
+
+.el-menu-vertical {
+  border-right: none;
+}
+</style>
