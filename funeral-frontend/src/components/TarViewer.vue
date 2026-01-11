@@ -3,9 +3,29 @@
     <div class="tar-header">
       <el-icon><Box /></el-icon>
       <span>Tar Archive Content</span>
-      <el-tag type="success" size="small">
-        {{ fileCount }} files, {{ formatSize(totalSize) }}
-      </el-tag>
+      <div class="header-stats">
+        <el-tag type="info" size="small">
+          {{ folderCount }} folders
+        </el-tag>
+        <el-tag type="success" size="small">
+          {{ fileCount }} files
+        </el-tag>
+        <el-tag type="warning" size="small">
+          {{ formatSize(totalSize) }}
+        </el-tag>
+      </div>
+      <div class="header-actions">
+        <el-button-group size="small">
+          <el-button @click="toggleExpandAll">
+            <el-icon><component :is="allExpanded ? 'Fold' : 'Expand'" /></el-icon>
+            {{ allExpanded ? 'Collapse All' : 'Expand All' }}
+          </el-button>
+          <el-button @click="toggleEmptyFolders">
+            <el-icon><View /></el-icon>
+            {{ showEmptyFolders ? 'Hide Empty' : 'Show Empty' }}
+          </el-button>
+        </el-button-group>
+      </div>
     </div>
 
     <div class="tar-content">
@@ -48,7 +68,7 @@
 
 <script setup>
 import { ref, computed, onMounted, provide } from 'vue'
-import { Box, Loading } from '@element-plus/icons-vue'
+import { Box, Loading, Expand, Fold, View } from '@element-plus/icons-vue'
 import pako from 'pako'
 import untar from 'js-untar'
 import TreeItem from './TreeItem.vue'
@@ -68,6 +88,12 @@ const loading = ref(true)
 const error = ref('')
 const files = ref([])
 const treeData = ref([])
+const allExpanded = ref(true)
+const showEmptyFolders = ref(true)
+
+// Provide state to child components
+provide('allExpanded', allExpanded)
+provide('showEmptyFolders', showEmptyFolders)
 
 // Provide utilities to child components
 provide('formatSize', formatSize)
@@ -265,8 +291,33 @@ function buildTree(files) {
   return root.children
 }
 
+// Toggle functions
+const toggleExpandAll = () => {
+  allExpanded.value = !allExpanded.value
+}
+
+const toggleEmptyFolders = () => {
+  showEmptyFolders.value = !showEmptyFolders.value
+}
+
 // Computed properties
-const fileCount = computed(() => files.value.length)
+const fileCount = computed(() => {
+  return files.value.filter(f => f.type === 'file' || f.type === 'symlink' || f.type === 'hardlink').length
+})
+
+const folderCount = computed(() => {
+  const folderPaths = new Set()
+  files.value.forEach(file => {
+    const parts = file.path.split('/').filter(p => p)
+    let currentPath = ''
+    for (let i = 0; i < parts.length - (file.type === 'file' ? 1 : 0); i++) {
+      const part = parts[i]
+      currentPath = currentPath ? `${currentPath}/${part}` : part
+      folderPaths.add(currentPath)
+    }
+  })
+  return folderPaths.size
+})
 
 const totalSize = computed(() => {
   return files.value.reduce((sum, file) => sum + file.size, 0)
@@ -286,7 +337,8 @@ onMounted(() => {
 }
 
 .tar-header {
-  display: flex;
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
   align-items: center;
   gap: 12px;
   padding: 16px;
@@ -294,6 +346,17 @@ onMounted(() => {
   border-bottom: 1px solid #e4e7ed;
   font-size: 16px;
   font-weight: 500;
+}
+
+.header-stats {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.header-actions {
+  display: flex;
+  gap: 8px;
 }
 
 .tar-content {

@@ -1,5 +1,5 @@
 <template>
-  <div class="tree-item">
+  <div class="tree-item" v-if="isVisible">
     <div
       class="tree-row"
       :class="{ 'is-directory': node.type === 'directory', 'is-file': node.type === 'file' }"
@@ -50,7 +50,7 @@
 </template>
 
 <script setup>
-import { ref, inject } from 'vue'
+import { ref, inject, computed, watch } from 'vue'
 import { Folder, Document, Files, Plus, Minus } from '@element-plus/icons-vue'
 
 const props = defineProps({
@@ -66,8 +66,30 @@ const props = defineProps({
 
 const formatSize = inject('formatSize')
 const getFileType = inject('getFileType')
+const allExpanded = inject('allExpanded')
+const showEmptyFolders = inject('showEmptyFolders')
 
 const expanded = ref(props.node.type === 'directory')
+
+// Watch for allExpanded changes
+watch(allExpanded, (newVal) => {
+  if (props.node.type === 'directory') {
+    expanded.value = newVal
+  }
+})
+
+// Check if folder has non-directory children (files)
+const hasFiles = computed(() => {
+  if (props.node.type !== 'directory' || !props.node.children) return false
+  return props.node.children.some(child => child.type === 'file' || child.type === 'symlink' || child.type === 'hardlink')
+})
+
+// Check if folder should be visible (hide empty folders when appropriate)
+const isVisible = computed(() => {
+  if (props.node.type !== 'directory') return true
+  if (showEmptyFolders.value) return true
+  return hasFiles.value
+})
 
 const toggle = () => {
   if (props.node.type === 'directory') {
