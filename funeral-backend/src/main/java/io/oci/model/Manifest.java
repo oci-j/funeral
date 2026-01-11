@@ -121,6 +121,6 @@ public class Manifest extends PanacheMongoEntity {
     }
 
     public static long countByRepository(String repositoryName) {
-        return count("repository_name = ?1 and tag != null", Sort.by("updated_at", Sort.Direction.Descending), repositoryName);
+        return count("repository_name = ?1 and tag != null",repositoryName);
     }
 }
