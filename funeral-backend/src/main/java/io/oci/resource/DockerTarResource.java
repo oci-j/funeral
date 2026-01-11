@@ -118,19 +118,22 @@ public class DockerTarResource {
     }
 
     /**
-     * Parses Docker tar file and extracts image metadata.
+     * Parses Docker tar file and extracts image metadata and actual blob content.
      */
     private TarParseResult parseDockerTar(File tarFile) throws IOException {
         TarParseResult result = new TarParseResult();
         result.repositories = new HashSet<>();
         result.manifests = new ArrayList<>();
         result.blobs = new ArrayList<>();
+        result.blobData = new HashMap<>(); // Store actual blob content
 
         List<ManifestInfo> manifestList = new ArrayList<>();
 
         log.info("Parsing Docker tar file: {} (size: {} bytes)", tarFile.getName(), tarFile.length());
 
+        // First pass: read manifest.json to get the structure
         List<String> foundFiles = new ArrayList<>();
+        Map<String, byte[]> blobContentMap = new HashMap<>(); // Store all blob content
 
         try (FileInputStream fis = new FileInputStream(tarFile);
              TarArchiveInputStream tarInput = new TarArchiveInputStream(fis)) {
@@ -164,11 +167,29 @@ public class DockerTarResource {
                     ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
                     manifestList.addAll(parseManifestJson(bais));
                     log.info("Parsed {} manifests from {}", manifestList.size(), entryName);
+                } else if (entryName.contains("/sha256/")) {
+                    // This is an OCI blob (config or layer) - read it as a blob
+                    log.info("Reading OCI blob: {}", entryName);
+                    byte[] content = readEntryContent(tarInput, entry);
+                    String digest = extractDigestFromFilename(entryName);
+                    String fullPathKey = entryName; // Store with full path for matching
+                    blobContentMap.put(digest, content);
+                    blobContentMap.put(fullPathKey, content); // Also store with full path
+                    log.info("Read {} bytes for blob {} (full path: {}). Map size now: {}", content.length, digest, fullPathKey, blobContentMap.size());
                 } else if (entryName.endsWith(".json") && !entryName.contains("manifest.json") && !entryName.contains("index.json")) {
-                    // These are config files, we could potentially parse them too
-                    log.debug("Found config file: {}", entryName);
+                    // These are config files (Docker format), read them as blobs
+                    log.info("Reading config blob: {}", entryName);
+                    byte[] content = readEntryContent(tarInput, entry);
+                    String digest = extractDigestFromFilename(entryName);
+                    blobContentMap.put(digest, content);
+                    log.info("Read {} bytes for config blob {}. Map size now: {}", content.length, digest, blobContentMap.size());
                 } else if (entryName.endsWith(".tar.gz") || entryName.endsWith(".tar")) {
-                    log.debug("Found layer file: {}", entryName);
+                    // These are layer files (Docker format), read them as blobs
+                    log.info("Reading layer blob: {}", entryName);
+                    byte[] content = readEntryContent(tarInput, entry);
+                    String digest = extractDigestFromFilename(entryName);
+                    blobContentMap.put(digest, content);
+                    log.info("Read {} bytes for layer blob {}. Map size now: {}", content.length, digest, blobContentMap.size());
                 }
             }
 
@@ -179,6 +200,8 @@ public class DockerTarResource {
                 }
             }
         }
+
+        log.info("Finished processing tar. blobContentMap has {} entries", blobContentMap.size());
 
         // Process manifests and create database entries
         for (ManifestInfo manifestInfo : manifestList) {
@@ -195,20 +218,24 @@ public class DockerTarResource {
                 tarManifest.repository = repositoryName;
                 tarManifest.tag = tag;
                 tarManifest.configDigest = "sha256:" + manifestInfo.config;
+                // Layer digests are already extracted to just the hash part
                 tarManifest.layerDigests = Arrays.stream(manifestInfo.layers)
                         .map(layer -> "sha256:" + layer)
                         .collect(Collectors.toList());
                 result.manifests.add(tarManifest);
 
-                // Track config as a blob
+                // Track config as a blob (config is already extracted to just the hash part)
                 result.blobs.add(createBlobInfo("sha256:" + manifestInfo.config, manifestInfo.configSize));
             }
 
-            // Track layers as blobs
+            // Track layers as blobs (layer digests are already extracted to just the hash part)
             for (String layer : manifestInfo.layers) {
                 result.blobs.add(createBlobInfo("sha256:" + layer, 0)); // Size unknown from manifest
             }
         }
+
+        // Store all blob content
+        result.blobData = blobContentMap;
 
         return result;
     }
@@ -240,8 +267,10 @@ public class DockerTarResource {
                     // Extract Config digest
                     if (manifestNode.has("Config")) {
                         String config = manifestNode.get("Config").asText();
-                        // Remove file extension to get just the digest
-                        info.config = config.replace(".json", "");
+                        // Remove file extension and extract just the digest
+                        // Config might be "abc...def.json" or "blobs/sha256/abc...def.json"
+                        info.config = extractDigestFromFilename(config.replace(".json", ""));
+                        log.debug("Config file: {}, extracted digest: {}", config, info.config);
                     }
 
                     // Extract RepoTags array
@@ -251,6 +280,7 @@ public class DockerTarResource {
                         for (int i = 0; i < repoTagsNode.size(); i++) {
                             info.repoTags[i] = repoTagsNode.get(i).asText();
                         }
+                        log.debug("RepoTags: {}", Arrays.toString(info.repoTags));
                     }
 
                     // Extract Layers array
@@ -259,8 +289,12 @@ public class DockerTarResource {
                         info.layers = new String[layersNode.size()];
                         for (int i = 0; i < layersNode.size(); i++) {
                             String layerFile = layersNode.get(i).asText();
-                            // Remove file extension to get just the digest
-                            info.layers[i] = layerFile.replace(".tar.gz", "").replace(".tar", "").replace(".layer", "");
+                            // Remove file extension and extract just the digest
+                            // Layer might be "abc...def.tar.gz" or "blobs/sha256/abc...def.tar.gz"
+                            String layerNoExt = layerFile.replace(".tar.gz", "").replace(".tar", "").replace(".layer", "");
+                            String layerDigest = extractDigestFromFilename(layerNoExt);
+                            info.layers[i] = layerDigest;
+                            log.debug("Layer file: {}, extracted digest: {}", layerFile, layerDigest);
                         }
                     }
 
@@ -270,6 +304,7 @@ public class DockerTarResource {
                     }
 
                     manifests.add(info);
+                    log.debug("Added manifest with {} layers", info.layers != null ? info.layers.length : 0);
                 }
                 log.info("Parsed {} manifests from tar file", manifests.size());
             } else {
@@ -294,7 +329,118 @@ public class DockerTarResource {
     }
 
     /**
-     * Saves parsed data to storage.
+     * Builds a proper Docker/OCI manifest JSON from the parsed manifest info.
+     */
+    private String buildManifestJson(TarManifest tarManifest) {
+        try {
+            // Build the config section
+            String configJson = String.format("""
+                "config": {
+                    "digest": \"%s\",
+                    "mediaType": "application/vnd.docker.container.image.v1+json",
+                    "size": 0
+                }""", tarManifest.configDigest);
+
+            // Build the layers array
+            StringBuilder layersJson = new StringBuilder();
+            for (String layerDigest : tarManifest.layerDigests) {
+                if (layersJson.length() > 0) {
+                    layersJson.append(",");
+                }
+                layersJson.append(String.format("""
+                    {
+                        "digest": \"%s\",
+                        "mediaType": "application/vnd.docker.image.rootfs.diff.tar.gzip",
+                        "size": 0
+                    }""", layerDigest));
+            }
+
+            // Build the complete manifest
+            return String.format("""
+                {
+                    "schemaVersion": 2,
+                    "mediaType": "application/vnd.docker.distribution.manifest.v2+json",
+                    "config": {
+                        "digest": \"%s\",
+                        "mediaType": "application/vnd.docker.container.image.v1+json",
+                        "size": 0
+                    },
+                    "layers": [%s]
+                }""",
+                tarManifest.configDigest,
+                layersJson.toString()
+            );
+        } catch (Exception e) {
+            log.error("Failed to build manifest JSON", e);
+            return "{\"error\":\"failed to build manifest\"}";
+        }
+    }
+
+    /**
+     * Calculates SHA256 digest of content.
+     */
+    private String calculateDigest(String content) {
+        try {
+            java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
+            byte[] digest = md.digest(content.getBytes(java.nio.charset.StandardCharsets.UTF_8));
+            StringBuilder sb = new StringBuilder();
+            for (byte b : digest) {
+                sb.append(String.format("%02x", b));
+            }
+            return sb.toString();
+        } catch (Exception e) {
+            log.error("Failed to calculate digest", e);
+            return "";
+        }
+    }
+
+    /**
+     * Reads the content of a tar entry into a byte array.
+     */
+    private byte[] readEntryContent(TarArchiveInputStream tarInput, ArchiveEntry entry) throws IOException {
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        byte[] buffer = new byte[8192];
+        int bytesRead;
+        long totalBytes = 0;
+
+        while ((bytesRead = tarInput.read(buffer)) != -1) {
+            baos.write(buffer, 0, bytesRead);
+            totalBytes += bytesRead;
+            if (totalBytes >= entry.getSize()) {
+                break; // We've read all the content
+            }
+        }
+
+        return baos.toByteArray();
+    }
+
+    /**
+     * Extracts the SHA256 digest from a filename like "blobs/sha256/abc123..."
+     */
+    private String extractDigestFromFilename(String filename) {
+        // Handle different formats:
+        // ./blobs/sha256/abc123...
+        // blobs/sha256/abc123...
+        // abc123... (already just the digest)
+
+        if (filename.contains("sha256/")) {
+            String[] parts = filename.split("sha256/");
+            if (parts.length > 1) {
+                String digest = parts[1];
+                // Remove any trailing slash or path
+                if (digest.contains("/")) {
+                    digest = digest.substring(0, digest.indexOf("/"));
+                }
+                return digest;
+            }
+        }
+
+        // If no path structure, assume it's already just the digest
+        return filename;
+    }
+
+    /**
+     * Saves parsed data to storage including actual blob content.
      */
     private void saveToStorage(TarParseResult result) {
         log.info("Saving {} repositories, {} manifests, and {} blobs to storage",
@@ -311,22 +457,30 @@ public class DockerTarResource {
             }
         }
 
-        // Save manifest metadata
+        // Save manifest metadata with actual manifest content
         for (TarManifest tarManifest : result.manifests) {
             log.info("Found manifest: {}:{}", tarManifest.repository, tarManifest.tag);
+
+            // Build the actual manifest JSON content
+            String manifestContent = buildManifestJson(tarManifest);
+
+            // Calculate digest of the manifest content
+            String manifestDigest = "sha256:" + calculateDigest(manifestContent);
 
             // Store manifest
             Manifest manifest = new Manifest();
             manifest.repositoryName = tarManifest.repository;
             manifest.tag = tarManifest.tag;
-            manifest.digest = tarManifest.configDigest;
+            manifest.digest = manifestDigest;
             manifest.configDigest = tarManifest.configDigest;
             manifest.layerDigests = tarManifest.layerDigests;
             manifest.mediaType = "application/vnd.docker.distribution.manifest.v2+json";
+            manifest.content = manifestContent;
+            manifest.contentLength = (long) manifestContent.getBytes().length;
             manifestStorage.persist(manifest);
         }
 
-        // Save blob metadata
+        // Save blob metadata and actual content
         for (BlobInfo blobInfo : result.blobs) {
             Blob existingBlob = blobStorage.findByDigest(blobInfo.digest);
             if (existingBlob == null) {
@@ -335,6 +489,35 @@ public class DockerTarResource {
                 blob.contentLength = blobInfo.size;
                 blob.mediaType = "application/vnd.docker.image.rootfs.diff.tar.gzip";
                 blobStorage.persist(blob);
+                log.info("Created blob metadata for: {}", blobInfo.digest);
+            }
+
+            // Store actual blob content
+            String digestWithoutPrefix = blobInfo.digest.replace("sha256:", "");
+
+            // Try to find blob content - it might be stored with just the digest or full path
+            byte[] blobContent = result.blobData.get(digestWithoutPrefix);
+
+            if (blobContent == null) {
+                // Try with the path prefix (for OCI layout)
+                String fullPathKey = "blobs/sha256/" + digestWithoutPrefix;
+                blobContent = result.blobData.get(fullPathKey);
+                if (blobContent != null) {
+                    log.debug("Found blob content using full path key: {}", fullPathKey);
+                }
+            }
+
+            if (blobContent != null) {
+                try {
+                    // Store the blob content using the blob storage service
+                    // The storeBlob method expects the full digest with prefix
+                    String storedDigest = storageService.storeBlob(new ByteArrayInputStream(blobContent), blobInfo.digest);
+                    log.info("Stored {} bytes for blob: {} (verified digest: {})", blobContent.length, blobInfo.digest, storedDigest);
+                } catch (Exception e) {
+                    log.error("Failed to store blob content for {}: {}", blobInfo.digest, e.getMessage(), e);
+                }
+            } else {
+                log.warn("No content found for blob: {}. Available keys: {}", blobInfo.digest, result.blobData.keySet());
             }
         }
     }
@@ -344,6 +527,7 @@ public class DockerTarResource {
         public Set<String> repositories = new HashSet<>();
         public List<TarManifest> manifests = new ArrayList<>();
         public List<BlobInfo> blobs = new ArrayList<>();
+        public Map<String, byte[]> blobData = new HashMap<>(); // Actual blob content
     }
 
     static class TarManifest {
