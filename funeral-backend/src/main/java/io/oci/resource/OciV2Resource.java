@@ -2,6 +2,9 @@ package io.oci.resource;
 
 import io.oci.annotation.CommentPathParam;
 import io.oci.annotation.CommentQueryParam;
+import io.oci.dto.ErrorResponse;
+import io.oci.service.ManifestStorage;
+import io.oci.service.RepositoryStorage;
 import io.oci.service.handler.BlobResourceHandler;
 import io.oci.service.handler.ManifestResourceHandler;
 import io.oci.service.handler.ReferrerResourceHandler;
@@ -10,6 +13,7 @@ import io.oci.service.handler.TagResourceHandler;
 import io.oci.service.handler.TokenResourceHandler;
 import io.oci.util.SplitAtFirstUtil;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import jakarta.ws.rs.DELETE;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.HEAD;
@@ -24,6 +28,7 @@ import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
 import java.io.InputStream;
+import java.util.List;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -53,6 +58,14 @@ public class OciV2Resource {
 
     @Inject
     TokenResourceHandler tokenResourceHandler;
+
+    @Inject
+    @Named("repositoryStorage")
+    RepositoryStorage repositoryStorage;
+
+    @Inject
+    @Named("manifestStorage")
+    ManifestStorage manifestStorage;
 
     @HEAD
     @Path("/{fullPath:.*}")
@@ -327,7 +340,7 @@ public class OciV2Resource {
             @Context HttpHeaders httpHeaders
     ) {
         {
-            /// @see ManifestResourceHandler
+            // Handle manifest deletion at /v2/{name}/manifests/{reference}
             int lastIndexOfTags = fullPath.lastIndexOf("/manifests/");
             if (lastIndexOfTags != -1) {
                 String suffix = fullPath.substring(lastIndexOfTags + "/manifests/".length());
@@ -341,7 +354,7 @@ public class OciV2Resource {
             }
         }
         {
-            /// @see BlobResourceHandler
+            // Handle blob deletion at /v2/{name}/blobs/{digest}
             int lastIndexOfTags = fullPath.lastIndexOf("/blobs/");
             if (lastIndexOfTags != -1) {
                 String suffix = fullPath.substring(lastIndexOfTags + "/blobs/".length());
@@ -352,8 +365,37 @@ public class OciV2Resource {
                 );
             }
         }
-        log.error("404 not found : DELETE /v2/{}", fullPath);
-        return Response.status(404).build();
+        {
+            // Handle repository deletion at /v2/{name}
+            // Repository names can contain slashes (e.g., "ubuntu/ubuntu")
+            // Remove trailing slash if present
+            String repositoryName = fullPath.endsWith("/") ? fullPath.substring(0, fullPath.length() - 1) : fullPath;
+
+            var repo = repositoryStorage.findByName(repositoryName);
+            if (repo == null) {
+                return Response.status(404)
+                        .entity(new ErrorResponse(List.of(
+                                new ErrorResponse.Error("NAME_UNKNOWN", "repository name not known to registry", repositoryName)
+                        )).toJson())
+                        .type("application/json")
+                        .build();
+            }
+
+            // Delete all manifests (tags) for this repository
+            List<String> tags = manifestStorage.findTagsByRepository(repositoryName, null, Integer.MAX_VALUE);
+            for (String tag : tags) {
+                var manifest = manifestStorage.findByRepositoryAndTag(repositoryName, tag);
+                if (manifest != null) {
+                    manifestStorage.delete(manifest.id);
+                }
+            }
+
+            // Delete the repository
+            repositoryStorage.deleteByName(repositoryName);
+
+            log.info("Deleted repository: {} with {} tags", repositoryName, tags.size());
+            return Response.status(202).build();
+        }
     }
 
 

@@ -1,6 +1,7 @@
 package io.oci.service.handler;
 
 import io.oci.annotation.CommentDefaultValue;
+import io.oci.annotation.CommentDELETE;
 import io.oci.annotation.CommentGET;
 import io.oci.annotation.CommentPath;
 import io.oci.annotation.CommentPathParam;
@@ -9,8 +10,11 @@ import io.oci.dto.ErrorResponse;
 import io.oci.dto.TagsResponse;
 import io.oci.service.FileManifestStorage;
 import io.oci.service.FileRepositoryStorage;
+import io.oci.service.ManifestStorage;
+import io.oci.service.RepositoryStorage;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 
@@ -19,10 +23,12 @@ import java.util.List;
 public class TagResourceHandler {
 
     @Inject
-    FileRepositoryStorage repositoryStorage;
+    @Named("repositoryStorage")
+    RepositoryStorage repositoryStorage;
 
     @Inject
-    FileManifestStorage manifestStorage;
+    @Named("manifestStorage")
+    ManifestStorage manifestStorage;
 
     @CommentGET
     @CommentPath("/list")

@@ -122,6 +122,29 @@ export const registryApi = {
     }
   },
 
+  async deleteTag(repositoryName, tag) {
+    try {
+      const response = await fetch(`${API_BASE}/v2/${repositoryName}/manifests/${tag}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      })
+
+      if (response.status === 401) {
+        const authStore = useAuthStore()
+        authStore.logout()
+        throw new Error('Authentication required')
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      return response
+    } catch (error) {
+      console.error('Error deleting tag:', error)
+      throw error
+    }
+  },
+
   async login(username, password) {
     try {
       const credentials = btoa(`${username}:${password}`)

@@ -12,9 +12,20 @@
       <template #header>
         <div class="card-header">
           <span class="tag-name">{{ tag.name }}</span>
-          <el-text type="info" size="small">
-            {{ formatSize(tag.size) }}
-          </el-text>
+          <div class="header-actions">
+            <el-text type="info" size="small">
+              {{ formatSize(tag.size) }}
+            </el-text>
+            <el-button
+              type="danger"
+              size="small"
+              @click="handleDeleteTag(tag.name)"
+              :loading="deletingTag === tag.name"
+            >
+              <el-icon><Delete /></el-icon>
+              Delete
+            </el-button>
+          </div>
         </div>
       </template>
       <div class="tag-details">
@@ -50,9 +61,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Back, DocumentCopy } from '@element-plus/icons-vue'
+import { Back, DocumentCopy, Delete } from '@element-plus/icons-vue'
 import { registryApi } from '../api/registry'
-import {ElMessage} from "element-plus";
+import { ElMessage, ElMessageBox } from "element-plus";
 
 const route = useRoute()
 const router = useRouter()
@@ -61,6 +72,7 @@ const router = useRouter()
 const repositoryName = ref(decodeURIComponent(route.params.name))
 const tags = ref([])
 const loading = ref(false)
+const deletingTag = ref(null)
 
 const fetchRepositoryTags = async () => {
   loading.value = true
@@ -125,6 +137,34 @@ const formatSize = (size) => {
   return `${(size / (1024 * 1024 * 1024)).toFixed(2)} GB`
 }
 
+const handleDeleteTag = async (tagName) => {
+  try {
+    await ElMessageBox.confirm(
+      `Are you sure you want to delete tag "${tagName}"?`,
+      'Delete Tag',
+      {
+        confirmButtonText: 'Delete',
+        cancelButtonText: 'Cancel',
+        type: 'warning'
+      }
+    )
+
+    deletingTag.value = tagName
+    await registryApi.deleteTag(repositoryName.value, tagName)
+
+    ElMessage.success(`Tag "${tagName}" deleted successfully`)
+
+    // Remove the deleted tag from the list
+    tags.value = tags.value.filter(tag => tag.name !== tagName)
+  } catch (error) {
+    if (error !== 'cancel') {
+      ElMessage.error(`Failed to delete tag "${tagName}": ${error.message}`)
+    }
+  } finally {
+    deletingTag.value = null
+  }
+}
+
 const goBack = () => {
   router.back()
 }
@@ -165,6 +205,12 @@ onMounted(() => {
 .tag-name {
   font-weight: bold;
   font-size: 16px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .tag-details {
