@@ -205,30 +205,45 @@ const detectContentType = async () => {
       contentType.value = 'text'
       previewContent.value = props.fileContent
     } else if (props.fileContent instanceof ArrayBuffer) {
-      // For ArrayBuffer, check if it looks like text
-      const dataView = new DataView(props.fileContent)
-      let isText = true
-      const maxCheck = Math.min(props.fileContent.byteLength, 1000)
-
-      for (let i = 0; i < maxCheck; i++) {
-        const byte = dataView.getUint8(i)
-        if (byte > 127) {
-          isText = false
-          break
-        }
-      }
-
-      if (isText) {
+      // Try UTF-8 decoding first - if it succeeds, it's likely a text file
+      const decoder = new TextDecoder('utf-8', { fatal: true })
+      try {
+        // This will throw if the data is not valid UTF-8
+        previewContent.value = decoder.decode(props.fileContent)
         contentType.value = 'text'
-        // Convert ArrayBuffer to string for text display
-        const decoder = new TextDecoder('utf-8')
-        try {
-          previewContent.value = decoder.decode(props.fileContent)
-        } catch (e) {
+      } catch (e) {
+        // If UTF-8 fails, check for binary data patterns
+        const dataView = new DataView(props.fileContent)
+        let isText = true
+        let highBytes = 0
+        let totalChecked = 0
+        const maxCheck = Math.min(props.fileContent.byteLength, 5000)
+
+        for (let i = 0; i < maxCheck; i++) {
+          const byte = dataView.getUint8(i)
+          totalChecked++
+
+          // Check for control characters (0-31) that are not common in text
+          if (byte < 32 && byte !== 9 && byte !== 10 && byte !== 13) { // Not tab, newline, or carriage return
+            isText = false
+            break
+          }
+
+          // Count high bytes (>127) which could be UTF-8 multi-byte sequences
+          if (byte > 127) {
+            highBytes++
+          }
+        }
+
+        // Adjust the threshold - allow up to 50% high bytes for UTF-8 content
+        if (isText && (highBytes / totalChecked) < 0.5) {
+          contentType.value = 'text'
+          // Use non-fatal decoder to show content even if there are some invalid UTF-8 sequences
+          const nonFatalDecoder = new TextDecoder('utf-8', { fatal: false })
+          previewContent.value = nonFatalDecoder.decode(props.fileContent)
+        } else {
           contentType.value = 'binary'
         }
-      } else {
-        contentType.value = 'binary'
       }
     } else {
       contentType.value = 'text'
