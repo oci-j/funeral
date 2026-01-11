@@ -19,8 +19,22 @@
         <el-alert :title="error" type="error" :closable="false" />
       </div>
 
+      <!-- File metadata -->
+      <div v-if="fileHashes" class="file-metadata">
+        <div class="hash-info">
+          <el-descriptions :column="1" size="small" border>
+            <el-descriptions-item label="MD5">
+              <el-text type="info" class="hash-text">{{ fileHashes.md5 }}</el-text>
+            </el-descriptions-item>
+            <el-descriptions-item label="SHA256">
+              <el-text type="info" class="hash-text">{{ fileHashes.sha256 }}</el-text>
+            </el-descriptions-item>
+          </el-descriptions>
+        </div>
+      </div>
+
       <!-- Content display -->
-      <div v-else class="content-viewer">
+      <div class="content-viewer">
         <!-- Text content -->
         <div v-if="contentType === 'text'" class="text-viewer">
           <pre class="text-content">{{ fileContentText }}</pre>
@@ -45,13 +59,14 @@
         </div>
 
         <!-- Binary content -->
-        <div v-else class="binary-viewer">
+        <div v-else-if="contentType === 'binary'" class="binary-viewer">
           <el-alert
-            title="Binary file preview is not available"
-            type="info"
+            title="Binary file content"
+            type="warning"
             :closable="false"
-            description="This file appears to be binary and cannot be previewed in the browser."
+            description="This file appears to be binary. Below shows a text representation (may contain unreadable characters)."
           />
+          <pre v-if="fileContentText" class="text-content binary-text">{{ fileContentText }}</pre>
         </div>
       </div>
     </div>
@@ -66,11 +81,10 @@
         Copy Content
       </el-button>
       <el-button
-        v-if="contentType === 'image'"
         type="primary"
         @click="downloadFile"
       >
-        Download
+        Download File
       </el-button>
     </template>
   </el-dialog>
@@ -104,14 +118,20 @@ const emit = defineEmits(['update:visible'])
 
 const loading = ref(false)
 const error = ref('')
-const contentType = ref('')
+const contentType = ref('text') // Default to text for binary content
 const vueJsonPrettyAvailable = ref(false)
 const previewContent = ref('')  // For text content
+const fileHashes = ref(null)  // For MD5 and SHA256
 
 // Get file content as string for display
 const fileContentText = computed(() => {
+  // For text content, return previewContent
+  if (contentType.value === 'text' && previewContent.value) {
+    return previewContent.value
+  }
+
+  // For JSON content from ArrayBuffer, decode it
   if (contentType.value === 'json' && typeof props.fileContent !== 'string') {
-    // JSON needs to be string for vue-json-pretty
     const decoder = new TextDecoder('utf-8')
     try {
       return decoder.decode(props.fileContent)
@@ -119,6 +139,23 @@ const fileContentText = computed(() => {
       return ''
     }
   }
+
+  // For binary content, always try to give a text representation
+  if (contentType.value === 'binary' || !previewContent.value) {
+    if (props.fileContent instanceof ArrayBuffer) {
+      const decoder = new TextDecoder('utf-8', { fatal: false })
+      try {
+        return decoder.decode(props.fileContent)
+      } catch (e) {
+        // If UTF-8 fails, try as ISO-8859-1 to show something
+        const isoDecoder = new TextDecoder('iso-8859-1')
+        return isoDecoder.decode(props.fileContent)
+      }
+    } else if (typeof props.fileContent === 'string') {
+      return props.fileContent
+    }
+  }
+
   return previewContent.value || ''
 })
 
@@ -200,6 +237,11 @@ const detectContentType = async () => {
     contentType.value = 'binary'
   }
 
+  // Ensure contentType is always set to something
+  if (!contentType.value) {
+    contentType.value = 'binary'
+  }
+
   // Try to load vue-json-pretty for JSON display
   if (contentType.value === 'json') {
     try {
@@ -212,6 +254,39 @@ const detectContentType = async () => {
   }
 }
 
+// Hash calculation functions
+const calculateHash = async (buffer, algorithm) => {
+  const hashBuffer = await crypto.subtle.digest(algorithm, buffer)
+  const hashArray = Array.from(new Uint8Array(hashBuffer))
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('')
+}
+
+const calculateFileHashes = async () => {
+  if (!props.fileContent) return null
+
+  try {
+    let buffer
+    if (props.fileContent instanceof ArrayBuffer) {
+      buffer = props.fileContent
+    } else if (typeof props.fileContent === 'string') {
+      const encoder = new TextEncoder()
+      buffer = encoder.encode(props.fileContent).buffer
+    } else {
+      return null
+    }
+
+    const [md5, sha256] = await Promise.all([
+      calculateHash(buffer, 'MD5').catch(() => 'N/A'),
+      calculateHash(buffer, 'SHA-256').catch(() => 'N/A')
+    ])
+
+    return { md5, sha256 }
+  } catch (err) {
+    console.warn('Failed to calculate file hashes:', err)
+    return { md5: 'N/A', sha256: 'N/A' }
+  }
+}
+
 const loadPreview = async () => {
   if (!props.fileName || !props.fileContent) {
     error.value = 'No file content to preview'
@@ -220,9 +295,21 @@ const loadPreview = async () => {
 
   loading.value = true
   error.value = ''
+  previewContent.value = ''
+  fileHashes.value = null
 
   try {
+    // Calculate file hashes
+    fileHashes.value = await calculateFileHashes()
+
+    // Detect content type
     await detectContentType()
+
+    // Always set contentType for binary files to ensure they show text representation
+    if (!contentType.value) {
+      contentType.value = 'binary'
+    }
+
     loading.value = false
   } catch (err) {
     error.value = `Failed to load file preview: ${err.message}`
@@ -235,6 +322,8 @@ const closePreview = () => {
   error.value = ''
   contentType.value = ''
   vueJsonPrettyAvailable.value = false
+  fileHashes.value = null
+  previewContent.value = ''
 
   // Clean up object URL for images
   if (imageSrc.value.startsWith('blob:')) {
@@ -292,8 +381,23 @@ watch(() => props.visible, (newVal) => {
   gap: 8px;
 }
 
+.file-metadata {
+  padding: 0 10px 20px;
+  border-bottom: 1px solid #e4e7ed;
+  margin-bottom: 20px;
+}
+
+.hash-info {
+  max-width: 100%;
+}
+
+.hash-text {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 12px;
+  word-break: break-all;
+}
+
 .content-viewer {
-  height: 100%;
   padding: 10px;
 }
 
@@ -317,6 +421,12 @@ watch(() => props.visible, (newVal) => {
   word-wrap: break-word;
 }
 
+.binary-text {
+  margin-top: 20px;
+  border: 1px solid #e6a23c;
+  background-color: #fdf6ec;
+}
+
 .image-viewer {
   display: flex;
   justify-content: center;
@@ -335,10 +445,7 @@ watch(() => props.visible, (newVal) => {
 }
 
 .binary-viewer {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 200px;
+  padding: 10px;
 }
 
 :deep(.vjs-tree) {
@@ -357,5 +464,10 @@ watch(() => props.visible, (newVal) => {
 
 :deep(.vjs-key) {
   color: #0969da;
+}
+
+:deep(.el-descriptions-item__label) {
+  width: 80px;
+  text-align: right;
 }
 </style>
