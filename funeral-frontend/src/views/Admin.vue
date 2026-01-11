@@ -127,12 +127,14 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { useAuthStore } from '../stores/auth'
+import { useRouter } from 'vue-router'
+import { useAdminCheck } from '../composables/useAuthCheck'
 import { registryApi } from '../api/registry'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { Plus, Edit, Delete, Key } from '@element-plus/icons-vue'
 
-const authStore = useAuthStore()
+const router = useRouter()
+
 const users = ref([])
 const loading = ref(false)
 const saving = ref(false)
@@ -313,13 +315,17 @@ const formatDate = (dateString) => {
   return new Date(dateString).toLocaleString()
 }
 
-onMounted(() => {
-  if (!authStore.isAdmin) {
+onMounted(async () => {
+  // Wait for auth config to load before checking admin status
+  const { checkAdmin } = useAdminCheck()
+  const isAdmin = await checkAdmin()
+
+  if (!isAdmin) {
     ElMessage.error('Access denied: Admin privileges required')
-    // Redirect to home
-    window.location.href = '/'
+    router.push('/')
     return
   }
+
   fetchUsers()
 })
 </script>

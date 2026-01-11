@@ -56,10 +56,9 @@ import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { RefreshRight } from '@element-plus/icons-vue'
 import { registryApi } from '../api/registry'
-import { useAuthStore } from '../stores/auth'
+import { useProtectedPage } from '../composables/useAuthCheck'
 
 const router = useRouter()
-const authStore = useAuthStore()
 const repositories = ref([])
 const loading = ref(false)
 
@@ -124,23 +123,10 @@ const handleDeleteRepository = async (name) => {
   }
 }
 
-onMounted(async () => {
-  // Check authentication status before loading repositories
-  if (!authStore.isAuthenticated) {
-    loading.value = true
-    // Wait for auth config to be checked
-    await authStore.checkAuthConfig()
-
-    // If still not authenticated and auth is enabled, redirect to login
-    if (!authStore.isAuthenticated && authStore.authEnabled !== false) {
-      ElMessage.warning('Please login to access the registry')
-      router.push('/login')
-      loading.value = false
-      return
-    }
-  }
-
-  fetchRepositories()
+// Initialize page with auth check
+const { initPage } = useProtectedPage(router, fetchRepositories, { loading })
+onMounted(() => {
+  initPage()
 })
 </script>
 

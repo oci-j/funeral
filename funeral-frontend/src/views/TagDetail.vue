@@ -388,20 +388,9 @@ onMounted(async () => {
   // Load vue-json-pretty asynchronously without blocking
   loadVueJsonPretty()
 
-  // Check authentication status before loading tag details
-  if (!authStore.isAuthenticated) {
-    // Wait for auth config to be checked
-    await authStore.checkAuthConfig()
-
-    // If still not authenticated and auth is enabled, redirect to login
-    if (!authStore.isAuthenticated && authStore.authEnabled !== false) {
-      ElMessage.warning('Please login to access the registry')
-      router.push('/login')
-      return
-    }
-  }
-
-  fetchTagDetails()
+  // Initialize page with auth check
+  const { initPage } = useProtectedPage(router, fetchTagDetails)
+  await initPage()
 })
 
 </script>
