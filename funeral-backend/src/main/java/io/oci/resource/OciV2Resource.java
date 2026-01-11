@@ -122,6 +122,14 @@ public class OciV2Resource {
                             name,
                             suffix
                     );
+                } else if (suffix.endsWith("/info") && suffix.indexOf('/') == suffix.length() - 5) {
+                    // Handle /manifests/{reference}/info endpoint
+                    String name = fullPath.substring(0, lastIndexOfTags);
+                    String reference = suffix.substring(0, suffix.length() - 5);
+                    return manifestResourceHandler.getManifestInfo(
+                            name,
+                            reference
+                    );
                 }
             }
         }

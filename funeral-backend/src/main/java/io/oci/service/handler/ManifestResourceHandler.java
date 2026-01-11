@@ -8,6 +8,7 @@ import io.oci.annotation.CommentPUT;
 import io.oci.annotation.CommentPath;
 import io.oci.annotation.CommentPathParam;
 import io.oci.dto.ErrorResponse;
+import io.oci.dto.ManifestInfo;
 import io.oci.model.Manifest;
 import io.oci.model.Repository;
 import io.oci.service.DigestService;
@@ -102,6 +103,49 @@ public class ManifestResourceHandler {
                 .header("Docker-Content-Digest", manifest.digest)
                 .header("Content-Length", manifest.contentLength)
                 .build();
+    }
+
+    @CommentGET
+    @CommentPath("/{reference}/info")
+    public Response getManifestInfo(
+            @CommentPathParam("name") String repositoryName,
+            @CommentPathParam("reference") String reference
+    ) {
+        Repository repo = Repository.findByName(repositoryName);
+        if (repo == null) {
+            return Response.status(404)
+                    .entity(new ErrorResponse(List.of(
+                            new ErrorResponse.Error("NAME_UNKNOWN", "repository name not known to registry", repositoryName)
+                    )))
+                    .build();
+        }
+
+        Manifest manifest;
+        if (reference.startsWith("sha256:")) {
+            manifest = Manifest.findByRepositoryAndDigest(repositoryName, reference);
+        } else {
+            manifest = Manifest.findByRepositoryAndTag(repositoryName, reference);
+        }
+
+        if (manifest == null) {
+            return Response.status(404)
+                    .entity(new ErrorResponse(List.of(
+                            new ErrorResponse.Error("MANIFEST_UNKNOWN", "manifest unknown", reference)
+                    )))
+                    .build();
+        }
+
+        ManifestInfo manifestInfo = new ManifestInfo(
+                manifest.digest,
+                manifest.mediaType,
+                manifest.contentLength,
+                manifest.tag,
+                manifest.artifactType,
+                manifest.createdAt,
+                manifest.updatedAt
+        );
+
+        return Response.ok(manifestInfo).build();
     }
 
     @CommentPUT

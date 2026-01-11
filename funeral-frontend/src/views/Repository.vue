@@ -67,15 +67,38 @@ const fetchRepositoryTags = async () => {
   try {
     const data = await registryApi.getRepositoryTags(repositoryName.value)
     if (data.tags) {
-      tags.value = data.tags.map(tag => ({
-        name: tag,
-        digest: 'Unknown',
-        size: 'Unknown',
-        created: 'Unknown'
-      }))
+      // Fetch detailed info for each tag
+      const tagDetails = await Promise.allSettled(
+        data.tags.map(async (tag) => {
+          try {
+            const manifestInfo = await registryApi.getManifestInfo(repositoryName.value, tag)
+            return {
+              name: tag,
+              digest: manifestInfo.digest || 'Unknown',
+              size: manifestInfo.contentLength || 'Unknown',
+              created: manifestInfo.createdAt || 'Unknown'
+            }
+          } catch (error) {
+            // Fallback to basic info if manifest fetch fails
+            return {
+              name: tag,
+              digest: 'Unknown',
+              size: 'Unknown',
+              created: 'Unknown'
+            }
+          }
+        })
+      )
+
+      tags.value = tagDetails
+        .filter(result => result.status === 'fulfilled')
+        .map(result => result.value)
+    } else {
+      tags.value = []
     }
   } catch (error) {
     ElMessage.error('Failed to fetch repository tags')
+    console.error('Error fetching repository tags:', error)
   } finally {
     loading.value = false
   }
