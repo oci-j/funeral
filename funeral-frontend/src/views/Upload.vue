@@ -57,6 +57,58 @@
             show-icon
           />
 
+          <!-- Batch upload summary -->
+          <div v-if="uploadResult.batchInfo" class="batch-summary">
+            <h4>📊 Batch Upload Summary:</h4>
+            <el-descriptions :column="3" border>
+              <el-descriptions-item label="Total Files">
+                {{ uploadResult.batchInfo.totalFiles }}
+              </el-descriptions-item>
+              <el-descriptions-item label="Successful">
+                <el-tag type="success">{{ uploadResult.batchInfo.successfulUploads }}</el-tag>
+              </el-descriptions-item>
+              <el-descriptions-item label="Failed">
+                <el-tag type="danger" v-if="uploadResult.batchInfo.failedUploads > 0">
+                  {{ uploadResult.batchInfo.failedUploads }}
+                </el-tag>
+                <span v-else>0</span>
+              </el-descriptions-item>
+            </el-descriptions>
+
+            <!-- Individual file results -->
+            <div v-if="uploadResult.batchInfo.results && uploadResult.batchInfo.results.length > 0" class="file-results">
+              <h4>📁 Individual File Results:</h4>
+              <el-table :data="uploadResult.batchInfo.results" border stripe style="width: 100%">
+                <el-table-column label="#" width="60">
+                  <template #default="scope">
+                    {{ scope.row.fileIndex }}
+                  </template>
+                </el-table-column>
+                <el-table-column label="Status" width="100">
+                  <template #default="scope">
+                    <el-tag :type="scope.row.success ? 'success' : 'danger'">
+                      {{ scope.row.success ? 'Success' : 'Failed' }}
+                    </el-tag>
+                  </template>
+                </el-table-column>
+                <el-table-column label="Details">
+                  <template #default="scope">
+                    <div v-if="scope.row.success && scope.row.uploadResponse">
+                      <el-text type="success">
+                        {{ scope.row.uploadResponse.repositories?.length || 0 }} repositories,
+                        {{ scope.row.uploadResponse.manifests?.length || 0 }} manifests,
+                        {{ scope.row.uploadResponse.blobs?.length || 0 }} blobs
+                      </el-text>
+                    </div>
+                    <div v-else>
+                      <el-text type="danger">{{ scope.row.error }}</el-text>
+                    </div>
+                  </template>
+                </el-table-column>
+              </el-table>
+            </div>
+          </div>
+
           <div v-if="uploadResult.repositories" class="result-details">
             <h4>📊 Analysis Results:</h4>
             <el-descriptions :column="1" border>
@@ -246,7 +298,7 @@ const uploadTarFiles = async () => {
   try {
     const formData = new FormData()
     fileList.value.forEach((file) => {
-      formData.append('file', file.raw)
+      formData.append('files', file.raw)
     })
 
     // Get auth headers from auth store
@@ -260,7 +312,7 @@ const uploadTarFiles = async () => {
       headers['Authorization'] = authHeader
     }
 
-    const response = await fetch('/funeral_addition/write/upload/dockertar', {
+    const response = await fetch('/funeral_addition/write/upload/dockertar/batch', {
       method: 'POST',
       headers,
       body: formData,
@@ -277,15 +329,39 @@ const uploadTarFiles = async () => {
     }
 
     const result = await response.json()
-    uploadResult.value = {
-      success: true,
-      ...result
+
+    // Handle batch response
+    if (result.totalFiles) {
+      // Batch upload response
+      uploadResult.value = {
+        success: result.failedUploads === 0,
+        repositories: result.repositories || [],
+        manifests: result.manifests || [],
+        blobs: result.blobs || [],
+        batchInfo: {
+          totalFiles: result.totalFiles,
+          successfulUploads: result.successfulUploads,
+          failedUploads: result.failedUploads,
+          results: result.results
+        }
+      }
+
+      if (result.failedUploads > 0) {
+        const failedFiles = result.results.filter(r => !r.success)
+        console.error('Failed files:', failedFiles)
+      }
+    } else {
+      // Single file response (backward compatibility)
+      uploadResult.value = {
+        success: true,
+        ...result
+      }
     }
 
     // Clear file list after successful upload
     fileList.value = []
 
-    ElMessage.success('Docker tar file uploaded and analyzed successfully!')
+    ElMessage.success(`Successfully uploaded ${result.successfulUploads || 1} files!`)
 
   } catch (error) {
     console.error('Upload error:', error)
@@ -353,6 +429,17 @@ const copyToClipboard = async (text) => {
 
 .upload-result {
   margin-top: 20px;
+}
+
+.batch-summary {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #f5f7fa;
+  border-radius: 8px;
+}
+
+.file-results {
+  margin-top: 15px;
 }
 
 .result-details {

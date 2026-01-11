@@ -85,9 +85,10 @@ public class DockerTarResource {
     String storagePath;
 
     /**
-     * Upload and process a Docker tar file. Automatically analyzes the tar content and extracts image metadata.
+     * Upload and process Docker tar file(s). Automatically analyzes the tar content and extracts image metadata.
+     * Supports both single file and multiple files upload.
      *
-     * @param fileInputStream The uploaded tar file
+     * @param fileInputStream The uploaded tar file(s)
      * @return Analysis results including repositories, manifests, and blobs found
      */
     @POST
@@ -110,6 +111,150 @@ public class DockerTarResource {
                 "Received Docker tar file upload request"
         );
 
+        // For backward compatibility, single file upload uses the original method
+        return processSingleTarFile(
+                fileInputStream
+        );
+    }
+
+    /**
+     * Upload and process multiple Docker tar files in a single request. Each file is processed independently, and
+     * results are aggregated.
+     *
+     * @return Aggregated analysis results from all uploaded files
+     */
+    @POST
+    @Path(
+        "/dockertar/batch"
+    )
+    @Consumes(
+        MediaType.MULTIPART_FORM_DATA
+    )
+    @Produces(
+        MediaType.APPLICATION_JSON
+    )
+    public Response uploadMultipleDockerTar(
+            @FormParam(
+                "files"
+            )
+            List<InputStream> fileInputStreams
+    ) {
+        log.info(
+                "Received batch Docker tar upload request with {} files",
+                fileInputStreams != null ? fileInputStreams.size() : 0
+        );
+
+        if (fileInputStreams == null || fileInputStreams.isEmpty()) {
+            return Response.status(
+                    Response.Status.BAD_REQUEST
+            )
+                    .entity(
+                            new ErrorResponse(
+                                    List.of(
+                                            new ErrorResponse.Error(
+                                                    "NO_FILES",
+                                                    "No files provided",
+                                                    "Please select at least one file to upload"
+                                            )
+                                    )
+                            )
+                    )
+                    .build();
+        }
+
+        BatchUploadResponse batchResponse = new BatchUploadResponse();
+        batchResponse.totalFiles = fileInputStreams.size();
+        batchResponse.successfulUploads = 0;
+        batchResponse.failedUploads = 0;
+        batchResponse.results = new ArrayList<>();
+
+        int fileIndex = 0;
+        for (InputStream fileStream : fileInputStreams) {
+            fileIndex++;
+            try {
+                log.info(
+                        "Processing file {} of {}",
+                        fileIndex,
+                        fileInputStreams.size()
+                );
+
+                Response singleResponse = processSingleTarFile(
+                        fileStream
+                );
+
+                if (singleResponse.getStatus() == 200) {
+                    UploadResponse uploadResponse = (UploadResponse) singleResponse.getEntity();
+                    batchResponse.successfulUploads++;
+                    batchResponse.results.add(
+                            new BatchResultItem(
+                                    fileIndex,
+                                    true,
+                                    uploadResponse,
+                                    null
+                            )
+                    );
+
+                    // Aggregate repositories and manifests
+                    batchResponse.repositories.addAll(
+                            uploadResponse.repositories
+                    );
+                    batchResponse.manifests.addAll(
+                            uploadResponse.manifests
+                    );
+                    batchResponse.blobs.addAll(
+                            uploadResponse.blobs
+                    );
+                }
+                else {
+                    batchResponse.failedUploads++;
+                    batchResponse.results.add(
+                            new BatchResultItem(
+                                    fileIndex,
+                                    false,
+                                    null,
+                                    "Upload failed with status: " + singleResponse.getStatus()
+                            )
+                    );
+                }
+            }
+            catch (Exception e) {
+                log.error(
+                        "Failed to process file {}: {}",
+                        fileIndex,
+                        e.getMessage(),
+                        e
+                );
+                batchResponse.failedUploads++;
+                batchResponse.results.add(
+                        new BatchResultItem(
+                                fileIndex,
+                                false,
+                                null,
+                                e.getMessage()
+                        )
+                );
+            }
+        }
+
+        log.info(
+                "Batch upload complete. Successful: {}, Failed: {}",
+                batchResponse.successfulUploads,
+                batchResponse.failedUploads
+        );
+
+        return Response.ok(
+                batchResponse
+        ).build();
+    }
+
+    /**
+     * Process a single tar file from InputStream
+     * @param fileInputStream The input stream containing the tar file
+     * @return Response containing UploadResponse or error
+     */
+    private Response processSingleTarFile(
+            InputStream fileInputStream
+    ) {
         File tempFile = null;
         File tarFile = null;
         try {
@@ -1609,6 +1754,50 @@ public class DockerTarResource {
         public String[] repoTags;
 
         public String[] layers;
+    }
+
+    /**
+     * Response DTO for batch upload of multiple tar files
+     */
+    static class BatchUploadResponse {
+        public int totalFiles;
+
+        public int successfulUploads;
+
+        public int failedUploads;
+
+        public Set<String> repositories = new HashSet<>();
+
+        public List<TarManifest> manifests = new ArrayList<>();
+
+        public List<BlobInfo> blobs = new ArrayList<>();
+
+        public List<BatchResultItem> results = new ArrayList<>();
+    }
+
+    /**
+     * Individual result for each file in a batch upload
+     */
+    static class BatchResultItem {
+        public int fileIndex;
+
+        public boolean success;
+
+        public UploadResponse uploadResponse;
+
+        public String error;
+
+        public BatchResultItem(
+                int fileIndex,
+                boolean success,
+                UploadResponse uploadResponse,
+                String error
+        ) {
+            this.fileIndex = fileIndex;
+            this.success = success;
+            this.uploadResponse = uploadResponse;
+            this.error = error;
+        }
     }
 
     /**
