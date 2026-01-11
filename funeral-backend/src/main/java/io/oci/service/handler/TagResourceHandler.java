@@ -7,15 +7,22 @@ import io.oci.annotation.CommentPathParam;
 import io.oci.annotation.CommentQueryParam;
 import io.oci.dto.ErrorResponse;
 import io.oci.dto.TagsResponse;
-import io.oci.model.Manifest;
-import io.oci.model.Repository;
+import io.oci.service.FileManifestStorage;
+import io.oci.service.FileRepositoryStorage;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 
 @CommentPath("/v2/{name}/tags")
 @ApplicationScoped
 public class TagResourceHandler {
+
+    @Inject
+    FileRepositoryStorage repositoryStorage;
+
+    @Inject
+    FileManifestStorage manifestStorage;
 
     @CommentGET
     @CommentPath("/list")
@@ -25,7 +32,7 @@ public class TagResourceHandler {
             @CommentDefaultValue("100") int limit,
             @CommentQueryParam("last") String last
     ) {
-        Repository repo = Repository.findByName(repositoryName);
+        var repo = repositoryStorage.findByName(repositoryName);
         if (repo == null) {
             return Response.status(404)
                     .entity(new ErrorResponse(List.of(
@@ -34,7 +41,7 @@ public class TagResourceHandler {
                     .build();
         }
 
-        List<String> tags = Manifest.findTagsByRepository(
+        List<String> tags = manifestStorage.findTagsByRepository(
                 repositoryName,
                 last,
                 limit

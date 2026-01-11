@@ -12,6 +12,8 @@ import io.oci.dto.ManifestInfo;
 import io.oci.model.Manifest;
 import io.oci.model.Repository;
 import io.oci.service.DigestService;
+import io.oci.service.FileManifestStorage;
+import io.oci.service.FileRepositoryStorage;
 import io.oci.util.JsonUtil;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -29,13 +31,19 @@ public class ManifestResourceHandler {
     @Inject
     DigestService digestService;
 
+    @Inject
+    FileRepositoryStorage repositoryStorage;
+
+    @Inject
+    FileManifestStorage manifestStorage;
+
     @CommentHEAD
     @CommentPath("/{reference}")
     public Response headManifest(
             @CommentPathParam("name") String repositoryName,
             @CommentPathParam("reference") String reference
     ) {
-        Repository repo = Repository.findByName(repositoryName);
+        var repo = repositoryStorage.findByName(repositoryName);
         if (repo == null) {
             return Response.status(404)
                     .entity(new ErrorResponse(List.of(
@@ -46,9 +54,9 @@ public class ManifestResourceHandler {
 
         Manifest manifest;
         if (reference.startsWith("sha256:")) {
-            manifest = Manifest.findByRepositoryAndDigest(repositoryName, reference);
+            manifest = manifestStorage.findByRepositoryAndDigest(repositoryName, reference);
         } else {
-            manifest = Manifest.findByRepositoryAndTag(repositoryName, reference);
+            manifest = manifestStorage.findByRepositoryAndTag(repositoryName, reference);
         }
 
         if (manifest == null) {
@@ -74,7 +82,7 @@ public class ManifestResourceHandler {
             @CommentPathParam("reference") String reference
     ) {
 
-        Repository repo = Repository.findByName(repositoryName);
+        var repo = repositoryStorage.findByName(repositoryName);
         if (repo == null) {
             return Response.status(404)
                     .entity(new ErrorResponse(List.of(
@@ -85,9 +93,9 @@ public class ManifestResourceHandler {
 
         Manifest manifest;
         if (reference.startsWith("sha256:")) {
-            manifest = Manifest.findByRepositoryAndDigest(repositoryName, reference);
+            manifest = manifestStorage.findByRepositoryAndDigest(repositoryName, reference);
         } else {
-            manifest = Manifest.findByRepositoryAndTag(repositoryName, reference);
+            manifest = manifestStorage.findByRepositoryAndTag(repositoryName, reference);
         }
 
         if (manifest == null) {
@@ -111,7 +119,7 @@ public class ManifestResourceHandler {
             @CommentPathParam("name") String repositoryName,
             @CommentPathParam("reference") String reference
     ) {
-        Repository repo = Repository.findByName(repositoryName);
+        var repo = repositoryStorage.findByName(repositoryName);
         if (repo == null) {
             return Response.status(404)
                     .entity(new ErrorResponse(List.of(
@@ -122,9 +130,9 @@ public class ManifestResourceHandler {
 
         Manifest manifest;
         if (reference.startsWith("sha256:")) {
-            manifest = Manifest.findByRepositoryAndDigest(repositoryName, reference);
+            manifest = manifestStorage.findByRepositoryAndDigest(repositoryName, reference);
         } else {
-            manifest = Manifest.findByRepositoryAndTag(repositoryName, reference);
+            manifest = manifestStorage.findByRepositoryAndTag(repositoryName, reference);
         }
 
         if (manifest == null) {
@@ -169,10 +177,10 @@ public class ManifestResourceHandler {
                     .build();
         }
 
-        Repository repo = Repository.findByName(repositoryName);
+        var repo = repositoryStorage.findByName(repositoryName);
         if (repo == null) {
             repo = new Repository(repositoryName);
-            repo.persist();
+            repositoryStorage.persist(repo);
         }
         Manifest manifest = null;
         try {
@@ -187,12 +195,12 @@ public class ManifestResourceHandler {
         }
 
         // Check if manifest already exists
-        Manifest existingManifest = Manifest.findByRepositoryAndDigest(repositoryName, manifest.digest);
+        Manifest existingManifest = manifestStorage.findByRepositoryAndDigest(repositoryName, manifest.digest);
         if (existingManifest != null) {
             // Update tag if reference is not a digest
             if (!reference.startsWith("sha256:")) {
                 existingManifest.tag = reference;
-                existingManifest.update();
+                manifestStorage.persist(existingManifest);
             }
             return Response.status(201)
                     .header("Location", "/v2/" + repositoryName + "/manifests/" + manifest.digest)
@@ -210,11 +218,11 @@ public class ManifestResourceHandler {
             manifest.tag = reference;
         }
 
-        manifest.persist();
+        manifestStorage.persist(manifest);
 
         // Update repository timestamp
         repo.updateTimestamp();
-        repo.update();
+        repositoryStorage.persist(repo);
 
         Response.ResponseBuilder responseBuilder = Response.status(201)
                 .header("Location", "/v2/" + repositoryName + "/manifests/" + manifest.digest)
@@ -232,7 +240,7 @@ public class ManifestResourceHandler {
             @CommentPathParam("reference") String reference
     ) {
 
-        Repository repo = Repository.findByName(repositoryName);
+        var repo = repositoryStorage.findByName(repositoryName);
         if (repo == null) {
             return Response.status(404)
                     .entity(new ErrorResponse(List.of(
@@ -243,9 +251,9 @@ public class ManifestResourceHandler {
 
         Manifest manifest;
         if (reference.startsWith("sha256:")) {
-            manifest = Manifest.findByRepositoryAndDigest(repositoryName, reference);
+            manifest = manifestStorage.findByRepositoryAndDigest(repositoryName, reference);
         } else {
-            manifest = Manifest.findByRepositoryAndTag(repositoryName, reference);
+            manifest = manifestStorage.findByRepositoryAndTag(repositoryName, reference);
         }
 
         if (manifest == null) {
@@ -256,7 +264,7 @@ public class ManifestResourceHandler {
                     .build();
         }
 
-        manifest.delete();
+        manifestStorage.delete(manifest.id);
         return Response.status(202).build();
     }
 }

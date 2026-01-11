@@ -16,6 +16,9 @@ public class AuthService {
     @Inject
     JwtService jwtService;
 
+    @Inject
+    FileUserStorage userStorage;
+
     @ConfigProperty(name = "oci.auth.enabled", defaultValue = "true")
     boolean authEnabled;
 
@@ -23,7 +26,7 @@ public class AuthService {
     int expirationSeconds;
 
     public TokenResponse authenticate(String username, String password, String service, String scope) {
-        User user = User.findByUsername(username);
+        User user = userStorage.findByUsername(username);
         if (user == null || !user.enabled) {
             return null;
         }
@@ -58,7 +61,7 @@ public class AuthService {
     }
 
     public User createUser(String username, String password, String email, List<String> roles) {
-        if (User.findByUsername(username) != null) {
+        if (userStorage.findByUsername(username) != null) {
             throw new IllegalArgumentException("Username already exists");
         }
 
@@ -67,7 +70,7 @@ public class AuthService {
         user.passwordHash = BCrypt.withDefaults().hashToString(12, password.toCharArray());
         user.email = email;
         user.roles = roles;
-        user.persist();
+        userStorage.persist(user);
 
         return user;
     }

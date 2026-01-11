@@ -7,7 +7,9 @@ import io.oci.annotation.CommentQueryParam;
 import io.oci.dto.ArtifactDescriptor;
 import io.oci.dto.ReferrersResponse;
 import io.oci.model.Manifest;
+import io.oci.service.FileManifestStorage;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 
 import java.util.List;
@@ -16,6 +18,9 @@ import java.util.stream.Collectors;
 @CommentPath("/v2/{name}/_oci/referrers/{digest}")
 @ApplicationScoped
 public class ReferrerResourceHandler {
+
+    @Inject
+    FileManifestStorage manifestStorage;
 
     @CommentGET
     public Response getReferrers(
@@ -31,15 +36,15 @@ public class ReferrerResourceHandler {
 //        boolean oCIFiltersAppliedArtifactType;
 //        List<Manifest> referrerManifests;
 //        if (artifactType != null && !artifactType.isBlank()) {
-//            referrerManifests = Manifest.findBySubjectDigestAndArtifactType(repositoryName, digest, artifactType);
+//            referrerManifests = manifestStorage.findBySubjectDigestAndArtifactType(repositoryName, digest, artifactType);
 //            oCIFiltersAppliedArtifactType = true;
 //            OCI-Filters-Applied: artifactType
 //        } else {
-//            referrerManifests = Manifest.findBySubjectDigest(repositoryName, digest);
+//            referrerManifests = manifestStorage.findBySubjectDigest(repositoryName, digest);
 //            oCIFiltersAppliedArtifactType = false;
 //        }
 
-        List<Manifest> referrerManifests = Manifest.findBySubjectDigest(repositoryName, digest);
+        List<Manifest> referrerManifests = manifestStorage.findBySubjectDigest(repositoryName, digest);
 
         List<ArtifactDescriptor> descriptors = referrerManifests.stream()
                 .map(

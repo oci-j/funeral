@@ -3,9 +3,10 @@ package io.oci.service.handler;
 import io.oci.annotation.CommentGET;
 import io.oci.annotation.CommentPath;
 import io.oci.dto.RepositoryInfo;
-import io.oci.model.Manifest;
-import io.oci.model.Repository;
+import io.oci.service.FileManifestStorage;
+import io.oci.service.FileRepositoryStorage;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -13,6 +14,12 @@ import java.util.stream.Collectors;
 @CommentPath("/v2")
 @ApplicationScoped
 public class RegistryResourceHandler {
+
+    @Inject
+    FileRepositoryStorage repositoryStorage;
+
+    @Inject
+    FileManifestStorage manifestStorage;
 
     @CommentGET
     @CommentPath("/")
@@ -25,7 +32,7 @@ public class RegistryResourceHandler {
     @CommentGET
     @CommentPath("/repositories")
     public Response listRepositories() {
-        List<Repository> repos = Repository.listAll();
+        var repos = repositoryStorage.listAll();
 
         // Group by name and keep only the one with max updatedAt
         List<RepositoryInfo> repoList = repos.stream()
@@ -40,7 +47,7 @@ public class RegistryResourceHandler {
                 .stream()
                 .filter(repo -> repo != null)
                 .map(repo -> {
-                    long tagCount = Manifest.countByRepository(repo.name);
+                    long tagCount = manifestStorage.countByRepository(repo.name);
                     return new RepositoryInfo(repo.name, repo.createdAt, repo.updatedAt, tagCount);
                 })
                 .collect(Collectors.toList());

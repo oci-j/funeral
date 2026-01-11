@@ -24,6 +24,9 @@ oci:
     secret-key: ${S3_SECRET_KEY:minioadmin}
   storage:
     bucket: ${S3_BUCKET:oci-registry}
+    no-mongo: ${NO_MONGO:true}
+    no-minio: ${NO_MINIO:true}
+    local-storage-path: ${LOCAL_STORAGE_PATH:/tmp/funeral-storage}
   auth:
     # true if we enable auth system.
     enabled: ${AUTH_ENABLED:true}

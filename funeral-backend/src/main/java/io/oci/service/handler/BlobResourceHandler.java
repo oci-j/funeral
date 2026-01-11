@@ -14,6 +14,7 @@ import io.oci.dto.ErrorResponse;
 import io.oci.exception.WithResponseException;
 import io.oci.model.Blob;
 import io.oci.model.Repository;
+import io.oci.service.FileRepositoryStorage;
 import io.oci.service.S3StorageService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -23,12 +24,16 @@ import java.io.InputStream;
 import java.util.List;
 import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
+import org.bson.types.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @CommentPath("/v2/{name}/blobs")
 @ApplicationScoped
 public class BlobResourceHandler {
+
+    @Inject
+    FileRepositoryStorage repositoryStorage;
 
     private static final Logger log = LoggerFactory.getLogger(BlobResourceHandler.class);
 
@@ -106,12 +111,11 @@ public class BlobResourceHandler {
             }
         }
 
-        Repository repo = Repository.findByName(repositoryName);
+        var repo = repositoryStorage.findByName(repositoryName);
         if (repo == null) {
             repo = new Repository(repositoryName);
-            repo.persist();
+            repositoryStorage.persist(repo);
         }
-
 
         String uploadUuid = UUID.randomUUID().toString();
 
