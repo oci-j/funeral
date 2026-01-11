@@ -22,6 +22,7 @@ import io.minio.messages.Status;
 import io.oci.exception.WithResponseException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import jakarta.ws.rs.core.Response;
 import java.io.File;
 import java.io.FileInputStream;
@@ -35,7 +36,8 @@ import java.util.List;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @ApplicationScoped
-public class S3StorageService {
+@Named("s3-storage")
+public class S3StorageService extends AbstractStorageService {
 
     @Inject
     MinioClient minioClient;
@@ -46,6 +48,7 @@ public class S3StorageService {
     @ConfigProperty(name = "oci.storage.tempBucket", defaultValue = "oci-registry-temp")
     String tempBucketName;
 
+    @Override
     public long storeTempChunk(
             InputStream inputStream,
             String uploadUuid,
@@ -100,6 +103,7 @@ public class S3StorageService {
         }
     }
 
+    @Override
     public void mergeTempChunks(
             String uploadUuid,
             int maxIndex,
@@ -133,12 +137,7 @@ public class S3StorageService {
 
     }
 
-    public static record CalculateTempChunkResult(
-            int index,
-            long bytesWritten
-    ) {
-    }
-
+    @Override
     public CalculateTempChunkResult calculateTempChunks(
             String uploadUuid
     ) throws IOException {
@@ -168,6 +167,7 @@ public class S3StorageService {
     }
 
 
+    @Override
     public String storeBlob(InputStream inputStream, String expectedDigest) throws IOException {
         try {
             // Ensure bucket exists
@@ -220,6 +220,7 @@ public class S3StorageService {
         }
     }
 
+    @Override
     public InputStream getBlobStream(String digest) throws IOException {
         try {
             String objectKey = "blobs/" + digest.replace(":", "/");
@@ -237,6 +238,7 @@ public class S3StorageService {
         }
     }
 
+    @Override
     public long getBlobSize(String digest) throws IOException {
         try {
             String objectKey = "blobs/" + digest.replace(":", "/");
@@ -252,6 +254,7 @@ public class S3StorageService {
         }
     }
 
+    @Override
     public void deleteBlob(String digest) throws IOException {
         try {
             String objectKey = "blobs/" + digest.replace(":", "/");

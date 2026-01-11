@@ -2,6 +2,8 @@ package io.oci.service;
 
 import io.oci.exception.WithResponseException;
 import jakarta.enterprise.context.ApplicationScoped;
+import jakarta.enterprise.inject.Alternative;
+import jakarta.inject.Named;
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,7 +16,8 @@ import java.util.List;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @ApplicationScoped
-public class StorageService {
+@Named("local-storage")
+public class StorageService extends AbstractStorageService {
 
     @ConfigProperty(name = "oci.storage.local-storage-path", defaultValue = "/tmp/funeral-storage")
     String storagePath;
@@ -26,6 +29,7 @@ public class StorageService {
         tempPath = storagePath + "/temp";
     }
 
+    @Override
     public String storeBlob(InputStream inputStream, String expectedDigest) throws IOException {
         Path storageDir = Paths.get(storagePath, "blobs");
         Files.createDirectories(storageDir);
@@ -73,6 +77,7 @@ public class StorageService {
         }
     }
 
+    @Override
     public InputStream getBlobStream(String digest) throws IOException {
         String digestPath = digest.replace(":", "/");
         Path blobPath = Paths.get(storagePath, "blobs", digestPath);
@@ -84,24 +89,20 @@ public class StorageService {
         return Files.newInputStream(blobPath);
     }
 
-    public boolean blobExists(String digest) {
-        String digestPath = digest.replace(":", "/");
-        Path blobPath = Paths.get(storagePath, "blobs", digestPath);
-        return Files.exists(blobPath);
-    }
-
+    @Override
     public long getBlobSize(String digest) throws IOException {
         String digestPath = digest.replace(":", "/");
         Path blobPath = Paths.get(storagePath, "blobs", digestPath);
         return Files.size(blobPath);
     }
 
-    public void deleteBlob(String digest) throws IOException {
+    public boolean blobExists(String digest) {
         String digestPath = digest.replace(":", "/");
         Path blobPath = Paths.get(storagePath, "blobs", digestPath);
-        Files.deleteIfExists(blobPath);
+        return Files.exists(blobPath);
     }
 
+    @Override
     public long storeTempChunk(InputStream inputStream, String uploadUuid, int index) throws IOException, WithResponseException {
         Path tempDir = Paths.get(tempPath, uploadUuid);
         Files.createDirectories(tempDir);
@@ -127,6 +128,7 @@ public class StorageService {
         return bytesWritten;
     }
 
+    @Override
     public void mergeTempChunks(String uploadUuid, int maxIndex, String digest) throws IOException {
         Path tempDir = Paths.get(tempPath, uploadUuid);
         if (!Files.exists(tempDir)) {
@@ -152,11 +154,14 @@ public class StorageService {
         Files.deleteIfExists(tempDir);
     }
 
-    public record CalculateTempChunkResult(
-            int index,
-            long bytesWritten
-    ) {}
+    @Override
+    public void deleteBlob(String digest) throws IOException {
+        String digestPath = digest.replace(":", "/");
+        Path blobPath = Paths.get(storagePath, "blobs", digestPath);
+        Files.deleteIfExists(blobPath);
+    }
 
+    @Override
     public CalculateTempChunkResult calculateTempChunks(String uploadUuid) throws IOException {
         Path tempDir = Paths.get(tempPath, uploadUuid);
         if (!Files.exists(tempDir)) {
