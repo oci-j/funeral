@@ -1,0 +1,53 @@
+# Git files
+.git
+.gitignore
+.gitattributes
+
+# Frontend build artifacts
+funeral-frontend/node_modules/
+funeral-frontend/dist/
+funeral-frontend/.vite/
+funeral-frontend/.pnpm-store/
+
+# Backend build artifacts
+funeral-backend/target/
+funeral-backend/*.log
+
+# IDE files
+.idea/
+.vscode/
+*.iml
+*.class
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files (except .env.example)
+.env
+.env.local
+.env.*.local
+
+# Documentation
+*.md
+!CLAUDE.md
+
+# Temporary files
+*.tmp
+*.temp
+*~
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+
+# Testing
+coverage/
+.nyc_output/
+*.test.js
+
+# Backup files
+docker_bak/
+*.bak
+*.backup
