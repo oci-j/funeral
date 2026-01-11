@@ -1,16 +1,25 @@
 package io.oci.dto;
 
-import io.quarkus.runtime.annotations.RegisterForReflection;
 import java.time.LocalDateTime;
+
+import io.quarkus.runtime.annotations.RegisterForReflection;
 
 @RegisterForReflection
 public class RepositoryInfo {
     public String name;
+
     public LocalDateTime createdAt;
+
     public LocalDateTime updatedAt;
+
     public long tagCount;
 
-    public RepositoryInfo(String name, LocalDateTime createdAt, LocalDateTime updatedAt, long tagCount) {
+    public RepositoryInfo(
+            String name,
+            LocalDateTime createdAt,
+            LocalDateTime updatedAt,
+            long tagCount
+    ) {
         this.name = name;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;

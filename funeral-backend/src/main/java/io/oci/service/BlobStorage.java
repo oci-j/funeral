@@ -3,11 +3,19 @@ package io.oci.service;
 import io.oci.model.Blob;
 
 public interface BlobStorage {
-    Blob findByDigest(String digest);
+    Blob findByDigest(
+            String digest
+    );
 
-    void persist(Blob blob);
+    void persist(
+            Blob blob
+    );
 
-    void deleteByDigest(String digest);
+    void deleteByDigest(
+            String digest
+    );
 
-    void delete(Object id);
+    void delete(
+            Object id
+    );
 }

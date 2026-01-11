@@ -1,5 +1,8 @@
 package io.oci.service.handler;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 import io.oci.annotation.CommentGET;
 import io.oci.annotation.CommentPath;
 import io.oci.annotation.CommentPathParam;
@@ -13,44 +16,68 @@ import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.ws.rs.core.Response;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-@CommentPath("/v2/{name}/_oci/referrers/{digest}")
+@CommentPath(
+    "/v2/{name}/_oci/referrers/{digest}"
+)
 @ApplicationScoped
 public class ReferrerResourceHandler {
 
     @Inject
-    @Named("manifestStorage")
+    @Named(
+        "manifestStorage"
+    )
     ManifestStorage manifestStorage;
 
     @CommentGET
     public Response getReferrers(
-            @CommentPathParam("name") String repositoryName,
-            @CommentPathParam("digest") String digest,
-            @CommentQueryParam("artifactType") String artifactType
+            @CommentPathParam(
+                "name"
+            )
+            String repositoryName,
+            @CommentPathParam(
+                "digest"
+            )
+            String digest,
+            @CommentQueryParam(
+                "artifactType"
+            )
+            String artifactType
     ) {
 
         if (digest == null || digest.isBlank()) {
-            return Response.status(Response.Status.BAD_REQUEST).entity("digest query parameter is required").build();
+            return Response.status(
+                    Response.Status.BAD_REQUEST
+            )
+                    .entity(
+                            "digest query parameter is required"
+                    )
+                    .build();
         }
 
-        List<Manifest> referrerManifests = manifestStorage.findBySubjectDigest(repositoryName, digest);
+        List<Manifest> referrerManifests = manifestStorage.findBySubjectDigest(
+                repositoryName,
+                digest
+        );
 
         List<ArtifactDescriptor> descriptors = referrerManifests.stream()
                 .map(
                         m -> new ArtifactDescriptor(
-                        m.mediaType,
-                        m.artifactType,
-                        m.digest,
-                        m.contentLength,
-                        m.annotations
+                                m.mediaType,
+                                m.artifactType,
+                                m.digest,
+                                m.contentLength,
+                                m.annotations
+                        )
                 )
-                )
-                .collect(Collectors.toList());
+                .collect(
+                        Collectors.toList()
+                );
 
-        return Response
-                .ok(new ReferrersResponse(descriptors))
+        return Response.ok(
+                new ReferrersResponse(
+                        descriptors
+                )
+        )
                 .header(
                         "Content-Type",
                         "application/vnd.oci.image.index.v1+json"

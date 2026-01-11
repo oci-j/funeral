@@ -1,24 +1,45 @@
 package io.oci.service;
 
-import io.oci.model.RepositoryPermission;
 import java.util.List;
 
+import io.oci.model.RepositoryPermission;
+
 public interface RepositoryPermissionStorage {
-    RepositoryPermission findByUsernameAndRepository(String username, String repositoryName);
+    RepositoryPermission findByUsernameAndRepository(
+            String username,
+            String repositoryName
+    );
 
-    List<RepositoryPermission> findByUsername(String username);
+    List<RepositoryPermission> findByUsername(
+            String username
+    );
 
-    List<RepositoryPermission> findByRepository(String repositoryName);
+    List<RepositoryPermission> findByRepository(
+            String repositoryName
+    );
 
     List<RepositoryPermission> listAll();
 
-    void persist(RepositoryPermission permission);
+    void persist(
+            RepositoryPermission permission
+    );
 
-    void deleteByUsernameAndRepository(String username, String repositoryName);
+    void deleteByUsernameAndRepository(
+            String username,
+            String repositoryName
+    );
 
-    void deleteByUsername(String username);
+    void deleteByUsername(
+            String username
+    );
 
-    boolean hasPullPermission(String username, String repositoryName);
+    boolean hasPullPermission(
+            String username,
+            String repositoryName
+    );
 
-    boolean hasPushPermission(String username, String repositoryName);
+    boolean hasPushPermission(
+            String username,
+            String repositoryName
+    );
 }

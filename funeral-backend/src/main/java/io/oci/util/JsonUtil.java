@@ -16,6 +16,10 @@
 
 package io.oci.util;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.UncheckedIOException;
+
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -26,18 +30,15 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.databind.node.ArrayNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UncheckedIOException;
-
 /**
  * Thread-safe utility for common Jackson operations.
  *
- * <p>The underlying ObjectMapper is pre-configured to:
+ * <p>
+ * The underlying ObjectMapper is pre-configured to:
  * <ul>
- *   <li>Ignore unknown JSON properties during deserialization</li>
- *   <li>Skip serialization of null values</li>
- *   <li>Write dates as ISO-8601 strings</li>
+ * <li>Ignore unknown JSON properties during deserialization</li>
+ * <li>Skip serialization of null values</li>
+ * <li>Write dates as ISO-8601 strings</li>
  * </ul>
  */
 public final class JsonUtil {
@@ -48,55 +49,104 @@ public final class JsonUtil {
         // prevent instantiation
     }
 
-    /* ------------------------------------------------------------------
-     *  Public API
-     * ------------------------------------------------------------------ */
+    /*
+     * ------------------------------------------------------------------ Public API
+     * ------------------------------------------------------------------
+     */
 
-    public static String toJson(Object value) {
+    public static String toJson(
+            Object value
+    ) {
         try {
-            return MAPPER.writeValueAsString(value);
-        } catch (JsonProcessingException e) {
-            throw new UncheckedIOException(e);
+            return MAPPER.writeValueAsString(
+                    value
+            );
+        }
+        catch (JsonProcessingException e) {
+            throw new UncheckedIOException(
+                    e
+            );
         }
     }
 
-    public static byte[] toJsonBytes(Object value) {
+    public static byte[] toJsonBytes(
+            Object value
+    ) {
         try {
-            return MAPPER.writeValueAsBytes(value);
-        } catch (JsonProcessingException e) {
-            throw new UncheckedIOException(e);
+            return MAPPER.writeValueAsBytes(
+                    value
+            );
+        }
+        catch (JsonProcessingException e) {
+            throw new UncheckedIOException(
+                    e
+            );
         }
     }
 
-    public static <T> T fromJson(String json, Class<T> clazz) {
+    public static <T> T fromJson(
+            String json,
+            Class<T> clazz
+    ) {
         try {
-            return MAPPER.readValue(json, clazz);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            return MAPPER.readValue(
+                    json,
+                    clazz
+            );
+        }
+        catch (IOException e) {
+            throw new UncheckedIOException(
+                    e
+            );
         }
     }
 
-    public static <T> T fromJson(String json, TypeReference<T> typeRef) {
+    public static <T> T fromJson(
+            String json,
+            TypeReference<T> typeRef
+    ) {
         try {
-            return MAPPER.readValue(json, typeRef);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            return MAPPER.readValue(
+                    json,
+                    typeRef
+            );
+        }
+        catch (IOException e) {
+            throw new UncheckedIOException(
+                    e
+            );
         }
     }
 
-    public static <T> T fromJson(InputStream src, Class<T> clazz) {
+    public static <T> T fromJson(
+            InputStream src,
+            Class<T> clazz
+    ) {
         try {
-            return MAPPER.readValue(src, clazz);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            return MAPPER.readValue(
+                    src,
+                    clazz
+            );
+        }
+        catch (IOException e) {
+            throw new UncheckedIOException(
+                    e
+            );
         }
     }
 
-    public static JsonNode readTree(String json) {
+    public static JsonNode readTree(
+            String json
+    ) {
         try {
-            return MAPPER.readTree(json);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+            return MAPPER.readTree(
+                    json
+            );
+        }
+        catch (IOException e) {
+            throw new UncheckedIOException(
+                    e
+            );
         }
     }
 
@@ -113,15 +163,23 @@ public final class JsonUtil {
         return MAPPER;
     }
 
-    /* ------------------------------------------------------------------
-     *  Internal helpers
-     * ------------------------------------------------------------------ */
+    /*
+     * ------------------------------------------------------------------ Internal helpers
+     * ------------------------------------------------------------------
+     */
 
     private static ObjectMapper createMapper() {
         ObjectMapper mapper = new ObjectMapper();
-        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
-        mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+        mapper.configure(
+                DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES,
+                false
+        );
+        mapper.setSerializationInclusion(
+                JsonInclude.Include.NON_NULL
+        );
+        mapper.disable(
+                SerializationFeature.WRITE_DATES_AS_TIMESTAMPS
+        );
         return mapper;
     }
 }

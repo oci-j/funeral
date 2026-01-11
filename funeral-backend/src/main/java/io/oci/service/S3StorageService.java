@@ -1,5 +1,15 @@
 package io.oci.service;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
+import java.util.List;
+
 import io.minio.BucketExistsArgs;
 import io.minio.ComposeObjectArgs;
 import io.minio.ComposeSource;
@@ -24,28 +34,27 @@ import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
 import jakarta.ws.rs.core.Response;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
-import java.util.ArrayList;
-import java.util.List;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @ApplicationScoped
-@Named("s3-storage")
+@Named(
+    "s3-storage"
+)
 public class S3StorageService extends AbstractStorageService {
 
     @Inject
     MinioClient minioClient;
 
-    @ConfigProperty(name = "oci.storage.bucket", defaultValue = "oci-registry")
+    @ConfigProperty(
+            name = "oci.storage.bucket",
+            defaultValue = "oci-registry"
+    )
     String bucketName;
 
-    @ConfigProperty(name = "oci.storage.tempBucket", defaultValue = "oci-registry-temp")
+    @ConfigProperty(
+            name = "oci.storage.tempBucket",
+            defaultValue = "oci-registry-temp"
+    )
     String tempBucketName;
 
     @Override
@@ -53,7 +62,9 @@ public class S3StorageService extends AbstractStorageService {
             InputStream inputStream,
             String uploadUuid,
             int index
-    ) throws IOException, WithResponseException {
+    )
+            throws IOException,
+            WithResponseException {
         try {
             // Ensure bucket exists
             ensureTempBucketExists();
@@ -64,42 +75,64 @@ public class S3StorageService extends AbstractStorageService {
                 try {
                     stat = minioClient.statObject(
                             StatObjectArgs.builder()
-                                    .bucket(tempBucketName)
-                                    .object(objectKey)
+                                    .bucket(
+                                            tempBucketName
+                                    )
+                                    .object(
+                                            objectKey
+                                    )
                                     .build()
                     );
-                } catch (Exception e) {
+                }
+                catch (Exception e) {
                 }
                 if (stat != null && stat.size() > 0) {
                     throw new WithResponseException(
-                            Response.status(416).build()
+                            Response.status(
+                                    416
+                            ).build()
                     );
                 }
             }
             ObjectWriteResponse objectWriteResponse = minioClient.putObject(
                     PutObjectArgs.builder()
-                            .bucket(tempBucketName)
-                            .object(objectKey)
+                            .bucket(
+                                    tempBucketName
+                            )
+                            .object(
+                                    objectKey
+                            )
                             .stream(
                                     inputStream,
                                     -1,
                                     1024 * 1024 * 8
                             )
-                            .contentType("application/octet-stream")
+                            .contentType(
+                                    "application/octet-stream"
+                            )
                             .build()
             );
             StatObjectResponse stat = minioClient.statObject(
                     StatObjectArgs.builder()
-                            .bucket(tempBucketName)
-                            .object(objectKey)
+                            .bucket(
+                                    tempBucketName
+                            )
+                            .object(
+                                    objectKey
+                            )
                             .build()
             );
             long bytesWritten = stat.size();
             return bytesWritten;
-        } catch (WithResponseException | IOException e) {
+        }
+        catch (WithResponseException | IOException e) {
             throw e;
-        } catch (Exception e) {
-            throw new IOException("Failed to store blob", e);
+        }
+        catch (Exception e) {
+            throw new IOException(
+                    "Failed to store blob",
+                    e
+            );
         }
     }
 
@@ -108,31 +141,51 @@ public class S3StorageService extends AbstractStorageService {
             String uploadUuid,
             int maxIndex,
             String digest
-    ) throws IOException {
+    )
+            throws IOException {
         try {
             // Ensure bucket exists
             ensureBucketExists();
 
             // Store in S3
-            String finalObjectKey = "blobs/" + digest.replace(":", "/");
+            String finalObjectKey = "blobs/" + digest.replace(
+                    ":",
+                    "/"
+            );
 
             List<ComposeSource> sources = new ArrayList<>();
             for (int i = 0; i < maxIndex; i++) {
                 String objectKey = "chunk/" + uploadUuid + "/" + i;
-                sources.add(ComposeSource.builder()
-                        .bucket(tempBucketName)
-                        .object(objectKey)
-                        .build());
+                sources.add(
+                        ComposeSource.builder()
+                                .bucket(
+                                        tempBucketName
+                                )
+                                .object(
+                                        objectKey
+                                )
+                                .build()
+                );
             }
             minioClient.composeObject(
                     ComposeObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(finalObjectKey)
-                            .sources(sources)
+                            .bucket(
+                                    bucketName
+                            )
+                            .object(
+                                    finalObjectKey
+                            )
+                            .sources(
+                                    sources
+                            )
                             .build()
             );
-        } catch (Exception e) {
-            throw new IOException("Failed to store blob", e);
+        }
+        catch (Exception e) {
+            throw new IOException(
+                    "Failed to store blob",
+                    e
+            );
         }
 
     }
@@ -140,12 +193,17 @@ public class S3StorageService extends AbstractStorageService {
     @Override
     public CalculateTempChunkResult calculateTempChunks(
             String uploadUuid
-    ) throws IOException {
+    )
+            throws IOException {
         try {
             // Ensure bucket exists
             ensureTempBucketExists();
-        } catch (Exception e) {
-            throw new IOException("Failed to store blob", e);
+        }
+        catch (Exception e) {
+            throw new IOException(
+                    "Failed to store blob",
+                    e
+            );
         }
         long bytesWritten = 0;
         int i = 0;
@@ -154,58 +212,108 @@ public class S3StorageService extends AbstractStorageService {
             try {
                 StatObjectResponse stat = minioClient.statObject(
                         StatObjectArgs.builder()
-                                .bucket(tempBucketName)
-                                .object(objectKey)
+                                .bucket(
+                                        tempBucketName
+                                )
+                                .object(
+                                        objectKey
+                                )
                                 .build()
                 );
                 bytesWritten += stat.size();
-            } catch (Exception e) {
-                return new CalculateTempChunkResult(i, bytesWritten);
+            }
+            catch (Exception e) {
+                return new CalculateTempChunkResult(
+                        i,
+                        bytesWritten
+                );
             }
             i++;
         }
     }
 
-
     @Override
-    public String storeBlob(InputStream inputStream, String expectedDigest) throws IOException {
+    public String storeBlob(
+            InputStream inputStream,
+            String expectedDigest
+    )
+            throws IOException {
         try {
             // Ensure bucket exists
             ensureBucketExists();
 
             // Create temp file to calculate digest and size
-            File tempFile = File.createTempFile("blob-", ".tmp");
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            File tempFile = File.createTempFile(
+                    "blob-",
+                    ".tmp"
+            );
+            MessageDigest digest = MessageDigest.getInstance(
+                    "SHA-256"
+            );
             long size = 0;
 
-            try (FileOutputStream fos = new FileOutputStream(tempFile);
-                 DigestInputStream dis = new DigestInputStream(inputStream, digest)) {
+            try (
+                    FileOutputStream fos = new FileOutputStream(
+                            tempFile
+                    );
+                    DigestInputStream dis = new DigestInputStream(
+                            inputStream,
+                            digest
+                    )) {
 
                 byte[] buffer = new byte[8192];
                 int bytesRead;
-                while ((bytesRead = dis.read(buffer)) != -1) {
-                    fos.write(buffer, 0, bytesRead);
+                while ((bytesRead = dis.read(
+                        buffer
+                )) != -1) {
+                    fos.write(
+                            buffer,
+                            0,
+                            bytesRead
+                    );
                     size += bytesRead;
                 }
             }
 
-            String calculatedDigest = "sha256:" + bytesToHex(digest.digest());
+            String calculatedDigest = "sha256:" + bytesToHex(
+                    digest.digest()
+            );
 
-            if (expectedDigest != null && !expectedDigest.equals(calculatedDigest)) {
+            if (expectedDigest != null && !expectedDigest.equals(
+                    calculatedDigest
+            )) {
                 tempFile.delete();
-                throw new IllegalArgumentException("Digest mismatch");
+                throw new IllegalArgumentException(
+                        "Digest mismatch"
+                );
             }
 
             // Store in S3
-            String objectKey = "blobs/" + calculatedDigest.replace(":", "/");
+            String objectKey = "blobs/" + calculatedDigest.replace(
+                    ":",
+                    "/"
+            );
 
-            try (FileInputStream fis = new FileInputStream(tempFile)) {
+            try (
+                    FileInputStream fis = new FileInputStream(
+                            tempFile
+                    )) {
                 minioClient.putObject(
                         PutObjectArgs.builder()
-                                .bucket(bucketName)
-                                .object(objectKey)
-                                .stream(fis, size, -1)
-                                .contentType("application/octet-stream")
+                                .bucket(
+                                        bucketName
+                                )
+                                .object(
+                                        objectKey
+                                )
+                                .stream(
+                                        fis,
+                                        size,
+                                        -1
+                                )
+                                .contentType(
+                                        "application/octet-stream"
+                                )
                                 .build()
                 );
             }
@@ -213,68 +321,128 @@ public class S3StorageService extends AbstractStorageService {
             tempFile.delete();
             return calculatedDigest;
 
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("SHA-256 not available", e);
-        } catch (Exception e) {
-            throw new IOException("Failed to store blob", e);
+        }
+        catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(
+                    "SHA-256 not available",
+                    e
+            );
+        }
+        catch (Exception e) {
+            throw new IOException(
+                    "Failed to store blob",
+                    e
+            );
         }
     }
 
     @Override
-    public InputStream getBlobStream(String digest) throws IOException {
+    public InputStream getBlobStream(
+            String digest
+    )
+            throws IOException {
         try {
-            String objectKey = "blobs/" + digest.replace(":", "/");
+            String objectKey = "blobs/" + digest.replace(
+                    ":",
+                    "/"
+            );
             return minioClient.getObject(
                     GetObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(objectKey)
+                            .bucket(
+                                    bucketName
+                            )
+                            .object(
+                                    objectKey
+                            )
                             .build()
             );
-        } catch (Exception e) {
-            if (e instanceof ErrorResponseException && ((ErrorResponseException) e).errorResponse().code().equals("NoSuchKey")) {
+        }
+        catch (Exception e) {
+            if (e instanceof ErrorResponseException && ((ErrorResponseException) e).errorResponse()
+                    .code()
+                    .equals(
+                            "NoSuchKey"
+                    )) {
                 return null;
             }
-            throw new IOException("Failed to get blob", e);
+            throw new IOException(
+                    "Failed to get blob",
+                    e
+            );
         }
     }
 
     @Override
-    public long getBlobSize(String digest) throws IOException {
+    public long getBlobSize(
+            String digest
+    )
+            throws IOException {
         try {
-            String objectKey = "blobs/" + digest.replace(":", "/");
+            String objectKey = "blobs/" + digest.replace(
+                    ":",
+                    "/"
+            );
             StatObjectResponse stat = minioClient.statObject(
                     StatObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(objectKey)
+                            .bucket(
+                                    bucketName
+                            )
+                            .object(
+                                    objectKey
+                            )
                             .build()
             );
             return stat.size();
-        } catch (Exception e) {
-            throw new IOException("Failed to get blob size", e);
+        }
+        catch (Exception e) {
+            throw new IOException(
+                    "Failed to get blob size",
+                    e
+            );
         }
     }
 
     @Override
-    public void deleteBlob(String digest) throws IOException {
+    public void deleteBlob(
+            String digest
+    )
+            throws IOException {
         try {
-            String objectKey = "blobs/" + digest.replace(":", "/");
+            String objectKey = "blobs/" + digest.replace(
+                    ":",
+                    "/"
+            );
             minioClient.removeObject(
                     RemoveObjectArgs.builder()
-                            .bucket(bucketName)
-                            .object(objectKey)
+                            .bucket(
+                                    bucketName
+                            )
+                            .object(
+                                    objectKey
+                            )
                             .build()
             );
-        } catch (Exception e) {
-            throw new IOException("Failed to delete blob", e);
+        }
+        catch (Exception e) {
+            throw new IOException(
+                    "Failed to delete blob",
+                    e
+            );
         }
     }
 
     @Override
-    public boolean blobExists(String digest) throws IOException {
+    public boolean blobExists(
+            String digest
+    )
+            throws IOException {
         try {
-            getBlobSize(digest);
+            getBlobSize(
+                    digest
+            );
             return true;
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             return false;
         }
     }
@@ -282,14 +450,18 @@ public class S3StorageService extends AbstractStorageService {
     private void ensureBucketExists() throws Exception {
         boolean exists = minioClient.bucketExists(
                 BucketExistsArgs.builder()
-                        .bucket(bucketName)
+                        .bucket(
+                                bucketName
+                        )
                         .build()
         );
 
         if (!exists) {
             minioClient.makeBucket(
                     MakeBucketArgs.builder()
-                            .bucket(bucketName)
+                            .bucket(
+                                    bucketName
+                            )
                             .build()
             );
         }
@@ -298,14 +470,18 @@ public class S3StorageService extends AbstractStorageService {
     private void ensureTempBucketExists() throws Exception {
         boolean exists = minioClient.bucketExists(
                 BucketExistsArgs.builder()
-                        .bucket(tempBucketName)
+                        .bucket(
+                                tempBucketName
+                        )
                         .build()
         );
 
         if (!exists) {
             minioClient.makeBucket(
                     MakeBucketArgs.builder()
-                            .bucket(tempBucketName)
+                            .bucket(
+                                    tempBucketName
+                            )
                             .build()
             );
             minioClient.setBucketLifecycle(
@@ -340,20 +516,30 @@ public class S3StorageService extends AbstractStorageService {
         }
     }
 
-    private String bytesToHex(byte[] bytes) {
+    private String bytesToHex(
+            byte[] bytes
+    ) {
         StringBuilder result = new StringBuilder();
         for (byte b : bytes) {
-            result.append(String.format("%02x", b));
+            result.append(
+                    String.format(
+                            "%02x",
+                            b
+                    )
+            );
         }
         return result.toString();
     }
 
-
     private static class DigestInputStream extends InputStream {
         private final InputStream wrapped;
+
         private final MessageDigest digest;
 
-        public DigestInputStream(InputStream wrapped, MessageDigest digest) {
+        public DigestInputStream(
+                InputStream wrapped,
+                MessageDigest digest
+        ) {
             this.wrapped = wrapped;
             this.digest = digest;
         }
@@ -362,16 +548,31 @@ public class S3StorageService extends AbstractStorageService {
         public int read() throws IOException {
             int b = wrapped.read();
             if (b != -1) {
-                digest.update((byte) b);
+                digest.update(
+                        (byte) b
+                );
             }
             return b;
         }
 
         @Override
-        public int read(byte[] buffer, int offset, int length) throws IOException {
-            int bytesRead = wrapped.read(buffer, offset, length);
+        public int read(
+                byte[] buffer,
+                int offset,
+                int length
+        )
+                throws IOException {
+            int bytesRead = wrapped.read(
+                    buffer,
+                    offset,
+                    length
+            );
             if (bytesRead > 0) {
-                digest.update(buffer, offset, bytesRead);
+                digest.update(
+                        buffer,
+                        offset,
+                        bytesRead
+                );
             }
             return bytesRead;
         }

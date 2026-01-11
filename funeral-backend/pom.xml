@@ -17,7 +17,8 @@
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.version>3.25.0</quarkus.platform.version>
         <jvm.args>--add-opens java.base/java.lang=ALL-UNNAMED</jvm.args>
-        <quarkus.native.additional-build-args>-H:+RemoveUnusedSymbols,-march=compatibility</quarkus.native.additional-build-args>
+        <quarkus.native.additional-build-args>-H:+RemoveUnusedSymbols,-march=compatibility
+        </quarkus.native.additional-build-args>
         <quarkus.native.container-build>false</quarkus.native.container-build>
         <quarkus.native.compression.level>10</quarkus.native.compression.level>
         <quarkus.native.compression.additional-args>--ultra-brute,-v</quarkus.native.compression.additional-args>
@@ -31,12 +32,12 @@
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
-        <!-- Apache Commons Compress for tar parsing -->
-        <dependency>
-            <groupId>org.apache.commons</groupId>
-            <artifactId>commons-compress</artifactId>
-            <version>1.26.1</version>
-        </dependency>
+            <!-- Apache Commons Compress for tar parsing -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-compress</artifactId>
+                <version>1.26.1</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
     <dependencies>
@@ -87,6 +88,64 @@
     </dependencies>
     <build>
         <plugins>
+            <plugin>
+                <groupId>net.revelc.code</groupId>
+                <artifactId>impsort-maven-plugin</artifactId>
+                <version>1.12.0</version>
+                <configuration>
+                    <groups>java.,javax.,*</groups>
+                    <removeUnused>true</removeUnused>
+                    <lineEnding>LF</lineEnding>
+                    <staticAfter>true</staticAfter>
+                    <treatSamePackageAsUnused>true</treatSamePackageAsUnused>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>sort-imports</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>net.revelc.code.formatter</groupId>
+                <artifactId>formatter-maven-plugin</artifactId>
+                <version>2.29.0</version>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <goals>
+                            <goal>validate</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>format</id>
+                        <goals>
+                            <goal>format</goal>
+                        </goals>
+                        <phase>verify</phase>
+                    </execution>
+                </executions>
+                <configuration>
+                    <compilerSource>${java.version}</compilerSource>
+                    <compilerCompliance>${java.version}</compilerCompliance>
+                    <compilerTargetPlatform>${java.version}</compilerTargetPlatform>
+                    <lineEnding>LF</lineEnding>
+                    <encoding>${project.build.sourceEncoding}</encoding>
+                    <configFile>qa/eclipse-formatter.xml</configFile>
+                    <directories>
+                        <directory>${project.basedir}</directory>
+                    </directories>
+                    <includes>
+                        <include>src/**/*.java</include>
+                        <include>src/**/*.json</include>
+                    </includes>
+                    <excludes>
+                        **/target/**
+                    </excludes>
+                </configuration>
+            </plugin>
             <plugin>
                 <groupId>${quarkus.platform.group-id}</groupId>
                 <artifactId>quarkus-maven-plugin</artifactId>

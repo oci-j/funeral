@@ -1,25 +1,36 @@
 package io.oci.dto;
 
+import java.util.Map;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.quarkus.runtime.annotations.RegisterForReflection;
-import java.util.Map;
 
 @RegisterForReflection
 public class ArtifactDescriptor {
 
-    @JsonProperty("mediaType")
+    @JsonProperty(
+        "mediaType"
+    )
     public String mediaType;
 
-    @JsonProperty("artifactType")
+    @JsonProperty(
+        "artifactType"
+    )
     public String artifactType;
 
-    @JsonProperty("digest")
+    @JsonProperty(
+        "digest"
+    )
     public String digest;
 
-    @JsonProperty("size")
+    @JsonProperty(
+        "size"
+    )
     public Long size;
 
-    @JsonProperty("annotations")
+    @JsonProperty(
+        "annotations"
+    )
     public Map<String, Object> annotations;
 
     public ArtifactDescriptor(

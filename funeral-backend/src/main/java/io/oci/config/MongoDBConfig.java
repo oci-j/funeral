@@ -1,24 +1,24 @@
 package io.oci.config;
 
+import io.oci.service.BlobStorage;
+import io.oci.service.FileBlobStorage;
 import io.oci.service.FileManifestStorage;
+import io.oci.service.FileRepositoryPermissionStorage;
 import io.oci.service.FileRepositoryStorage;
 import io.oci.service.FileUserStorage;
-import io.oci.service.FileBlobStorage;
+import io.oci.service.ManifestStorage;
+import io.oci.service.MongoBlobStorage;
 import io.oci.service.MongoManifestStorage;
+import io.oci.service.MongoRepositoryPermissionStorage;
 import io.oci.service.MongoRepositoryStorage;
 import io.oci.service.MongoUserStorage;
-import io.oci.service.MongoBlobStorage;
-import io.oci.service.MongoRepositoryPermissionStorage;
-import io.oci.service.FileRepositoryPermissionStorage;
-import io.oci.service.ManifestStorage;
+import io.oci.service.RepositoryPermissionStorage;
 import io.oci.service.RepositoryStorage;
 import io.oci.service.UserStorage;
-import io.oci.service.BlobStorage;
-import io.oci.service.RepositoryPermissionStorage;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
-import jakarta.inject.Named;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
 @ApplicationScoped
@@ -54,35 +54,48 @@ public class MongoDBConfig {
     @Inject
     FileRepositoryPermissionStorage fileRepositoryPermissionStorage;
 
-    @ConfigProperty(name = "oci.storage.no-mongo", defaultValue = "false")
+    @ConfigProperty(
+            name = "oci.storage.no-mongo",
+            defaultValue = "false"
+    )
     boolean noMongo;
 
     @Produces
-    @Named("manifestStorage")
+    @Named(
+        "manifestStorage"
+    )
     public ManifestStorage manifestStorage() {
         return noMongo ? fileManifestStorage : mongoManifestStorage;
     }
 
     @Produces
-    @Named("repositoryStorage")
+    @Named(
+        "repositoryStorage"
+    )
     public RepositoryStorage repositoryStorage() {
         return noMongo ? fileRepositoryStorage : mongoRepositoryStorage;
     }
 
     @Produces
-    @Named("userStorage")
+    @Named(
+        "userStorage"
+    )
     public UserStorage userStorage() {
         return noMongo ? fileUserStorage : mongoUserStorage;
     }
 
     @Produces
-    @Named("blobStorage")
+    @Named(
+        "blobStorage"
+    )
     public BlobStorage blobStorage() {
         return noMongo ? fileBlobStorage : mongoBlobStorage;
     }
 
     @Produces
-    @Named("repositoryPermissionStorage")
+    @Named(
+        "repositoryPermissionStorage"
+    )
     public RepositoryPermissionStorage repositoryPermissionStorage() {
         return noMongo ? fileRepositoryPermissionStorage : mongoRepositoryPermissionStorage;
     }

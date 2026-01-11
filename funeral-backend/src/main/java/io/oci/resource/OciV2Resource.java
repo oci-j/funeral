@@ -1,7 +1,9 @@
 package io.oci.resource;
 
-import io.oci.annotation.CommentPathParam;
-import io.oci.annotation.CommentQueryParam;
+import java.io.InputStream;
+import java.util.List;
+import java.util.regex.Pattern;
+
 import io.oci.dto.ErrorResponse;
 import io.oci.service.ManifestStorage;
 import io.oci.service.RepositoryStorage;
@@ -22,24 +24,26 @@ import jakarta.ws.rs.POST;
 import jakarta.ws.rs.PUT;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
-import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Context;
 import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.UriInfo;
-import java.io.InputStream;
-import java.util.List;
-import java.util.regex.Pattern;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-@Path("/v2")
+@Path(
+    "/v2"
+)
 public class OciV2Resource {
 
-    private static final Logger log = LoggerFactory.getLogger(OciV2Resource.class);
+    private static final Logger log = LoggerFactory.getLogger(
+            OciV2Resource.class
+    );
 
-    private static final Pattern TAG_PATTERN = Pattern.compile("[a-zA-Z0-9_][a-zA-Z0-9._-]{0,127}");
+    private static final Pattern TAG_PATTERN = Pattern.compile(
+            "[a-zA-Z0-9_][a-zA-Z0-9._-]{0,127}"
+    );
 
     @Inject
     RegistryResourceHandler registryResourceHandler;
@@ -60,27 +64,48 @@ public class OciV2Resource {
     TokenResourceHandler tokenResourceHandler;
 
     @Inject
-    @Named("repositoryStorage")
+    @Named(
+        "repositoryStorage"
+    )
     RepositoryStorage repositoryStorage;
 
     @Inject
-    @Named("manifestStorage")
+    @Named(
+        "manifestStorage"
+    )
     ManifestStorage manifestStorage;
 
     @HEAD
-    @Path("/{fullPath:.*}")
+    @Path(
+        "/{fullPath:.*}"
+    )
     public Response fullPathHead(
-            @PathParam("fullPath") String fullPath,
-            @Context UriInfo uriInfo,
-            @Context HttpHeaders httpHeaders
+            @PathParam(
+                "fullPath"
+            )
+            String fullPath,
+            @Context
+            UriInfo uriInfo,
+            @Context
+            HttpHeaders httpHeaders
     ) {
         {
             /// @see ManifestResourceHandler
-            int lastIndexOfTags = fullPath.lastIndexOf("/manifests/");
+            int lastIndexOfTags = fullPath.lastIndexOf(
+                    "/manifests/"
+            );
             if (lastIndexOfTags != -1) {
-                String suffix = fullPath.substring(lastIndexOfTags + "/manifests/".length());
-                if (!StringUtils.contains(suffix, '/')) {
-                    String name = fullPath.substring(0, lastIndexOfTags);
+                String suffix = fullPath.substring(
+                        lastIndexOfTags + "/manifests/".length()
+                );
+                if (!StringUtils.contains(
+                        suffix,
+                        '/'
+                )) {
+                    String name = fullPath.substring(
+                            0,
+                            lastIndexOfTags
+                    );
                     return manifestResourceHandler.headManifest(
                             name,
                             suffix
@@ -90,10 +115,17 @@ public class OciV2Resource {
         }
         {
             /// @see BlobResourceHandler
-            int lastIndexOfTags = fullPath.lastIndexOf("/blobs/");
+            int lastIndexOfTags = fullPath.lastIndexOf(
+                    "/blobs/"
+            );
             if (lastIndexOfTags != -1) {
-                String suffix = fullPath.substring(lastIndexOfTags + "/blobs/".length());
-                String name = fullPath.substring(0, lastIndexOfTags);
+                String suffix = fullPath.substring(
+                        lastIndexOfTags + "/blobs/".length()
+                );
+                String name = fullPath.substring(
+                        0,
+                        lastIndexOfTags
+                );
                 return blobResourceHandler.headBlob(
                         name,
                         suffix
@@ -101,17 +133,28 @@ public class OciV2Resource {
             }
         }
 
-        log.error("404 not found : HEAD /v2/{}", fullPath);
-        return Response.status(404).build();
+        log.error(
+                "404 not found : HEAD /v2/{}",
+                fullPath
+        );
+        return Response.status(
+                404
+        ).build();
     }
 
-
     @GET
-    @Path("/{fullPath:.*}")
+    @Path(
+        "/{fullPath:.*}"
+    )
     public Response fullPathGet(
-            @PathParam("fullPath") String fullPath,
-            @Context UriInfo uriInfo,
-            @Context HttpHeaders httpHeaders
+            @PathParam(
+                "fullPath"
+            )
+            String fullPath,
+            @Context
+            UriInfo uriInfo,
+            @Context
+            HttpHeaders httpHeaders
     ) {
         {
             /// @see RegistryResourceHandler
@@ -121,24 +164,45 @@ public class OciV2Resource {
                 case "repositories":
                     return registryResourceHandler.listRepositories();
                 default:
-                    //pass
+                    // pass
             }
         }
         {
             /// @see ManifestResourceHandler
-            int lastIndexOfTags = fullPath.lastIndexOf("/manifests/");
+            int lastIndexOfTags = fullPath.lastIndexOf(
+                    "/manifests/"
+            );
             if (lastIndexOfTags != -1) {
-                String suffix = fullPath.substring(lastIndexOfTags + "/manifests/".length());
-                if (!StringUtils.contains(suffix, '/')) {
-                    String name = fullPath.substring(0, lastIndexOfTags);
+                String suffix = fullPath.substring(
+                        lastIndexOfTags + "/manifests/".length()
+                );
+                if (!StringUtils.contains(
+                        suffix,
+                        '/'
+                )) {
+                    String name = fullPath.substring(
+                            0,
+                            lastIndexOfTags
+                    );
                     return manifestResourceHandler.getManifest(
                             name,
                             suffix
                     );
-                } else if (suffix.endsWith("/info") && suffix.indexOf('/') == suffix.length() - 5) {
+                }
+                else if (suffix.endsWith(
+                        "/info"
+                ) && suffix.indexOf(
+                        '/'
+                ) == suffix.length() - 5) {
                     // Handle /manifests/{reference}/info endpoint
-                    String name = fullPath.substring(0, lastIndexOfTags);
-                    String reference = suffix.substring(0, suffix.length() - 5);
+                    String name = fullPath.substring(
+                            0,
+                            lastIndexOfTags
+                    );
+                    String reference = suffix.substring(
+                            0,
+                            suffix.length() - 5
+                    );
                     return manifestResourceHandler.getManifestInfo(
                             name,
                             reference
@@ -148,32 +212,66 @@ public class OciV2Resource {
         }
         {
             /// @see TagResourceHandler
-            int lastIndexOfTags = fullPath.lastIndexOf("/tags/");
+            int lastIndexOfTags = fullPath.lastIndexOf(
+                    "/tags/"
+            );
             if (lastIndexOfTags != -1) {
-                String suffix = fullPath.substring(lastIndexOfTags + "/tags/".length());
+                String suffix = fullPath.substring(
+                        lastIndexOfTags + "/tags/".length()
+                );
                 switch (suffix) {
                     case "list":
-                        String name = fullPath.substring(0, lastIndexOfTags);
+                        String name = fullPath.substring(
+                                0,
+                                lastIndexOfTags
+                        );
                         return tagResourceHandler.listTags(
                                 name,
-                                uriInfo.getQueryParameters().getFirst("n") != null ? Integer.parseInt(uriInfo.getQueryParameters().getFirst("n")) : 100,
-                                uriInfo.getQueryParameters().getFirst("last")
+                                uriInfo.getQueryParameters()
+                                        .getFirst(
+                                                "n"
+                                        ) != null
+                                                ? Integer.parseInt(
+                                                        uriInfo.getQueryParameters()
+                                                                .getFirst(
+                                                                        "n"
+                                                                )
+                                                )
+                                                : 100,
+                                uriInfo.getQueryParameters()
+                                        .getFirst(
+                                                "last"
+                                        )
                         );
                     default:
-                        //pass
+                        // pass
                 }
             }
         }
         {
             /// @see BlobResourceHandler
-            int lastIndexOfTags = fullPath.lastIndexOf("/blobs/");
+            int lastIndexOfTags = fullPath.lastIndexOf(
+                    "/blobs/"
+            );
             if (lastIndexOfTags != -1) {
-                String name = fullPath.substring(0, lastIndexOfTags);
-                String suffix = fullPath.substring(lastIndexOfTags + "/blobs/".length());
-                if (suffix.startsWith("uploads/")) {
+                String name = fullPath.substring(
+                        0,
+                        lastIndexOfTags
+                );
+                String suffix = fullPath.substring(
+                        lastIndexOfTags + "/blobs/".length()
+                );
+                if (suffix.startsWith(
+                        "uploads/"
+                )) {
                     // Handle blob uploads
-                    String uploadUuid = suffix.substring("uploads/".length());
-                    if (!StringUtils.contains(uploadUuid, '/')) {
+                    String uploadUuid = suffix.substring(
+                            "uploads/".length()
+                    );
+                    if (!StringUtils.contains(
+                            uploadUuid,
+                            '/'
+                    )) {
                         // Handle specific upload ID
                         return blobResourceHandler.completeBlobUploadChunkGet(
                                 name,
@@ -189,66 +287,147 @@ public class OciV2Resource {
         }
         {
             /// @see BlobResourceHandler
-            int lastIndexOfTags = fullPath.lastIndexOf("/referrers/");
+            int lastIndexOfTags = fullPath.lastIndexOf(
+                    "/referrers/"
+            );
             if (lastIndexOfTags != -1) {
-                String name = fullPath.substring(0, lastIndexOfTags);
-                String digest = fullPath.substring(lastIndexOfTags + "/referrers/".length());
+                String name = fullPath.substring(
+                        0,
+                        lastIndexOfTags
+                );
+                String digest = fullPath.substring(
+                        lastIndexOfTags + "/referrers/".length()
+                );
                 return referrerResourceHandler.getReferrers(
                         name,
                         digest,
-                        uriInfo.getQueryParameters().getFirst("artifactType")
+                        uriInfo.getQueryParameters()
+                                .getFirst(
+                                        "artifactType"
+                                )
                 );
             }
         }
         {
             /// @see TagResourceHandler
-            if (fullPath.equals("token/") || fullPath.equals("token")) {
+            if (fullPath.equals(
+                    "token/"
+            ) || fullPath.equals(
+                    "token"
+            )) {
                 return tokenResourceHandler.getToken(
-                        uriInfo.getQueryParameters().getFirst("service"),
-                        uriInfo.getQueryParameters().getFirst("scope"),
-                        uriInfo.getQueryParameters().getFirst("account"),
+                        uriInfo.getQueryParameters()
+                                .getFirst(
+                                        "service"
+                                ),
+                        uriInfo.getQueryParameters()
+                                .getFirst(
+                                        "scope"
+                                ),
+                        uriInfo.getQueryParameters()
+                                .getFirst(
+                                        "account"
+                                ),
                         httpHeaders
                 );
             }
         }
-        log.error("404 not found : GET /v2/{}", fullPath);
-        return Response.status(404).build();
+        log.error(
+                "404 not found : GET /v2/{}",
+                fullPath
+        );
+        return Response.status(
+                404
+        ).build();
     }
 
     @POST
-    @Path("/{fullPath:.*}")
+    @Path(
+        "/{fullPath:.*}"
+    )
     public Response fullPathPost(
-            @PathParam("fullPath") String fullPath,
-            @Context UriInfo uriInfo,
-            @Context HttpHeaders httpHeaders,
+            @PathParam(
+                "fullPath"
+            )
+            String fullPath,
+            @Context
+            UriInfo uriInfo,
+            @Context
+            HttpHeaders httpHeaders,
             InputStream inputStream
     ) {
         {
             /// @see BlobResourceHandler
-            int lastIndexOfTags = fullPath.lastIndexOf("/blobs/");
+            int lastIndexOfTags = fullPath.lastIndexOf(
+                    "/blobs/"
+            );
             if (lastIndexOfTags != -1) {
-                String name = fullPath.substring(0, lastIndexOfTags);
-                String suffix = fullPath.substring(lastIndexOfTags + "/blobs/".length());
+                String name = fullPath.substring(
+                        0,
+                        lastIndexOfTags
+                );
+                String suffix = fullPath.substring(
+                        lastIndexOfTags + "/blobs/".length()
+                );
                 switch (suffix) {
                     case "uploads":
                         return blobResourceHandler.startBlobUpload(
                                 name,
-                                uriInfo.getQueryParameters().getFirst("digest") != null ? uriInfo.getQueryParameters().getFirst("digest") : null,
-                                uriInfo.getQueryParameters().getFirst("mount") != null ? uriInfo.getQueryParameters().getFirst("mount") : null,
-                                uriInfo.getQueryParameters().getFirst("from") != null ? uriInfo.getQueryParameters().getFirst("from") : null,
+                                uriInfo.getQueryParameters()
+                                        .getFirst(
+                                                "digest"
+                                        ) != null
+                                                ? uriInfo.getQueryParameters()
+                                                        .getFirst(
+                                                                "digest"
+                                                        )
+                                                : null,
+                                uriInfo.getQueryParameters()
+                                        .getFirst(
+                                                "mount"
+                                        ) != null
+                                                ? uriInfo.getQueryParameters()
+                                                        .getFirst(
+                                                                "mount"
+                                                        )
+                                                : null,
+                                uriInfo.getQueryParameters()
+                                        .getFirst(
+                                                "from"
+                                        ) != null
+                                                ? uriInfo.getQueryParameters()
+                                                        .getFirst(
+                                                                "from"
+                                                        )
+                                                : null,
                                 inputStream
                         );
                     default:
-                        //pass
+                        // pass
                 }
-                if (suffix.startsWith("uploads/")) {
-                    String suffix2 = suffix.substring("uploads/".length());
-                    if (!StringUtils.contains(suffix2, '/')) {
+                if (suffix.startsWith(
+                        "uploads/"
+                )) {
+                    String suffix2 = suffix.substring(
+                            "uploads/".length()
+                    );
+                    if (!StringUtils.contains(
+                            suffix2,
+                            '/'
+                    )) {
                         // Handle specific upload ID
                         return blobResourceHandler.completeBlobUpload(
                                 name,
                                 suffix2,
-                                uriInfo.getQueryParameters().getFirst("digest") != null ? uriInfo.getQueryParameters().getFirst("digest") : null,
+                                uriInfo.getQueryParameters()
+                                        .getFirst(
+                                                "digest"
+                                        ) != null
+                                                ? uriInfo.getQueryParameters()
+                                                        .getFirst(
+                                                                "digest"
+                                                        )
+                                                : null,
                                 inputStream
                         );
                     }
@@ -257,38 +436,75 @@ public class OciV2Resource {
         }
         {
             /// @see TagResourceHandler
-            if (fullPath.equals("token/") || fullPath.equals("token")) {
+            if (fullPath.equals(
+                    "token/"
+            ) || fullPath.equals(
+                    "token"
+            )) {
                 return tokenResourceHandler.postToken(
-                        uriInfo.getQueryParameters().getFirst("service"),
-                        uriInfo.getQueryParameters().getFirst("scope"),
-                        uriInfo.getQueryParameters().getFirst("account"),
+                        uriInfo.getQueryParameters()
+                                .getFirst(
+                                        "service"
+                                ),
+                        uriInfo.getQueryParameters()
+                                .getFirst(
+                                        "scope"
+                                ),
+                        uriInfo.getQueryParameters()
+                                .getFirst(
+                                        "account"
+                                ),
                         httpHeaders
                 );
             }
         }
-        log.error("404 not found : POST /v2/{}", fullPath);
-        return Response.status(404).build();
+        log.error(
+                "404 not found : POST /v2/{}",
+                fullPath
+        );
+        return Response.status(
+                404
+        ).build();
     }
 
     @PUT
-    @Path("/{fullPath:.*}")
+    @Path(
+        "/{fullPath:.*}"
+    )
     public Response fullPathPut(
-            @PathParam("fullPath") String fullPath,
-            @Context UriInfo uriInfo,
-            @Context HttpHeaders httpHeaders,
+            @PathParam(
+                "fullPath"
+            )
+            String fullPath,
+            @Context
+            UriInfo uriInfo,
+            @Context
+            HttpHeaders httpHeaders,
             InputStream inputStream
     ) {
         {
             /// @see ManifestResourceHandler
-            int lastIndexOfTags = fullPath.lastIndexOf("/manifests/");
+            int lastIndexOfTags = fullPath.lastIndexOf(
+                    "/manifests/"
+            );
             if (lastIndexOfTags != -1) {
-                String suffix = fullPath.substring(lastIndexOfTags + "/manifests/".length());
-                if (!StringUtils.contains(suffix, '/')) {
-                    String name = fullPath.substring(0, lastIndexOfTags);
+                String suffix = fullPath.substring(
+                        lastIndexOfTags + "/manifests/".length()
+                );
+                if (!StringUtils.contains(
+                        suffix,
+                        '/'
+                )) {
+                    String name = fullPath.substring(
+                            0,
+                            lastIndexOfTags
+                    );
                     return manifestResourceHandler.putManifest(
                             name,
                             suffix,
-                            httpHeaders.getHeaderString("Content-Type"),
+                            httpHeaders.getHeaderString(
+                                    "Content-Type"
+                            ),
                             inputStream
                     );
                 }
@@ -297,29 +513,65 @@ public class OciV2Resource {
 
         {
             /// @see BlobResourceHandler
-            int lastIndexOfTags = fullPath.lastIndexOf("/blobs/");
+            int lastIndexOfTags = fullPath.lastIndexOf(
+                    "/blobs/"
+            );
             if (lastIndexOfTags != -1) {
-                String name = fullPath.substring(0, lastIndexOfTags);
-                String suffix = fullPath.substring(lastIndexOfTags + "/blobs/".length());
-                if (suffix.startsWith("uploads/")) {
-                    String suffix2 = suffix.substring("uploads/".length());
-                    if (!StringUtils.contains(suffix2, '/')) {
+                String name = fullPath.substring(
+                        0,
+                        lastIndexOfTags
+                );
+                String suffix = fullPath.substring(
+                        lastIndexOfTags + "/blobs/".length()
+                );
+                if (suffix.startsWith(
+                        "uploads/"
+                )) {
+                    String suffix2 = suffix.substring(
+                            "uploads/".length()
+                    );
+                    if (!StringUtils.contains(
+                            suffix2,
+                            '/'
+                    )) {
                         // Handle specific upload ID
                         return blobResourceHandler.completeBlobUploadPut(
                                 name,
                                 suffix2,
-                                uriInfo.getQueryParameters().getFirst("digest") != null ? uriInfo.getQueryParameters().getFirst("digest") : null,
+                                uriInfo.getQueryParameters()
+                                        .getFirst(
+                                                "digest"
+                                        ) != null
+                                                ? uriInfo.getQueryParameters()
+                                                        .getFirst(
+                                                                "digest"
+                                                        )
+                                                : null,
                                 inputStream
                         );
                     }
-                    SplitAtFirstUtil.SplitAtFirstResult splitAtFirstResult = SplitAtFirstUtil.splitAtFirstIndex(suffix2, "/");
-                    if (!StringUtils.contains(splitAtFirstResult.first(), '/')) {
+                    SplitAtFirstUtil.SplitAtFirstResult splitAtFirstResult = SplitAtFirstUtil.splitAtFirstIndex(
+                            suffix2,
+                            "/"
+                    );
+                    if (!StringUtils.contains(
+                            splitAtFirstResult.first(),
+                            '/'
+                    )) {
                         // Handle specific upload ID
                         return blobResourceHandler.completeBlobUploadChunkPut(
                                 name,
                                 splitAtFirstResult.first(),
                                 splitAtFirstResult.second(),
-                                uriInfo.getQueryParameters().getFirst("digest") != null ? uriInfo.getQueryParameters().getFirst("digest") : null,
+                                uriInfo.getQueryParameters()
+                                        .getFirst(
+                                                "digest"
+                                        ) != null
+                                                ? uriInfo.getQueryParameters()
+                                                        .getFirst(
+                                                                "digest"
+                                                        )
+                                                : null,
                                 inputStream
                         );
                     }
@@ -328,24 +580,46 @@ public class OciV2Resource {
             }
         }
 
-        log.error("404 not found : PUT /v2/{}", fullPath);
-        return Response.status(404).build();
+        log.error(
+                "404 not found : PUT /v2/{}",
+                fullPath
+        );
+        return Response.status(
+                404
+        ).build();
     }
 
     @DELETE
-    @Path("/{fullPath:.*}")
+    @Path(
+        "/{fullPath:.*}"
+    )
     public Response fullPathDelete(
-            @PathParam("fullPath") String fullPath,
-            @Context UriInfo uriInfo,
-            @Context HttpHeaders httpHeaders
+            @PathParam(
+                "fullPath"
+            )
+            String fullPath,
+            @Context
+            UriInfo uriInfo,
+            @Context
+            HttpHeaders httpHeaders
     ) {
         {
             // Handle manifest deletion at /v2/{name}/manifests/{reference}
-            int lastIndexOfTags = fullPath.lastIndexOf("/manifests/");
+            int lastIndexOfTags = fullPath.lastIndexOf(
+                    "/manifests/"
+            );
             if (lastIndexOfTags != -1) {
-                String suffix = fullPath.substring(lastIndexOfTags + "/manifests/".length());
-                if (!StringUtils.contains(suffix, '/')) {
-                    String name = fullPath.substring(0, lastIndexOfTags);
+                String suffix = fullPath.substring(
+                        lastIndexOfTags + "/manifests/".length()
+                );
+                if (!StringUtils.contains(
+                        suffix,
+                        '/'
+                )) {
+                    String name = fullPath.substring(
+                            0,
+                            lastIndexOfTags
+                    );
                     return manifestResourceHandler.deleteManifest(
                             name,
                             suffix
@@ -355,10 +629,17 @@ public class OciV2Resource {
         }
         {
             // Handle blob deletion at /v2/{name}/blobs/{digest}
-            int lastIndexOfTags = fullPath.lastIndexOf("/blobs/");
+            int lastIndexOfTags = fullPath.lastIndexOf(
+                    "/blobs/"
+            );
             if (lastIndexOfTags != -1) {
-                String suffix = fullPath.substring(lastIndexOfTags + "/blobs/".length());
-                String name = fullPath.substring(0, lastIndexOfTags);
+                String suffix = fullPath.substring(
+                        lastIndexOfTags + "/blobs/".length()
+                );
+                String name = fullPath.substring(
+                        0,
+                        lastIndexOfTags
+                );
                 return blobResourceHandler.deleteBlob(
                         name,
                         suffix
@@ -369,69 +650,137 @@ public class OciV2Resource {
             // Handle repository deletion at /v2/{name}
             // Repository names can contain slashes (e.g., "ubuntu/ubuntu")
             // Remove trailing slash if present
-            String repositoryName = fullPath.endsWith("/") ? fullPath.substring(0, fullPath.length() - 1) : fullPath;
+            String repositoryName = fullPath.endsWith(
+                    "/"
+            )
+                    ? fullPath.substring(
+                            0,
+                            fullPath.length() - 1
+                    )
+                    : fullPath;
 
-            var repo = repositoryStorage.findByName(repositoryName);
+            var repo = repositoryStorage.findByName(
+                    repositoryName
+            );
             if (repo == null) {
-                return Response.status(404)
-                        .entity(new ErrorResponse(List.of(
-                                new ErrorResponse.Error("NAME_UNKNOWN", "repository name not known to registry", repositoryName)
-                        )).toJson())
-                        .type("application/json")
+                return Response.status(
+                        404
+                )
+                        .entity(
+                                new ErrorResponse(
+                                        List.of(
+                                                new ErrorResponse.Error(
+                                                        "NAME_UNKNOWN",
+                                                        "repository name not known to registry",
+                                                        repositoryName
+                                                )
+                                        )
+                                ).toJson()
+                        )
+                        .type(
+                                "application/json"
+                        )
                         .build();
             }
 
             // Delete all manifests (tags) for this repository
-            List<String> tags = manifestStorage.findTagsByRepository(repositoryName, null, Integer.MAX_VALUE);
+            List<String> tags = manifestStorage.findTagsByRepository(
+                    repositoryName,
+                    null,
+                    Integer.MAX_VALUE
+            );
             for (String tag : tags) {
-                var manifest = manifestStorage.findByRepositoryAndTag(repositoryName, tag);
+                var manifest = manifestStorage.findByRepositoryAndTag(
+                        repositoryName,
+                        tag
+                );
                 if (manifest != null) {
-                    manifestStorage.delete(manifest.id);
+                    manifestStorage.delete(
+                            manifest.id
+                    );
                 }
             }
 
             // Delete the repository
-            repositoryStorage.deleteByName(repositoryName);
+            repositoryStorage.deleteByName(
+                    repositoryName
+            );
 
-            log.info("Deleted repository: {} with {} tags", repositoryName, tags.size());
-            return Response.status(202).build();
+            log.info(
+                    "Deleted repository: {} with {} tags",
+                    repositoryName,
+                    tags.size()
+            );
+            return Response.status(
+                    202
+            ).build();
         }
     }
 
-
     @PATCH
-    @Path("/{fullPath:.*}")
+    @Path(
+        "/{fullPath:.*}"
+    )
     public Response fullPathPatch(
-            @PathParam("fullPath") String fullPath,
-            @Context UriInfo uriInfo,
-            @Context HttpHeaders httpHeaders,
+            @PathParam(
+                "fullPath"
+            )
+            String fullPath,
+            @Context
+            UriInfo uriInfo,
+            @Context
+            HttpHeaders httpHeaders,
             InputStream inputStream
     ) {
         {
             /// @see BlobResourceHandler
-            int lastIndexOfTags = fullPath.lastIndexOf("/blobs/");
+            int lastIndexOfTags = fullPath.lastIndexOf(
+                    "/blobs/"
+            );
             if (lastIndexOfTags != -1) {
-                String name = fullPath.substring(0, lastIndexOfTags);
-                String suffix = fullPath.substring(lastIndexOfTags + "/blobs/".length());
-                if (suffix.startsWith("uploads/")) {
-                    String suffix2 = suffix.substring("uploads/".length());
-                    if (!StringUtils.contains(suffix2, '/')) {
+                String name = fullPath.substring(
+                        0,
+                        lastIndexOfTags
+                );
+                String suffix = fullPath.substring(
+                        lastIndexOfTags + "/blobs/".length()
+                );
+                if (suffix.startsWith(
+                        "uploads/"
+                )) {
+                    String suffix2 = suffix.substring(
+                            "uploads/".length()
+                    );
+                    if (!StringUtils.contains(
+                            suffix2,
+                            '/'
+                    )) {
                         // Handle specific upload ID
                         return blobResourceHandler.completeBlobUploadChunkPatch(
                                 name,
                                 suffix2,
-                                httpHeaders.getHeaderString("Content-Range"),
+                                httpHeaders.getHeaderString(
+                                        "Content-Range"
+                                ),
                                 inputStream
                         );
                     }
-                    SplitAtFirstUtil.SplitAtFirstResult splitAtFirstResult = SplitAtFirstUtil.splitAtFirstIndex(suffix2, "/");
-                    if (!StringUtils.contains(splitAtFirstResult.first(), '/')) {
+                    SplitAtFirstUtil.SplitAtFirstResult splitAtFirstResult = SplitAtFirstUtil.splitAtFirstIndex(
+                            suffix2,
+                            "/"
+                    );
+                    if (!StringUtils.contains(
+                            splitAtFirstResult.first(),
+                            '/'
+                    )) {
                         // Handle specific upload ID
                         return blobResourceHandler.completeBlobUploadChunkPatch(
                                 name,
                                 splitAtFirstResult.first(),
                                 splitAtFirstResult.second(),
-                                httpHeaders.getHeaderString("Content-Range"),
+                                httpHeaders.getHeaderString(
+                                        "Content-Range"
+                                ),
                                 inputStream
                         );
                     }
@@ -440,8 +789,13 @@ public class OciV2Resource {
             }
         }
 
-        log.error("404 not found : PUT /v2/{}", fullPath);
-        return Response.status(404).build();
+        log.error(
+                "404 not found : PUT /v2/{}",
+                fullPath
+        );
+        return Response.status(
+                404
+        ).build();
     }
 
 }

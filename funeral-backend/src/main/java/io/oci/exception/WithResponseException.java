@@ -10,13 +10,23 @@ public class WithResponseException extends Exception {
         return response;
     }
 
-    public WithResponseException(Response response) {
-        super("");
+    public WithResponseException(
+            Response response
+    ) {
+        super(
+                ""
+        );
         this.response = response;
     }
 
-    public WithResponseException(Response response, Throwable cause) {
-        super(cause.getMessage(), cause);
+    public WithResponseException(
+            Response response,
+            Throwable cause
+    ) {
+        super(
+                cause.getMessage(),
+                cause
+        );
         this.response = response;
     }
 

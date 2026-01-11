@@ -1,32 +1,67 @@
 package io.oci.service;
 
-import io.oci.model.Manifest;
 import java.util.List;
 
+import io.oci.model.Manifest;
+
 public interface ManifestStorage {
-    Manifest findById(Object id);
+    Manifest findById(
+            Object id
+    );
 
     List<Manifest> listAll();
 
-    void persist(Manifest manifest);
+    void persist(
+            Manifest manifest
+    );
 
-    Manifest findByRepositoryAndDigest(String repositoryName, String digest);
+    Manifest findByRepositoryAndDigest(
+            String repositoryName,
+            String digest
+    );
 
-    Manifest findByRepositoryAndTag(String repositoryName, String tag);
+    Manifest findByRepositoryAndTag(
+            String repositoryName,
+            String tag
+    );
 
-    List<Manifest> findByRepository(String repositoryName);
+    List<Manifest> findByRepository(
+            String repositoryName
+    );
 
-    List<Manifest> findByRepositoryAndTagList(String repositoryName, String last, int limit);
+    List<Manifest> findByRepositoryAndTagList(
+            String repositoryName,
+            String last,
+            int limit
+    );
 
-        List<Manifest> findBySubjectDigest(String repositoryName, String subjectDigest);
+    List<Manifest> findBySubjectDigest(
+            String repositoryName,
+            String subjectDigest
+    );
 
-    List<Manifest> findBySubjectDigestAndArtifactType(String repositoryName, String subjectDigest, String artifactType);
+    List<Manifest> findBySubjectDigestAndArtifactType(
+            String repositoryName,
+            String subjectDigest,
+            String artifactType
+    );
 
-    List<String> findTagsByRepository(String repositoryName, String last, int limit);
+    List<String> findTagsByRepository(
+            String repositoryName,
+            String last,
+            int limit
+    );
 
-    long countByRepository(String repositoryName);
+    long countByRepository(
+            String repositoryName
+    );
 
-    void deleteByRepositoryAndTag(String repositoryName, String tag);
+    void deleteByRepositoryAndTag(
+            String repositoryName,
+            String tag
+    );
 
-    void delete(Object id);
+    void delete(
+            Object id
+    );
 }

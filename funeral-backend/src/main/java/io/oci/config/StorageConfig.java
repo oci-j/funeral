@@ -12,15 +12,22 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 public class StorageConfig {
 
     @Produces
-    @Named("storage")
+    @Named(
+        "storage"
+    )
     public AbstractStorageService storageService(
             S3StorageService s3StorageService,
             StorageService localStorageService,
-            @ConfigProperty(name = "oci.storage.no-minio", defaultValue = "false") boolean noMinio
+            @ConfigProperty(
+                    name = "oci.storage.no-minio",
+                    defaultValue = "false"
+            )
+            boolean noMinio
     ) {
         if (noMinio) {
             return localStorageService;
-        } else {
+        }
+        else {
             return s3StorageService;
         }
     }

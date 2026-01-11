@@ -11,12 +11,26 @@ import jakarta.ws.rs.ext.Provider;
 public class DefaultExceptionHandler implements ExceptionMapper<Exception> {
 
     @Override
-    public Response toResponse(Exception exception) {
+    public Response toResponse(
+            Exception exception
+    ) {
         exception.printStackTrace();
         if (exception instanceof NotFoundException) {
-            return Response.status(Response.Status.NOT_FOUND).entity(exception.getMessage()).build();
+            return Response.status(
+                    Response.Status.NOT_FOUND
+            )
+                    .entity(
+                            exception.getMessage()
+                    )
+                    .build();
         }
-        return Response.status(Response.Status.BAD_REQUEST).entity(exception.getMessage()).build();
+        return Response.status(
+                Response.Status.BAD_REQUEST
+        )
+                .entity(
+                        exception.getMessage()
+                )
+                .build();
     }
 
 }

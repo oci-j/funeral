@@ -1,20 +1,30 @@
 package io.oci.service;
 
+import java.util.List;
+
 import io.oci.model.User;
 import jakarta.enterprise.context.ApplicationScoped;
-import java.util.List;
 
 @ApplicationScoped
 public class MongoUserStorage implements UserStorage {
 
     @Override
-    public User findByUsername(String username) {
-        return User.find("username", username).firstResult();
+    public User findByUsername(
+            String username
+    ) {
+        return User.find(
+                "username",
+                username
+        ).firstResult();
     }
 
     @Override
-    public User findById(Object id) {
-        return User.findById(id);
+    public User findById(
+            Object id
+    ) {
+        return User.findById(
+                id
+        );
     }
 
     @Override
@@ -23,7 +33,9 @@ public class MongoUserStorage implements UserStorage {
     }
 
     @Override
-    public void persist(User user) {
+    public void persist(
+            User user
+    ) {
         if (user.id == null) {
             user.id = new org.bson.types.ObjectId();
         }
@@ -31,7 +43,12 @@ public class MongoUserStorage implements UserStorage {
     }
 
     @Override
-    public void deleteByUsername(String username) {
-        User.delete("username", username);
+    public void deleteByUsername(
+            String username
+    ) {
+        User.delete(
+                "username",
+                username
+        );
     }
 }

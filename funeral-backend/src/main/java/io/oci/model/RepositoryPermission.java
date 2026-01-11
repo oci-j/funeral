@@ -1,13 +1,15 @@
 package io.oci.model;
 
+import java.time.LocalDateTime;
+
 import io.quarkus.mongodb.panache.PanacheMongoEntity;
 import io.quarkus.mongodb.panache.common.MongoEntity;
 import io.quarkus.runtime.annotations.RegisterForReflection;
 
-import java.time.LocalDateTime;
-
 @RegisterForReflection
-@MongoEntity(collection = "repository_permissions")
+@MongoEntity(
+        collection = "repository_permissions"
+)
 public class RepositoryPermission extends PanacheMongoEntity {
 
     public String username;
@@ -27,7 +29,10 @@ public class RepositoryPermission extends PanacheMongoEntity {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public RepositoryPermission(String username, String repositoryName) {
+    public RepositoryPermission(
+            String username,
+            String repositoryName
+    ) {
         this();
         this.username = username;
         this.repositoryName = repositoryName;

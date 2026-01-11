@@ -6,13 +6,19 @@ import io.quarkus.runtime.annotations.RegisterForReflection;
 @RegisterForReflection
 public class TokenResponse {
 
-    @JsonProperty("access_token")
+    @JsonProperty(
+        "access_token"
+    )
     public String accessToken;
 
-    @JsonProperty("token_type")
+    @JsonProperty(
+        "token_type"
+    )
     public String tokenType;
 
-    @JsonProperty("expires_in")
+    @JsonProperty(
+        "expires_in"
+    )
     public Integer expiresIn;
 
     public String token;
@@ -20,7 +26,11 @@ public class TokenResponse {
     public TokenResponse() {
     }
 
-    public TokenResponse(String accessToken, String tokenType, Integer expiresIn) {
+    public TokenResponse(
+            String accessToken,
+            String tokenType,
+            Integer expiresIn
+    ) {
         this.accessToken = accessToken;
         this.token = accessToken;
         this.tokenType = tokenType;
