@@ -372,5 +372,48 @@ export const registryApi = {
       console.error('Error fetching manifest:', error)
       throw error
     }
+  },
+
+  async getBlobContent(repositoryName, digest, expectedMediaType = '') {
+    try {
+      const response = await fetch(`${API_BASE}/v2/${repositoryName}/blobs/${digest}`, {
+        headers: getAuthHeaders()
+      })
+
+      if (response.status === 401) {
+        const authStore = useAuthStore()
+        authStore.logout()
+        throw new Error('Authentication required')
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      // Return both text and blob for different content types
+      const contentType = response.headers.get('content-type') || ''
+      // Check for JSON types including vendor-specific JSON types
+      const lowerContentType = contentType.toLowerCase()
+      const lowerExpectedMediaType = expectedMediaType.toLowerCase()
+
+      // Check if it's JSON based on content-type or expected media type
+      const isJson = lowerContentType.includes('application/json') ||
+                     lowerContentType.includes('text/') ||
+                     lowerContentType.includes('+json') ||
+                     lowerExpectedMediaType.includes('+json')
+
+      if (isJson) {
+        const text = await response.text()
+        console.log(`Blob content type: ${contentType}, media type: ${expectedMediaType}, size: ${text.length} characters`)
+        return { type: 'text', content: text, contentType, mediaType: expectedMediaType }
+      } else {
+        const blob = await response.blob()
+        console.log(`Blob content type: ${contentType}, media type: ${expectedMediaType}, size: ${blob.size} bytes (binary)`)
+        return { type: 'blob', content: blob, contentType, mediaType: expectedMediaType }
+      }
+    } catch (error) {
+      console.error('Error fetching blob content:', error)
+      throw error
+    }
   }
 }

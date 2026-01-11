@@ -49,9 +49,15 @@
       <template #header>
         <div class="card-header">
           <span>Configuration</span>
-          <el-tag type="info" size="small">
-            {{ config.mediaType.split('/').pop() }}
-          </el-tag>
+          <div class="header-actions">
+            <el-tag type="info" size="small">
+              {{ config.mediaType.split('/').pop() }}
+            </el-tag>
+            <el-button type="primary" size="small" @click="showBlobContent(config)">
+              <el-icon><Document /></el-icon>
+              Details
+            </el-button>
+          </div>
         </div>
       </template>
       <div class="config-properties">
@@ -77,9 +83,15 @@
           <template #header>
             <div class="layer-header">
               <span class="layer-title">Layer {{ index + 1 }}</span>
-              <el-tag type="info" size="small">
-                {{ layer.mediaType.split('/').pop() }}
-              </el-tag>
+              <div class="header-actions">
+                <el-tag type="info" size="small">
+                  {{ layer.mediaType.split('/').pop() }}
+                </el-tag>
+                <el-button type="primary" size="small" @click="showBlobContent(layer)">
+                  <el-icon><Document /></el-icon>
+                  Details
+                </el-button>
+              </div>
             </div>
           </template>
           <div class="layer-properties">
@@ -98,12 +110,51 @@
 
     <el-empty v-if="!loading && !tagInfo" description="Tag not found" />
   </div>
+
+  <!-- Blob Content Dialog -->
+  <el-dialog
+    v-model="dialogVisible"
+    :title="dialogTitle"
+    width="80%"
+    top="5vh"
+    :close-on-click-modal="false"
+  >
+    <div class="blob-content-container">
+      <div v-if="dialogLoading" class="loading-container">
+        <el-icon class="is-loading"><Loading /></el-icon>
+        <span>Loading content...</span>
+      </div>
+      <div v-else-if="dialogError" class="error-container">
+        <el-alert :title="dialogError" type="error" :closable="false" />
+      </div>
+      <div v-else-if="blobContent" class="content-viewer">
+        <el-alert
+          v-if="blobContent.type === 'blob'"
+          title="This is a binary blob. Content preview is not available."
+          type="info"
+          :closable="false"
+        />
+        <pre v-else-if="blobContent.contentType.toLowerCase().includes('application/json') || blobContent.contentType.toLowerCase().includes('+json')" class="json-viewer">{{ formatJson(blobContent.content) }}</pre>
+        <pre v-else class="text-viewer">{{ blobContent.content }}</pre>
+      </div>
+    </div>
+    <template #footer>
+      <el-button @click="dialogVisible = false">Close</el-button>
+      <el-button
+        v-if="blobContent && blobContent.type === 'text'"
+        type="primary"
+        @click="copyToClipboard(blobContent.content)"
+      >
+        Copy Content
+      </el-button>
+    </template>
+  </el-dialog>
 </template>
 
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Back, DocumentCopy } from '@element-plus/icons-vue'
+import { Back, DocumentCopy, Document, Loading } from '@element-plus/icons-vue'
 import { registryApi } from '../api/registry'
 import { ElMessage } from 'element-plus'
 
@@ -117,6 +168,14 @@ const tagInfo = ref(null)
 const config = ref(null)
 const layers = ref([])
 const loading = ref(false)
+
+// Dialog state
+const dialogVisible = ref(false)
+const dialogTitle = ref('')
+const dialogLoading = ref(false)
+const dialogError = ref('')
+const blobContent = ref(null)
+const currentBlob = ref(null)
 
 const fetchTagDetails = async () => {
   loading.value = true
@@ -170,6 +229,34 @@ const formatSize = (size) => {
   return `${(size / (1024 * 1024 * 1024)).toFixed(2)} GB`
 }
 
+const showBlobContent = async (blob) => {
+  currentBlob.value = blob
+  dialogTitle.value = `Content: ${blob.digest.substring(0, 16)}...`
+  dialogVisible.value = true
+  dialogLoading.value = true
+  dialogError.value = ''
+  blobContent.value = null
+
+  try {
+    const result = await registryApi.getBlobContent(repositoryName, blob.digest, blob.mediaType || '')
+    blobContent.value = result
+  } catch (error) {
+    dialogError.value = `Failed to fetch blob content: ${error.message}`
+    console.error('Error fetching blob content:', error)
+  } finally {
+    dialogLoading.value = false
+  }
+}
+
+const formatJson = (jsonString) => {
+  try {
+    const parsed = JSON.parse(jsonString)
+    return JSON.stringify(parsed, null, 2)
+  } catch (e) {
+    return jsonString
+  }
+}
+
 const copyToClipboard = async (text) => {
   try {
     await navigator.clipboard.writeText(text)
@@ -186,6 +273,7 @@ const goBack = () => {
 onMounted(() => {
   fetchTagDetails()
 })
+
 </script>
 
 <style scoped>
@@ -214,17 +302,31 @@ onMounted(() => {
   margin-bottom: 20px;
 }
 
-.config-properties {
+.config-properties,
+.layer-properties {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-.tag-properties,
 .layer-properties {
+  padding: 16px 0 0;
+}
+
+.card-header {
   display: flex;
-  flex-direction: column;
-  gap: 12px;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.layer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.layer-title {
+  font-weight: bold;
 }
 
 .property-item {
@@ -274,6 +376,64 @@ onMounted(() => {
 
 .layer-title {
   font-weight: bold;
+}
+
+/* Dialog styles */
+.blob-content-container {
+  min-height: 400px;
+  max-height: 70vh;
+  overflow: auto;
+}
+
+.loading-container,
+.error-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  gap: 8px;
+}
+
+.content-viewer {
+  padding: 10px;
+}
+
+.json-viewer,
+.text-viewer {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+  padding: 15px;
+  background-color: #f5f7fa;
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* Add scrollbar styles for content viewer */
+.json-viewer::-webkit-scrollbar,
+.text-viewer::-webkit-scrollbar {
+  height: 8px;
+  width: 8px;
+}
+
+.json-viewer::-webkit-scrollbar-track,
+.text-viewer::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.json-viewer::-webkit-scrollbar-thumb,
+.text-viewer::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+.json-viewer::-webkit-scrollbar-thumb:hover,
+.text-viewer::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
 }
 
 </style>
