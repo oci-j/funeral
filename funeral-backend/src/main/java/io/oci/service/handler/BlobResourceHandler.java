@@ -16,6 +16,7 @@ import io.oci.model.Blob;
 import io.oci.model.Repository;
 import io.oci.service.FileRepositoryStorage;
 import io.oci.service.S3StorageService;
+import io.oci.service.StorageService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.ws.rs.core.Response;
@@ -38,7 +39,21 @@ public class BlobResourceHandler {
     private static final Logger log = LoggerFactory.getLogger(BlobResourceHandler.class);
 
     @Inject
-    S3StorageService storageService;
+    io.oci.service.S3StorageService s3StorageService;
+
+    @Inject
+    io.oci.service.StorageService storageService;
+
+    private Object getBlobStorageService() {
+        if (storageService == null) {
+            return s3StorageService;
+        }
+        return storageService;
+    }
+
+    private boolean isUsingMinio() {
+        return getBlobStorageService() instanceof io.oci.service.S3StorageService;
+    }
 
     @CommentHEAD
     @CommentPath("/{digest}")
@@ -47,7 +62,9 @@ public class BlobResourceHandler {
             @CommentPathParam("digest") String digest
     ) {
         try {
-            long size = storageService.getBlobSize(digest);
+            long size = isUsingMinio() ?
+                    s3StorageService.getBlobSize(digest) :
+                    storageService.getBlobSize(digest);
             return Response.ok()
                     .header("Content-Length", size)
                     .header("Docker-Content-Digest", digest)
@@ -69,7 +86,9 @@ public class BlobResourceHandler {
     ) {
 
         try {
-            InputStream blobStream = storageService.getBlobStream(digest);
+            InputStream blobStream = isUsingMinio() ?
+                    s3StorageService.getBlobStream(digest) :
+                    storageService.getBlobStream(digest);
             if (blobStream == null) {
                 return Response.status(404)
                         .entity(new ErrorResponse(List.of(
@@ -78,7 +97,9 @@ public class BlobResourceHandler {
                         .build();
             }
 
-            long size = storageService.getBlobSize(digest);
+            long size = isUsingMinio() ?
+                    s3StorageService.getBlobSize(digest) :
+                    storageService.getBlobSize(digest);
             return Response.ok(blobStream)
                     .header("Content-Length", size)
                     .header("Docker-Content-Digest", digest)
@@ -100,7 +121,10 @@ public class BlobResourceHandler {
     ) {
         if (StringUtils.isNotBlank(mount)) {
             try {
-                if (storageService.getBlobSize(digest) > 0) {
+                long blobSize = isUsingMinio() ?
+                        s3StorageService.getBlobSize(digest) :
+                        storageService.getBlobSize(digest);
+                if (blobSize > 0) {
                     String responseLocationRepository = StringUtils.isNotBlank(from) ? from : repositoryName;
                     return Response.status(201)
                             .header("Location", "/v2/" + responseLocationRepository + "/blobs/" + digest)
@@ -156,16 +180,22 @@ public class BlobResourceHandler {
         }
 
         try {
-            String actualDigest = storageService.storeBlob(uploadStream, expectedDigest);
+            String actualDigest = isUsingMinio() ?
+                    s3StorageService.storeBlob(uploadStream, expectedDigest) :
+                    storageService.storeBlob(uploadStream, expectedDigest);
 
             // Store blob metadata
             Blob existingBlob = Blob.findByDigest(actualDigest);
             if (existingBlob == null) {
                 Blob blob = new Blob();
                 blob.digest = actualDigest;
-                blob.contentLength = storageService.getBlobSize(actualDigest);
-                blob.s3Key = "blobs/" + actualDigest.replace(":", "/");
-                blob.s3Bucket = "oci-registry"; // Should be configurable
+                blob.contentLength = isUsingMinio() ?
+                        s3StorageService.getBlobSize(actualDigest) :
+                        storageService.getBlobSize(actualDigest);
+                if (isUsingMinio()) {
+                    blob.s3Key = "blobs/" + actualDigest.replace(":", "/");
+                    blob.s3Bucket = "oci-registry"; // Should be configurable
+                }
                 blob.persist();
             }
 
@@ -226,11 +256,9 @@ public class BlobResourceHandler {
         try {
             String[] split = StringUtils.split(indexAndStartBytes, '_');
             int index = Integer.parseInt(split[0]);
-            long bytesWritten = storageService.storeTempChunk(
-                    uploadStream,
-                    uploadUuid,
-                    index
-            );
+            long bytesWritten = isUsingMinio() ?
+                    s3StorageService.storeTempChunk(uploadStream, uploadUuid, index) :
+                    storageService.storeTempChunk(uploadStream, uploadUuid, index);
             long startBytes = Long.parseLong(split[1]);
             long endBytes = startBytes + bytesWritten;
             if (StringUtils.isNotBlank(contentRange)) {
@@ -276,17 +304,14 @@ public class BlobResourceHandler {
         try {
             String[] split = StringUtils.split(indexAndStartBytes, '_');
             int index = Integer.parseInt(split[0]);
-            storageService.storeTempChunk(
-                    uploadStream,
-                    uploadUuid,
-                    index
-            );
 
-            storageService.mergeTempChunks(
-                    uploadUuid,
-                    index,
-                    digest
-            );
+            if (isUsingMinio()) {
+                s3StorageService.storeTempChunk(uploadStream, uploadUuid, index);
+                s3StorageService.mergeTempChunks(uploadUuid, index, digest);
+            } else {
+                storageService.storeTempChunk(uploadStream, uploadUuid, index);
+                storageService.mergeTempChunks(uploadUuid, index, digest);
+            }
 
             //TODO actualDigest actual
             String actualDigest = digest;
@@ -296,9 +321,13 @@ public class BlobResourceHandler {
             if (existingBlob == null) {
                 Blob blob = new Blob();
                 blob.digest = actualDigest;
-                blob.contentLength = storageService.getBlobSize(actualDigest);
-                blob.s3Key = "blobs/" + actualDigest.replace(":", "/");
-                blob.s3Bucket = "oci-registry"; // Should be configurable
+                blob.contentLength = isUsingMinio() ?
+                        s3StorageService.getBlobSize(actualDigest) :
+                        storageService.getBlobSize(actualDigest);
+                if (isUsingMinio()) {
+                    blob.s3Key = "blobs/" + actualDigest.replace(":", "/");
+                    blob.s3Bucket = "oci-registry"; // Should be configurable
+                }
                 blob.persist();
             }
 
@@ -324,11 +353,23 @@ public class BlobResourceHandler {
             @CommentPathParam("uuid") String uploadUuid
     ) {
         try {
-            S3StorageService.CalculateTempChunkResult calculateTempChunkResult = storageService.calculateTempChunks(uploadUuid);
-            String location = "/v2/" + repositoryName + "/blobs/uploads/" + uploadUuid + "/" + calculateTempChunkResult.index() + "_" + calculateTempChunkResult.bytesWritten();
+            int index;
+            long bytesWritten;
+
+            if (isUsingMinio()) {
+                S3StorageService.CalculateTempChunkResult result = s3StorageService.calculateTempChunks(uploadUuid);
+                index = result.index();
+                bytesWritten = result.bytesWritten();
+            } else {
+                StorageService.CalculateTempChunkResult result = storageService.calculateTempChunks(uploadUuid);
+                index = result.index();
+                bytesWritten = result.bytesWritten();
+            }
+
+            String location = "/v2/" + repositoryName + "/blobs/uploads/" + uploadUuid + "/" + index + "_" + bytesWritten;
             return Response.status(204)
                     .header("Location", location)
-                    .header("Range", "0-" + (calculateTempChunkResult.bytesWritten() - 1))
+                    .header("Range", "0-" + (bytesWritten - 1))
                     .header("OCI-Chunk-Min-Length", 1 << 24)
                     .build();
         } catch (Exception e) {
