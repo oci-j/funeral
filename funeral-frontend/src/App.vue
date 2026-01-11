@@ -3,7 +3,10 @@
     <el-container style="height: 100vh">
       <el-header>
         <div class="header-content">
-          <h2>FUNERAL - OCI Registry</h2>
+          <div class="logo-section">
+            <img src="/image/funeral.png" alt="FUNERAL Logo" class="logo-image" />
+            <h2>FUNERAL - OCI Registry</h2>
+          </div>
           <div class="header-actions">
             <!-- Auth status tag -->
             <div v-if="authStore.isAuthenticated" class="user-menu">
@@ -134,6 +137,18 @@ body {
 .header-content {
   display: flex;
   align-items: center;
+}
+
+.logo-section {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.logo-image {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
 }
 
 .header-content h2 {
