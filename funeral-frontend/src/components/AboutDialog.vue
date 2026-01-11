@@ -43,6 +43,9 @@
             <el-descriptions-item label="Description">
               A lightweight OCI (Open Container Initiative) image registry implemented in Java that follows the OCI Distribution Specification.
             </el-descriptions-item>
+            <el-descriptions-item label="Sponsor">
+              <a href='https://ko-fi.com/P5P11S9YKU' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi5.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+            </el-descriptions-item>
           </el-descriptions>
 
           <div class="tech-stack">
