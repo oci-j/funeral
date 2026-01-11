@@ -6,6 +6,7 @@ import io.oci.model.Manifest;
 import io.oci.model.Repository;
 import io.oci.service.AbstractStorageService;
 import io.oci.service.BlobStorage;
+import io.oci.service.DigestService;
 import io.oci.service.ManifestStorage;
 import io.oci.service.RepositoryStorage;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -44,6 +45,9 @@ public class DockerTarResource {
     @Inject
     @Named("manifestStorage")
     ManifestStorage manifestStorage;
+
+    @Inject
+    DigestService digestService;
 
     @Inject
     @Named("blobStorage")
@@ -207,9 +211,28 @@ public class DockerTarResource {
         for (ManifestInfo manifestInfo : manifestList) {
             // Each manifest represents an image with potentially multiple tags
             for (String repoTag : manifestInfo.repoTags) {
-                String[] parts = repoTag.split(":");
-                String repositoryName = parts[0];
-                String tag = parts.length > 1 ? parts[1] : "latest";
+                // Parse repository and tag from format: registry:port/repository:tag
+                // Example: 192.168.8.9:8911/ubuntu:25.04 -> repository: ubuntu, tag: 25.04
+                String repositoryName;
+                String tag;
+
+                // Find the last colon which separates the tag from the repository path
+                int lastColonIndex = repoTag.lastIndexOf(':');
+                if (lastColonIndex != -1) {
+                    tag = repoTag.substring(lastColonIndex + 1);
+                    String repoPath = repoTag.substring(0, lastColonIndex);
+                    // Remove registry host:port if present (take only the path after the last /)
+                    int lastSlashIndex = repoPath.lastIndexOf('/');
+                    repositoryName = lastSlashIndex != -1 ? repoPath.substring(lastSlashIndex + 1) : repoPath;
+                } else {
+                    // No tag specified, use latest
+                    tag = "latest";
+                    // Remove registry host:port if present
+                    int lastSlashIndex = repoTag.lastIndexOf('/');
+                    repositoryName = lastSlashIndex != -1 ? repoTag.substring(lastSlashIndex + 1) : repoTag;
+                }
+
+                log.debug("Parsed repoTag '{}': repository='{}', tag='{}'", repoTag, repositoryName, tag);
 
                 result.repositories.add(repositoryName);
 
@@ -377,24 +400,6 @@ public class DockerTarResource {
     }
 
     /**
-     * Calculates SHA256 digest of content.
-     */
-    private String calculateDigest(String content) {
-        try {
-            java.security.MessageDigest md = java.security.MessageDigest.getInstance("SHA-256");
-            byte[] digest = md.digest(content.getBytes(java.nio.charset.StandardCharsets.UTF_8));
-            StringBuilder sb = new StringBuilder();
-            for (byte b : digest) {
-                sb.append(String.format("%02x", b));
-            }
-            return sb.toString();
-        } catch (Exception e) {
-            log.error("Failed to calculate digest", e);
-            return "";
-        }
-    }
-
-    /**
      * Reads the content of a tar entry into a byte array.
      */
     private byte[] readEntryContent(TarArchiveInputStream tarInput, ArchiveEntry entry) throws IOException {
@@ -439,6 +444,7 @@ public class DockerTarResource {
         return filename;
     }
 
+
     /**
      * Saves parsed data to storage including actual blob content.
      */
@@ -464,8 +470,8 @@ public class DockerTarResource {
             // Build the actual manifest JSON content
             String manifestContent = buildManifestJson(tarManifest);
 
-            // Calculate digest of the manifest content
-            String manifestDigest = "sha256:" + calculateDigest(manifestContent);
+            // Calculate digest of the manifest content using DigestService
+            String manifestDigest = digestService.calculateDigest(manifestContent);
 
             // Store manifest
             Manifest manifest = new Manifest();

@@ -83,7 +83,8 @@ public class BlobResourceHandler {
                 return Response.status(404)
                         .entity(new ErrorResponse(List.of(
                                 new ErrorResponse.Error("BLOB_UNKNOWN", "blob unknown to registry", digest)
-                        )))
+                        )).toJson())
+                        .type("application/json")
                         .build();
             }
 

@@ -51,7 +51,8 @@ public class ManifestResourceHandler {
             return Response.status(404)
                     .entity(new ErrorResponse(List.of(
                             new ErrorResponse.Error("NAME_UNKNOWN", "repository name not known to registry", repositoryName)
-                    )))
+                    )).toJson())
+                    .type("application/json")
                     .build();
         }
 
@@ -90,7 +91,8 @@ public class ManifestResourceHandler {
             return Response.status(404)
                     .entity(new ErrorResponse(List.of(
                             new ErrorResponse.Error("NAME_UNKNOWN", "repository name not known to registry", repositoryName)
-                    )))
+                    )).toJson())
+                    .type("application/json")
                     .build();
         }
 
@@ -127,7 +129,8 @@ public class ManifestResourceHandler {
             return Response.status(404)
                     .entity(new ErrorResponse(List.of(
                             new ErrorResponse.Error("NAME_UNKNOWN", "repository name not known to registry", repositoryName)
-                    )))
+                    )).toJson())
+                    .type("application/json")
                     .build();
         }
 
@@ -248,7 +251,8 @@ public class ManifestResourceHandler {
             return Response.status(404)
                     .entity(new ErrorResponse(List.of(
                             new ErrorResponse.Error("NAME_UNKNOWN", "repository name not known to registry", repositoryName)
-                    )))
+                    )).toJson())
+                    .type("application/json")
                     .build();
         }
 
