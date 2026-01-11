@@ -454,7 +454,8 @@ public class OciV2Resource {
                                 .getFirst(
                                         "account"
                                 ),
-                        httpHeaders
+                        httpHeaders,
+                        inputStream
                 );
             }
         }
