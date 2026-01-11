@@ -64,10 +64,19 @@
       </div>
     </div>
   </div>
+
+  <!-- File Preview Dialog -->
+  <FilePreview
+    v-model:visible="previewVisible"
+    :file-name="previewFile.name"
+    :file-content="previewFile.content"
+    :file-size="previewFile.size"
+  />
 </template>
 
 <script setup>
 import { ref, computed, onMounted, provide } from 'vue'
+import FilePreview from './FilePreview.vue'
 import { Box, Loading, Expand, Fold, View } from '@element-plus/icons-vue'
 import pako from 'pako'
 import untar from 'js-untar'
@@ -91,6 +100,14 @@ const treeData = ref([])
 const allExpanded = ref(true)
 const showEmptyFolders = ref(true)
 
+// File preview state
+const previewVisible = ref(false)
+const previewFile = ref({
+  name: '',
+  content: null,
+  size: 0
+})
+
 // Provide state to child components
 provide('allExpanded', allExpanded)
 provide('showEmptyFolders', showEmptyFolders)
@@ -98,6 +115,18 @@ provide('showEmptyFolders', showEmptyFolders)
 // Provide utilities to child components
 provide('formatSize', formatSize)
 provide('getFileType', getFileType)
+
+// Provide preview function
+provide('previewFile', (file) => {
+  if (file.type === 'file' && file.content) {
+    previewFile.value = {
+      name: file.path || file.name,
+      content: file.content,
+      size: file.size
+    }
+    previewVisible.value = true
+  }
+})
 
 // Parse tar.gz file using js-untar
 const parseTarGz = async () => {
@@ -137,7 +166,8 @@ const parseTarGz = async () => {
         mtime: entry.mtime ? new Date(entry.mtime * 1000) : null, // Convert seconds to milliseconds
         uid: entry.uid || 0,
         gid: entry.gid || 0,
-        linkname: entry.linkname || null
+        linkname: entry.linkname || null,
+        content: entry.buffer || null // Store file content for preview
       }))
 
       console.log('Tar parsing completed, found', parsedFiles.length, 'files')

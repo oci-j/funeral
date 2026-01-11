@@ -4,7 +4,7 @@
       class="tree-row"
       :class="{ 'is-directory': node.type === 'directory', 'is-file': node.type === 'file' }"
       :style="{ paddingLeft: (level * 20 + 16) + 'px' }"
-      @click="toggle"
+      @click="handleClick"
     >
       <div class="row-content">
         <div class="item-info">
@@ -68,6 +68,7 @@ const formatSize = inject('formatSize')
 const getFileType = inject('getFileType')
 const allExpanded = inject('allExpanded')
 const showEmptyFolders = inject('showEmptyFolders')
+const previewFile = inject('previewFile')
 
 const expanded = ref(props.node.type === 'directory')
 
@@ -96,6 +97,14 @@ const toggle = () => {
     expanded.value = !expanded.value
   }
 }
+
+const handleClick = () => {
+  if (props.node.type === 'directory') {
+    toggle()
+  } else if (props.node.type === 'file' && previewFile) {
+    previewFile(props.node)
+  }
+}
 </script>
 
 <style scoped>
@@ -110,6 +119,10 @@ const toggle = () => {
 
 .tree-row:hover {
   background-color: #f9f9f9;
+}
+
+.tree-row.is-file {
+  cursor: pointer;
 }
 
 .tree-row.is-directory {
