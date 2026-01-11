@@ -1,5 +1,5 @@
 <template>
-  <div class="tag-detail-container">
+  <div class="tag-detail-page">
     <div class="page-header">
       <h1>Tag Details</h1>
       <el-button @click="goBack">
@@ -8,161 +8,215 @@
       </el-button>
     </div>
 
-    <el-card v-if="tagInfo" class="tag-info-card">
-      <template #header>
-        <div class="card-header">
-          <span>{{ repositoryName }}:{{ tagName }}</span>
-        </div>
-      </template>
-      <div class="tag-properties">
-        <div class="property-item">
-          <el-text type="info">Digest:</el-text>
-          <el-text class="digest-text">{{ tagInfo.digest }}</el-text>
-        </div>
-        <div class="property-item">
-          <el-text type="info">Size:</el-text>
-          <el-text>{{ formatSize(tagInfo.size) }}</el-text>
-        </div>
-        <div class="property-item">
-          <el-text type="info">Created:</el-text>
-          <el-text>{{ tagInfo.created || 'Unknown' }}</el-text>
-        </div>
-        <div class="property-item">
-          <el-text type="info">Media Type:</el-text>
-          <el-text>{{ tagInfo.mediaType || 'Unknown' }}</el-text>
-        </div>
-      </div>
+    <div class="tag-detail-container">
 
-      <div v-if="tagInfo.pullCommand" class="pull-command">
-        <el-text type="info">Pull Command:</el-text>
-        <el-input :model-value="tagInfo.pullCommand" readonly class="command-input">
-          <template #append>
-            <el-button @click="copyToClipboard(tagInfo.pullCommand)">
-              <el-icon><DocumentCopy /></el-icon>
-            </el-button>
-          </template>
-        </el-input>
-      </div>
-    </el-card>
-
-    <el-card v-if="config" class="config-card">
-      <template #header>
-        <div class="card-header">
-          <span>Configuration</span>
-          <div class="header-actions">
-            <el-tag type="info" size="small">
-              {{ config.mediaType.split('/').pop() }}
-            </el-tag>
-            <el-button type="primary" size="small" @click="showBlobContent(config)">
-              <el-icon><Document /></el-icon>
-              Details
-            </el-button>
+      <el-card v-if="tagInfo" class="tag-info-card">
+        <template #header>
+          <div class="card-header">
+            <span>{{ repositoryName }}:{{ tagName }}</span>
+          </div>
+        </template>
+        <div class="tag-properties">
+          <div class="property-item">
+            <el-text type="info">Digest:</el-text>
+            <el-text class="digest-text">{{ tagInfo.digest }}</el-text>
+          </div>
+          <div class="property-item">
+            <el-text type="info">Size:</el-text>
+            <el-text>{{ formatSize(tagInfo.size) }}</el-text>
+          </div>
+          <div class="property-item">
+            <el-text type="info">Created:</el-text>
+            <el-text>{{ tagInfo.created || 'Unknown' }}</el-text>
+          </div>
+          <div class="property-item">
+            <el-text type="info">Media Type:</el-text>
+            <el-text>{{ tagInfo.mediaType || 'Unknown' }}</el-text>
           </div>
         </div>
-      </template>
-      <div class="config-properties">
-        <div class="property-item">
-          <el-text type="info">Digest:</el-text>
-          <el-text class="digest-text">{{ config.digest }}</el-text>
-        </div>
-        <div class="property-item">
-          <el-text type="info">Size:</el-text>
-          <el-text>{{ formatSize(config.size) }}</el-text>
-        </div>
-      </div>
-    </el-card>
 
-    <el-card v-if="layers.length > 0" class="layers-card">
-      <template #header>
-        <div class="card-header">
-          <span>Layers ({{ layers.length }})</span>
+        <div v-if="tagInfo.pullCommand" class="pull-command">
+          <el-text type="info">Pull Command:</el-text>
+          <el-input :model-value="tagInfo.pullCommand" readonly class="command-input">
+            <template #append>
+              <el-button @click="copyToClipboard(tagInfo.pullCommand)">
+                <el-icon><DocumentCopy /></el-icon>
+              </el-button>
+            </template>
+          </el-input>
         </div>
-      </template>
-      <div class="layers-list">
-        <el-card v-for="(layer, index) in layers" :key="layer.digest" class="layer-card">
-          <template #header>
-            <div class="layer-header">
-              <span class="layer-title">Layer {{ index + 1 }}</span>
-              <div class="header-actions">
-                <el-tag type="info" size="small">
-                  {{ layer.mediaType.split('/').pop() }}
-                </el-tag>
-                <el-button type="primary" size="small" @click="showBlobContent(layer)">
-                  <el-icon><Document /></el-icon>
-                  Details
-                </el-button>
+      </el-card>
+
+      <el-card v-if="config" class="config-card">
+        <template #header>
+          <div class="card-header">
+            <span>Configuration</span>
+            <div class="header-actions">
+              <el-tag type="info" size="small">
+                {{ config.mediaType.split('/').pop() }}
+              </el-tag>
+              <el-button type="primary" size="small" @click="showBlobContent(config)">
+                <el-icon><Document /></el-icon>
+                Details
+              </el-button>
+            </div>
+          </div>
+        </template>
+        <div class="config-properties">
+          <div class="property-item">
+            <el-text type="info">Digest:</el-text>
+            <el-text class="digest-text">{{ config.digest }}</el-text>
+          </div>
+          <div class="property-item">
+            <el-text type="info">Size:</el-text>
+            <el-text>{{ formatSize(config.size) }}</el-text>
+          </div>
+        </div>
+      </el-card>
+
+      <el-card v-if="layers.length > 0" class="layers-card">
+        <template #header>
+          <div class="card-header">
+            <span>Layers ({{ layers.length }})</span>
+          </div>
+        </template>
+        <div class="layers-list">
+          <el-card v-for="(layer, index) in layers" :key="layer.digest" class="layer-card">
+            <template #header>
+              <div class="layer-header">
+                <span class="layer-title">Layer {{ index + 1 }}</span>
+                <div class="header-actions">
+                  <el-tag type="info" size="small">
+                    {{ layer.mediaType.split('/').pop() }}
+                  </el-tag>
+                  <el-button type="primary" size="small" @click="showBlobContent(layer)">
+                    <el-icon><Document /></el-icon>
+                    Details
+                  </el-button>
+                </div>
+              </div>
+            </template>
+            <div class="layer-properties">
+              <div class="property-item">
+                <el-text type="info">Digest:</el-text>
+                <el-text class="digest-text">{{ layer.digest }}</el-text>
+              </div>
+              <div class="property-item">
+                <el-text type="info">Size:</el-text>
+                <el-text>{{ formatSize(layer.size) }}</el-text>
               </div>
             </div>
-          </template>
-          <div class="layer-properties">
-            <div class="property-item">
-              <el-text type="info">Digest:</el-text>
-              <el-text class="digest-text">{{ layer.digest }}</el-text>
-            </div>
-            <div class="property-item">
-              <el-text type="info">Size:</el-text>
-              <el-text>{{ formatSize(layer.size) }}</el-text>
-            </div>
-          </div>
-        </el-card>
-      </div>
-    </el-card>
+          </el-card>
+        </div>
+      </el-card>
 
-    <el-empty v-if="!loading && !tagInfo" description="Tag not found" />
-  </div>
+      <el-empty v-if="!loading && !tagInfo" description="Tag not found" />
 
-  <!-- Blob Content Dialog -->
-  <el-dialog
-    v-model="dialogVisible"
-    :title="dialogTitle"
-    width="80%"
-    top="5vh"
-    :close-on-click-modal="false"
-  >
-    <div class="blob-content-container">
-      <div v-if="dialogLoading" class="loading-container">
-        <el-icon class="is-loading"><Loading /></el-icon>
-        <span>Loading content...</span>
-      </div>
-      <div v-else-if="dialogError" class="error-container">
-        <el-alert :title="dialogError" type="error" :closable="false" />
-      </div>
-      <div v-else-if="blobContent" class="content-viewer">
-        <el-alert
-          v-if="blobContent.type === 'blob'"
-          title="This is a binary blob. Content preview is not available."
-          type="info"
-          :closable="false"
-        />
-        <pre v-else-if="blobContent.contentType.toLowerCase().includes('application/json') || blobContent.contentType.toLowerCase().includes('+json')" class="json-viewer">{{ formatJson(blobContent.content) }}</pre>
-        <pre v-else class="text-viewer">{{ blobContent.content }}</pre>
-      </div>
-    </div>
-    <template #footer>
-      <el-button @click="dialogVisible = false">Close</el-button>
-      <el-button
-        v-if="blobContent && blobContent.type === 'text'"
-        type="primary"
-        @click="copyToClipboard(blobContent.content)"
+      <!-- Blob Content Dialog -->
+      <el-dialog
+        v-model="dialogVisible"
+        :title="dialogTitle"
+        width="80%"
+        top="5vh"
+        :close-on-click-modal="false"
       >
-        Copy Content
-      </el-button>
-    </template>
-  </el-dialog>
+        <div class="blob-content-container">
+          <div v-if="dialogLoading" class="loading-container">
+            <el-icon class="is-loading"><Loading /></el-icon>
+            <span>Loading content...</span>
+          </div>
+          <div v-else-if="dialogError" class="error-container">
+            <el-alert :title="dialogError" type="error" :closable="false" />
+          </div>
+          <div v-else-if="blobContent" class="content-viewer">
+            <el-alert
+              v-if="blobContent.type === 'blob'"
+              title="This is a binary blob. Content preview is not available."
+              type="info"
+              :closable="false"
+            />
+            <div v-if="vueJsonPrettyAvailable && isJsonContent && jsonData" class="json-pretty-container">
+              <vue-json-pretty
+                :data="jsonData"
+                :deep="3"
+                :show-length="true"
+                :show-line="true"
+                :show-double-quotes="true"
+              />
+            </div>
+            <pre v-else-if="isJsonContent && jsonData" class="json-viewer">{{ JSON.stringify(jsonData, null, 2) }}</pre>
+            <pre v-else class="text-viewer">{{ blobContent.content }}</pre>
+          </div>
+        </div>
+        <template #footer>
+          <el-button @click="dialogVisible = false">Close</el-button>
+          <el-button
+            v-if="blobContent && blobContent.type === 'text'"
+            type="primary"
+            @click="copyToClipboard(blobContent.content)"
+          >
+            Copy Content
+          </el-button>
+        </template>
+      </el-dialog>
+    </div>
+  </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Back, DocumentCopy, Document, Loading } from '@element-plus/icons-vue'
+
 import { registryApi } from '../api/registry'
 import { ElMessage } from 'element-plus'
+
+// Define props
+const props = defineProps({
+  name: {
+    type: String,
+    required: true
+  },
+  tag: {
+    type: String,
+    required: true
+  }
+})
+
+// Check if vue-json-pretty is available
+let VueJsonPretty = null
+let vueJsonPrettyAvailable = false
+
+// Load vue-json-pretty asynchronously without blocking setup
+const loadVueJsonPretty = async () => {
+  try {
+    const module = await import('vue-json-pretty')
+    VueJsonPretty = module.default
+    await import('vue-json-pretty/lib/styles.css')
+    vueJsonPrettyAvailable = true
+    console.log('vue-json-pretty loaded successfully')
+  } catch (e) {
+    console.warn('vue-json-pretty not available, using fallback JSON display')
+  }
+}
 
 const route = useRoute()
 const router = useRouter()
 
-const repositoryName = route.params.name
-const tagName = route.params.tag
+// Use props instead of route.params
+const repositoryName = ref(props.name)
+const tagName = ref(props.tag)
+
+// Watch for props changes
+watch(() => props.name, (newName) => {
+  repositoryName.value = newName
+  fetchTagDetails()
+})
+
+watch(() => props.tag, (newTag) => {
+  tagName.value = newTag
+  fetchTagDetails()
+})
 
 const tagInfo = ref(null)
 const config = ref(null)
@@ -177,18 +231,23 @@ const dialogError = ref('')
 const blobContent = ref(null)
 const currentBlob = ref(null)
 
+// Prevent attribute inheritance
+defineOptions({
+  inheritAttrs: false
+})
+
 const fetchTagDetails = async () => {
   loading.value = true
   try {
     // Fetch manifest info
-    const manifestInfo = await registryApi.getManifestInfo(repositoryName, tagName)
+    const manifestInfo = await registryApi.getManifestInfo(repositoryName.value, tagName.value)
     tagInfo.value = {
       ...manifestInfo,
-      pullCommand: `docker pull ${window.location.hostname}:${window.location.port || 80}/${repositoryName}:${tagName}`
+      pullCommand: `docker pull ${window.location.hostname}:${window.location.port || 80}/${repositoryName.value}:${tagName.value}`
     }
 
     // Fetch manifest to get layers
-    const manifest = await registryApi.getManifest(repositoryName, tagName)
+    const manifest = await registryApi.getManifest(repositoryName.value, tagName.value)
 
     // Process config separately (not part of layers anymore)
     if (manifest.config) {
@@ -238,7 +297,7 @@ const showBlobContent = async (blob) => {
   blobContent.value = null
 
   try {
-    const result = await registryApi.getBlobContent(repositoryName, blob.digest, blob.mediaType || '')
+    const result = await registryApi.getBlobContent(repositoryName.value, blob.digest, blob.mediaType || '')
     blobContent.value = result
   } catch (error) {
     dialogError.value = `Failed to fetch blob content: ${error.message}`
@@ -248,14 +307,23 @@ const showBlobContent = async (blob) => {
   }
 }
 
-const formatJson = (jsonString) => {
+const isJsonContent = computed(() => {
+  if (!blobContent.value || blobContent.value.type !== 'text') return false
+  const contentType = blobContent.value.contentType.toLowerCase()
+  const mediaType = (blobContent.value.mediaType || '').toLowerCase()
+  return contentType.includes('application/json') ||
+         contentType.includes('+json') ||
+         mediaType.includes('+json')
+})
+
+const jsonData = computed(() => {
+  if (!blobContent.value || blobContent.value.type !== 'text') return null
   try {
-    const parsed = JSON.parse(jsonString)
-    return JSON.stringify(parsed, null, 2)
+    return JSON.parse(blobContent.value.content)
   } catch (e) {
-    return jsonString
+    return null
   }
-}
+})
 
 const copyToClipboard = async (text) => {
   try {
@@ -271,6 +339,9 @@ const goBack = () => {
 }
 
 onMounted(() => {
+  // Load vue-json-pretty asynchronously without blocking
+  loadVueJsonPretty()
+
   fetchTagDetails()
 })
 
@@ -378,6 +449,89 @@ onMounted(() => {
   font-weight: bold;
 }
 
+/* Json Pretty Container */
+.json-pretty-container {
+  padding: 10px;
+  background-color: #f5f7fa;
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
+  overflow: auto;
+  max-height: 60vh;
+}
+
+:deep(.vjs-tree) {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+:deep(.vjs-tree-node) {
+  padding: 2px 0;
+}
+
+:deep(.vjs-key) {
+  color: #0969da;
+}
+
+:deep(.vjs-value) {
+  color: #cf222e;
+}
+
+:deep(.vjs-value-string) {
+  color: #0a3069;
+}
+
+:deep(.vjs-value-number) {
+  color: #0550ae;
+}
+
+:deep(.vjs-value-boolean) {
+  color: #cf222e;
+  font-weight: bold;
+}
+
+:deep(.vjs-value-null) {
+  color: #656d76;
+  font-style: italic;
+}
+
+:deep(.vjs-tree__brackets) {
+  color: #656d76;
+  cursor: pointer;
+}
+
+:deep(.vjs-tree__brackets:hover) {
+  color: #0969da;
+}
+
+:deep(.vjs-check-controller) {
+  color: #656d76;
+}
+
+:deep(.vjs-check-controller:hover) {
+  color: #0969da;
+}
+
+:deep(.vjs-tree__length) {
+  color: #656d76;
+  font-size: 12px;
+}
+
+/* Fallback JSON viewer when vue-json-pretty is not available */
+.json-viewer {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+  padding: 15px;
+  background-color: #f5f7fa;
+  border: 1px solid #e4e7ed;
+  border-radius: 4px;
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
 /* Dialog styles */
 .blob-content-container {
   min-height: 400px;
@@ -398,7 +552,6 @@ onMounted(() => {
   padding: 10px;
 }
 
-.json-viewer,
 .text-viewer {
   font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
   font-size: 13px;
