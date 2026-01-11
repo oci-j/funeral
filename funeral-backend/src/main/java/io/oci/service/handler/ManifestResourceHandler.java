@@ -12,8 +12,9 @@ import io.oci.dto.ManifestInfo;
 import io.oci.model.Manifest;
 import io.oci.model.Repository;
 import io.oci.service.DigestService;
-import io.oci.service.FileManifestStorage;
-import io.oci.service.FileRepositoryStorage;
+import io.oci.service.ManifestStorage;
+import io.oci.service.RepositoryStorage;
+import jakarta.inject.Named;
 import io.oci.util.JsonUtil;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -32,10 +33,12 @@ public class ManifestResourceHandler {
     DigestService digestService;
 
     @Inject
-    FileRepositoryStorage repositoryStorage;
+    @Named("repositoryStorage")
+    RepositoryStorage repositoryStorage;
 
     @Inject
-    FileManifestStorage manifestStorage;
+    @Named("manifestStorage")
+    ManifestStorage manifestStorage;
 
     @CommentHEAD
     @CommentPath("/{reference}")

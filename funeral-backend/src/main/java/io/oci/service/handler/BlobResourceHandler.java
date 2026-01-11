@@ -15,7 +15,8 @@ import io.oci.exception.WithResponseException;
 import io.oci.model.Blob;
 import io.oci.model.Repository;
 import io.oci.service.AbstractStorageService;
-import io.oci.service.FileRepositoryStorage;
+import io.oci.service.BlobStorage;
+import io.oci.service.RepositoryStorage;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -35,7 +36,12 @@ import org.slf4j.LoggerFactory;
 public class BlobResourceHandler {
 
     @Inject
-    FileRepositoryStorage repositoryStorage;
+    @Named("repositoryStorage")
+    RepositoryStorage repositoryStorage;
+
+    @Inject
+    @Named("blobStorage")
+    BlobStorage blobStorage;
 
     private static final Logger log = LoggerFactory.getLogger(BlobResourceHandler.class);
 
@@ -163,7 +169,7 @@ public class BlobResourceHandler {
             String actualDigest = storageService.storeBlob(uploadStream, expectedDigest);
 
             // Store blob metadata
-            Blob existingBlob = Blob.findByDigest(actualDigest);
+            Blob existingBlob = blobStorage.findByDigest(actualDigest);
             if (existingBlob == null) {
                 Blob blob = new Blob();
                 blob.digest = actualDigest;
@@ -282,12 +288,12 @@ public class BlobResourceHandler {
             String actualDigest = digest;
 
             // Store blob metadata
-            Blob existingBlob = Blob.findByDigest(actualDigest);
+            Blob existingBlob = blobStorage.findByDigest(actualDigest);
             if (existingBlob == null) {
                 Blob blob = new Blob();
                 blob.digest = actualDigest;
                 blob.contentLength = storageService.getBlobSize(actualDigest);
-                blob.persist();
+                blobStorage.persist(blob);
             }
 
             String location = "/v2/" + repositoryName + "/blobs/" + actualDigest;
@@ -335,7 +341,7 @@ public class BlobResourceHandler {
             @CommentPathParam("digest") String digest
     ) {
 
-        Blob blob = Blob.findByDigest(digest);
+        Blob blob = blobStorage.findByDigest(digest);
         if (blob == null) {
             return Response.status(404)
                     .entity(new ErrorResponse(List.of(
@@ -346,7 +352,7 @@ public class BlobResourceHandler {
 
         try {
             storageService.deleteBlob(digest);
-            blob.delete();
+            blobStorage.delete(blob.id);
             return Response.status(202).build();
         } catch (IOException e) {
             return Response.status(500).build();

@@ -21,9 +21,9 @@ public class FileStorageBase {
     @ConfigProperty(name = "oci.storage.local-storage-path", defaultValue = "/tmp/funeral-storage")
     String storagePath;
 
-    protected final ObjectMapper objectMapper;
+    private final ObjectMapper objectMapper;
 
-    protected FileStorageBase() {
+    public FileStorageBase() {
         this.objectMapper = new ObjectMapper();
         // Configure ObjectMapper to handle ObjectId properly
         this.objectMapper.registerModule(new JavaTimeModule());
@@ -36,7 +36,7 @@ public class FileStorageBase {
         this.objectMapper.registerModule(module);
     }
 
-    protected <T> T readFromFile(Class<T> clazz, String collection, String id) {
+    public <T> T readFromFile(Class<T> clazz, String collection, String id) {
         try {
             Path filePath = Paths.get(storagePath, collection, id + ".json");
             if (!Files.exists(filePath)) {
@@ -49,7 +49,7 @@ public class FileStorageBase {
         }
     }
 
-    protected <T> List<T> readAllFromFiles(Class<T> clazz, String collection) {
+    public <T> List<T> readAllFromFiles(Class<T> clazz, String collection) {
         try {
             Path dirPath = Paths.get(storagePath, collection);
             if (!Files.exists(dirPath)) {
@@ -72,7 +72,7 @@ public class FileStorageBase {
         }
     }
 
-    protected <T> void writeToFile(T entity, String collection, String id) {
+    public <T> void writeToFile(T entity, String collection, String id) {
         try {
             Path dirPath = Paths.get(storagePath, collection);
             Files.createDirectories(dirPath);
@@ -85,7 +85,7 @@ public class FileStorageBase {
         }
     }
 
-    protected void deleteFile(String collection, String id) {
+    public void deleteFile(String collection, String id) {
         try {
             Path filePath = Paths.get(storagePath, collection, id + ".json");
             Files.deleteIfExists(filePath);
@@ -94,7 +94,7 @@ public class FileStorageBase {
         }
     }
 
-    protected long countFiles(String collection) {
+    public long countFiles(String collection) {
         try {
             Path dirPath = Paths.get(storagePath, collection);
             if (!Files.exists(dirPath)) {
@@ -109,7 +109,7 @@ public class FileStorageBase {
         }
     }
 
-    protected <T> Optional<T> findFirst(Class<T> clazz, String collection, java.util.function.Predicate<T> predicate) {
+    public <T> Optional<T> findFirst(Class<T> clazz, String collection, java.util.function.Predicate<T> predicate) {
         try {
             Path dirPath = Paths.get(storagePath, collection);
             if (!Files.exists(dirPath)) {
@@ -133,7 +133,7 @@ public class FileStorageBase {
         }
     }
 
-    protected <T> long countWithFilter(String collection, java.util.function.Predicate<T> predicate, Class<T> clazz) {
+    public <T> long countWithFilter(String collection, java.util.function.Predicate<T> predicate, Class<T> clazz) {
         try {
             Path dirPath = Paths.get(storagePath, collection);
             if (!Files.exists(dirPath)) {

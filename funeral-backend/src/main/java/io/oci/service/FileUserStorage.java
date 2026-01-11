@@ -2,65 +2,51 @@ package io.oci.service;
 
 import io.oci.model.User;
 import jakarta.enterprise.context.ApplicationScoped;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
-public class FileUserStorage extends FileStorageBase {
+@Named("file-user-storage")
+public class FileUserStorage implements UserStorage {
 
-    private static final String COLLECTION = "users";
+    private final String COLLECTION = "users";
 
-    @ConfigProperty(name = "oci.storage.no-mongo", defaultValue = "false")
-    boolean noMongo;
+    @Inject
+    FileStorageBase fileStorage;
 
+    @Override
     public User findByUsername(String username) {
-        if (!noMongo) {
-            return User.findByUsername(username);
-        }
-
-        return findFirst(User.class, COLLECTION, u -> username.equals(u.username))
+        return fileStorage.readAllFromFiles(User.class, COLLECTION).stream()
+                .filter(u -> username.equals(u.username))
+                .findFirst()
                 .orElse(null);
     }
 
+    @Override
     public User findById(Object id) {
-        if (!noMongo) {
-            return User.findById(id);
-        }
-
-        return readFromFile(User.class, COLLECTION, id.toString());
+        return fileStorage.readFromFile(User.class, COLLECTION, id.toString());
     }
 
+    @Override
     public List<User> listAll() {
-        if (!noMongo) {
-            return User.listAll();
-        }
-
-        return readAllFromFiles(User.class, COLLECTION);
+        return fileStorage.readAllFromFiles(User.class, COLLECTION);
     }
 
+    @Override
     public void persist(User user) {
-        if (!noMongo) {
-            user.persist();
-            return;
-        }
-
         if (user.id == null) {
             user.id = new org.bson.types.ObjectId();
         }
-        writeToFile(user, COLLECTION, user.id.toString());
+        fileStorage.writeToFile(user, COLLECTION, user.id.toString());
     }
 
+    @Override
     public void deleteByUsername(String username) {
-        if (!noMongo) {
-            User.delete("username", username);
-            return;
-        }
-
         User user = findByUsername(username);
         if (user != null && user.id != null) {
-            deleteFile(COLLECTION, user.id.toString());
+            fileStorage.deleteFile(COLLECTION, user.id.toString());
         }
     }
 }

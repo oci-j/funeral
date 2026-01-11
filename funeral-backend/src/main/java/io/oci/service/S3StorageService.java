@@ -269,6 +269,16 @@ public class S3StorageService extends AbstractStorageService {
         }
     }
 
+    @Override
+    public boolean blobExists(String digest) throws IOException {
+        try {
+            getBlobSize(digest);
+            return true;
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
     private void ensureBucketExists() throws Exception {
         boolean exists = minioClient.bucketExists(
                 BucketExistsArgs.builder()

@@ -5,6 +5,7 @@ import io.oci.dto.TokenResponse;
 import io.oci.model.User;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.util.UUID;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
@@ -17,7 +18,8 @@ public class AuthService {
     JwtService jwtService;
 
     @Inject
-    FileUserStorage userStorage;
+    @Named("userStorage")
+    UserStorage userStorage;
 
     @ConfigProperty(name = "oci.auth.enabled", defaultValue = "true")
     boolean authEnabled;

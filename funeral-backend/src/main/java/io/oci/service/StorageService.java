@@ -96,7 +96,8 @@ public class StorageService extends AbstractStorageService {
         return Files.size(blobPath);
     }
 
-    public boolean blobExists(String digest) {
+    @Override
+    public boolean blobExists(String digest) throws IOException {
         String digestPath = digest.replace(":", "/");
         Path blobPath = Paths.get(storagePath, "blobs", digestPath);
         return Files.exists(blobPath);

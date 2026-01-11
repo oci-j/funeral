@@ -36,8 +36,4 @@ public class Blob extends PanacheMongoEntity {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
     }
-
-    public static Blob findByDigest(String digest) {
-        return find("digest", Sort.by("updated_at", Sort.Direction.Descending), digest).firstResult();
-    }
 }

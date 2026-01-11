@@ -32,10 +32,6 @@ public class User extends PanacheMongoEntity {
         this.updatedAt = LocalDateTime.now();
     }
 
-    public static User findByUsername(String username) {
-        return find("username", username).firstResult();
-    }
-
     public boolean hasAccessToRepository(String repositoryName) {
         if (roles != null && roles.contains("ADMIN")) {
             return true;

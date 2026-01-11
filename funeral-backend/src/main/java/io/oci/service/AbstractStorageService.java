@@ -35,4 +35,6 @@ public abstract class AbstractStorageService {
     public abstract long getBlobSize(String digest) throws IOException;
 
     public abstract void deleteBlob(String digest) throws IOException;
+
+    public abstract boolean blobExists(String digest) throws IOException;
 }

@@ -3,42 +3,72 @@ package io.oci.config;
 import io.oci.service.FileManifestStorage;
 import io.oci.service.FileRepositoryStorage;
 import io.oci.service.FileUserStorage;
-import jakarta.enterprise.context.Dependent;
+import io.oci.service.FileBlobStorage;
+import io.oci.service.MongoManifestStorage;
+import io.oci.service.MongoRepositoryStorage;
+import io.oci.service.MongoUserStorage;
+import io.oci.service.MongoBlobStorage;
+import io.oci.service.ManifestStorage;
+import io.oci.service.RepositoryStorage;
+import io.oci.service.UserStorage;
+import io.oci.service.BlobStorage;
+import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
+import jakarta.inject.Named;
 import jakarta.inject.Inject;
-import jakarta.inject.Singleton;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 
-@Dependent
+@ApplicationScoped
 public class MongoDBConfig {
+
+    @Inject
+    MongoManifestStorage mongoManifestStorage;
 
     @Inject
     FileManifestStorage fileManifestStorage;
 
     @Inject
+    MongoRepositoryStorage mongoRepositoryStorage;
+
+    @Inject
     FileRepositoryStorage fileRepositoryStorage;
 
     @Inject
+    MongoUserStorage mongoUserStorage;
+
+    @Inject
     FileUserStorage fileUserStorage;
+
+    @Inject
+    MongoBlobStorage mongoBlobStorage;
+
+    @Inject
+    FileBlobStorage fileBlobStorage;
 
     @ConfigProperty(name = "oci.storage.no-mongo", defaultValue = "false")
     boolean noMongo;
 
     @Produces
-    @Singleton
-    public Object manifestStorage() {
-        return fileManifestStorage;
+    @Named("manifestStorage")
+    public ManifestStorage manifestStorage() {
+        return noMongo ? fileManifestStorage : mongoManifestStorage;
     }
 
     @Produces
-    @Singleton
-    public Object repositoryStorage() {
-        return fileRepositoryStorage;
+    @Named("repositoryStorage")
+    public RepositoryStorage repositoryStorage() {
+        return noMongo ? fileRepositoryStorage : mongoRepositoryStorage;
     }
 
     @Produces
-    @Singleton
-    public Object userStorage() {
-        return fileUserStorage;
+    @Named("userStorage")
+    public UserStorage userStorage() {
+        return noMongo ? fileUserStorage : mongoUserStorage;
+    }
+
+    @Produces
+    @Named("blobStorage")
+    public BlobStorage blobStorage() {
+        return noMongo ? fileBlobStorage : mongoBlobStorage;
     }
 }

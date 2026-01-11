@@ -32,8 +32,4 @@ public class Repository extends PanacheMongoEntity {
     public void updateTimestamp() {
         this.updatedAt = LocalDateTime.now();
     }
-
-    public static Repository findByName(String name) {
-        return find("name", Sort.by("updated_at", Sort.Direction.Descending), name).firstResult();
-    }
 }

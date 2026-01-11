@@ -2,46 +2,35 @@ package io.oci.service;
 
 import io.oci.model.Repository;
 import jakarta.enterprise.context.ApplicationScoped;
-import org.eclipse.microprofile.config.inject.ConfigProperty;
-
+import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @ApplicationScoped
-public class FileRepositoryStorage extends FileStorageBase {
+@Named("file-repository-storage")
+public class FileRepositoryStorage implements RepositoryStorage {
 
-    private static final String COLLECTION = "repositories";
+    private final String COLLECTION = "repositories";
 
-    @ConfigProperty(name = "oci.storage.no-mongo", defaultValue = "false")
-    boolean noMongo;
+    @Inject
+    FileStorageBase fileStorage;
 
+    @Override
     public Repository findByName(String name) {
-        if (!noMongo) {
-            // Use MongoDB Panache method
-            return Repository.findByName(name);
-        }
-
-        return findFirst(Repository.class, COLLECTION, repo -> repo.name.equals(name))
+        return fileStorage.findFirst(Repository.class, COLLECTION, repo -> repo.name.equals(name))
                 .orElse(null);
     }
 
+    @Override
     public List<Repository> listAll() {
-        if (!noMongo) {
-            // Use MongoDB Panache method
-            return Repository.listAll();
-        }
-
-        return readAllFromFiles(Repository.class, COLLECTION);
+        return fileStorage.readAllFromFiles(Repository.class, COLLECTION);
     }
 
+    @Override
     public void persist(Repository repository) {
-        if (!noMongo) {
-            // Use MongoDB Panache method
-            repository.persist();
-            return;
-        }
-
         if (repository.id == null) {
             repository.id = new org.bson.types.ObjectId();
         }
@@ -49,38 +38,25 @@ public class FileRepositoryStorage extends FileStorageBase {
         if (repository.createdAt == null) {
             repository.createdAt = LocalDateTime.now();
         }
-        writeToFile(repository, COLLECTION, repository.id.toString());
+        fileStorage.writeToFile(repository, COLLECTION, repository.id.toString());
     }
 
+    @Override
     public long count() {
-        if (!noMongo) {
-            // Use MongoDB Panache method
-            return Repository.count();
-        }
-
-        return countFiles(COLLECTION);
+        return fileStorage.countFiles(COLLECTION);
     }
 
+    @Override
     public void deleteByName(String name) {
-        if (!noMongo) {
-            // Use MongoDB Panache method
-            Repository.delete("name", name);
-            return;
-        }
-
         Repository repo = findByName(name);
         if (repo != null && repo.id != null) {
-            deleteFile(COLLECTION, repo.id.toString());
+            fileStorage.deleteFile(COLLECTION, repo.id.toString());
         }
     }
 
+    @Override
     public List<Repository> findByNameWithMultipleEntries(String name) {
-        if (!noMongo) {
-            // Use MongoDB Panache method
-            return Repository.find("name", name).list();
-        }
-
-        return readAllFromFiles(Repository.class, COLLECTION).stream()
+        return fileStorage.readAllFromFiles(Repository.class, COLLECTION).stream()
                 .filter(repo -> repo.name.equals(name))
                 .collect(Collectors.toList());
     }

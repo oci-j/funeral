@@ -7,9 +7,10 @@ import io.oci.annotation.CommentQueryParam;
 import io.oci.dto.ArtifactDescriptor;
 import io.oci.dto.ReferrersResponse;
 import io.oci.model.Manifest;
-import io.oci.service.FileManifestStorage;
+import io.oci.service.ManifestStorage;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import jakarta.ws.rs.core.Response;
 
 import java.util.List;
@@ -20,7 +21,8 @@ import java.util.stream.Collectors;
 public class ReferrerResourceHandler {
 
     @Inject
-    FileManifestStorage manifestStorage;
+    @Named("manifestStorage")
+    ManifestStorage manifestStorage;
 
     @CommentGET
     public Response getReferrers(
@@ -33,18 +35,15 @@ public class ReferrerResourceHandler {
             return Response.status(Response.Status.BAD_REQUEST).entity("digest query parameter is required").build();
         }
 
-//        boolean oCIFiltersAppliedArtifactType;
-//        List<Manifest> referrerManifests;
-//        if (artifactType != null && !artifactType.isBlank()) {
-//            referrerManifests = manifestStorage.findBySubjectDigestAndArtifactType(repositoryName, digest, artifactType);
-//            oCIFiltersAppliedArtifactType = true;
-//            OCI-Filters-Applied: artifactType
-//        } else {
-//            referrerManifests = manifestStorage.findBySubjectDigest(repositoryName, digest);
-//            oCIFiltersAppliedArtifactType = false;
-//        }
-
-        List<Manifest> referrerManifests = manifestStorage.findBySubjectDigest(repositoryName, digest);
+        boolean oCIFiltersAppliedArtifactType;
+        List<Manifest> referrerManifests;
+        if (artifactType != null && !artifactType.isBlank()) {
+            referrerManifests = manifestStorage.findBySubjectDigestAndArtifactType(repositoryName, digest, artifactType);
+            oCIFiltersAppliedArtifactType = true;
+        } else {
+            referrerManifests = manifestStorage.findBySubjectDigest(repositoryName, digest);
+            oCIFiltersAppliedArtifactType = false;
+        }
 
         List<ArtifactDescriptor> descriptors = referrerManifests.stream()
                 .map(
