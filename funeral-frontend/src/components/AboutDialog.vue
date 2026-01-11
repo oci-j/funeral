@@ -8,7 +8,7 @@
   >
     <div class="about-content">
       <div class="logo-section">
-        <img src="/image/funeral.png" alt="FUNERAL Logo" class="about-logo" />
+        <img src="/image/funeral.jpg" alt="FUNERAL Logo" class="about-logo" />
       </div>
 
       <div class="info-section">

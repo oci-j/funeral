@@ -4,7 +4,7 @@
       <el-header>
         <div class="header-content">
           <div class="logo-section">
-            <img src="/image/funeral.png" alt="FUNERAL Logo" class="logo-image" />
+            <img src="/image/funeral.jpg" alt="FUNERAL Logo" class="logo-image" />
             <h2>FUNERAL - OCI Registry</h2>
           </div>
           <div class="header-actions">
