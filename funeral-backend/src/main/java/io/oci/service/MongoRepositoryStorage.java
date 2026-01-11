@@ -27,7 +27,7 @@ public class MongoRepositoryStorage implements RepositoryStorage {
         if (repository.createdAt == null) {
             repository.createdAt = LocalDateTime.now();
         }
-        repository.persist();
+        repository.persistOrUpdate();
     }
 
     @Override

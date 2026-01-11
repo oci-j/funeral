@@ -175,7 +175,7 @@ public class BlobResourceHandler {
                 Blob blob = new Blob();
                 blob.digest = actualDigest;
                 blob.contentLength = storageService.getBlobSize(actualDigest);
-                blob.persist();
+                blob.persistOrUpdate();
             }
 
             String location = "/v2/" + repositoryName + "/blobs/" + actualDigest;

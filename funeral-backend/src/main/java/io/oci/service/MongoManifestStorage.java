@@ -29,7 +29,7 @@ public class MongoManifestStorage implements ManifestStorage {
         if (manifest.createdAt == null) {
             manifest.createdAt = LocalDateTime.now();
         }
-        manifest.persist();
+        manifest.persistOrUpdate();
     }
 
     @Override

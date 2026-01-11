@@ -35,15 +35,7 @@ public class ReferrerResourceHandler {
             return Response.status(Response.Status.BAD_REQUEST).entity("digest query parameter is required").build();
         }
 
-        boolean oCIFiltersAppliedArtifactType;
-        List<Manifest> referrerManifests;
-        if (artifactType != null && !artifactType.isBlank()) {
-            referrerManifests = manifestStorage.findBySubjectDigestAndArtifactType(repositoryName, digest, artifactType);
-            oCIFiltersAppliedArtifactType = true;
-        } else {
-            referrerManifests = manifestStorage.findBySubjectDigest(repositoryName, digest);
-            oCIFiltersAppliedArtifactType = false;
-        }
+        List<Manifest> referrerManifests = manifestStorage.findBySubjectDigest(repositoryName, digest);
 
         List<ArtifactDescriptor> descriptors = referrerManifests.stream()
                 .map(

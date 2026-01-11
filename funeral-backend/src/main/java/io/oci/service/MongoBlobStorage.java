@@ -19,7 +19,7 @@ public class MongoBlobStorage implements BlobStorage {
         if (blob.id == null) {
             blob.id = new org.bson.types.ObjectId();
         }
-        blob.persist();
+        blob.persistOrUpdate();
     }
 
     @Override

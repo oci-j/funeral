@@ -27,7 +27,7 @@ public class MongoUserStorage implements UserStorage {
         if (user.id == null) {
             user.id = new org.bson.types.ObjectId();
         }
-        user.persist();
+        user.persistOrUpdate();
     }
 
     @Override

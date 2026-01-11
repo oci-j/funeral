@@ -41,7 +41,7 @@ public class MongoRepositoryPermissionStorage implements RepositoryPermissionSto
             permission.id = new org.bson.types.ObjectId();
         }
         permission.updatedAt = java.time.LocalDateTime.now();
-        permission.persist();
+        permission.persistOrUpdate();
     }
 
     @Override
