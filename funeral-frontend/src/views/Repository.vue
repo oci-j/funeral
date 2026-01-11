@@ -29,7 +29,7 @@
         <div class="pull-command">
           <el-text type="info">Pull Command:</el-text>
           <el-input
-            v-model="getPullCommand(tag)"
+            :model-value="getPullCommand(tag)"
             readonly
             class="command-input"
           >
@@ -52,11 +52,13 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Back, DocumentCopy } from '@element-plus/icons-vue'
 import { registryApi } from '../api/registry'
+import {ElMessage} from "element-plus";
 
 const route = useRoute()
 const router = useRouter()
 
-const repositoryName = ref(route.params.name)
+// Decode the repository name from URL to handle special characters
+const repositoryName = ref(decodeURIComponent(route.params.name))
 const tags = ref([])
 const loading = ref(false)
 

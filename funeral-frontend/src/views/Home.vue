@@ -91,7 +91,9 @@ const formatDate = (dateString) => {
 }
 
 const viewRepository = (name) => {
-  router.push(`/repository/${name}`)
+  // Encode the repository name to handle slashes and special characters
+  const encodedName = encodeURIComponent(name)
+  router.push(`/repository/${encodedName}`)
 }
 
 const handleDeleteRepository = async (name) => {
