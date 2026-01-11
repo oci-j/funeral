@@ -34,7 +34,7 @@ import java.util.stream.Collectors;
  * Resource for uploading and analyzing Docker tar files created by 'docker save' command.
  * Automatically extracts image metadata and stores it in the registry.
  */
-@Path("/admin/upload")
+@Path("/funeral_addition/write/upload")
 @ApplicationScoped
 @Authenticated
 public class DockerTarResource {
