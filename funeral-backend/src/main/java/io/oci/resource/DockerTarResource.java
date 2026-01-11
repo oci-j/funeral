@@ -472,6 +472,13 @@ public class DockerTarResource {
         for (TarManifest tarManifest : result.manifests) {
             log.info("Found manifest: {}:{}", tarManifest.repository, tarManifest.tag);
 
+            // Check if tag already exists
+            var existingManifest = manifestStorage.findByRepositoryAndTag(tarManifest.repository, tarManifest.tag);
+            if (existingManifest != null) {
+                log.info("Tag '{}' already exists in repository '{}'. Deleting old manifest before saving new one.", tarManifest.tag, tarManifest.repository);
+                manifestStorage.delete(existingManifest.id);
+            }
+
             // Build the actual manifest JSON content
             String manifestContent = buildManifestJson(tarManifest);
 
