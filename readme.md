@@ -8,7 +8,7 @@ It just begins the development.
 
 Don't use it in production, it's not ready yet.
 
-Though there be only 4 / 79 of the tests defined
+Though there be no tests defined
 in [oci-distribution-spec](https://github.com/opencontainers/distribution-spec.git)
 failed, it still doesn't mean it's ready for production.
 
