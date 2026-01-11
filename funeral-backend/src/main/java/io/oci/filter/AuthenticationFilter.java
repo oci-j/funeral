@@ -46,15 +46,13 @@ public class AuthenticationFilter implements ContainerRequestFilter {
             return;
         }
 
-        if (!path.startsWith("/v2") && !path.startsWith("v2")) {
+        if (!path.startsWith("/v2")
+                && !path.startsWith("v2")
+                && !path.startsWith("/funeral_addition/write/upload")
+                && !path.startsWith("funeral_addition/write/upload")
+        ) {
             return;
         }
-
-//        if (!WRITE_METHODS.contains(method) &&
-//                !("v2".equals(path) || "/v2".equals(path) || "v2/".equals(path) || "/v2/".equals(path))
-//        ) {
-//            return;
-//        }
 
         String authHeader = requestContext.getHeaderString("Authorization");
 
