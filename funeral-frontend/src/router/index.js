@@ -26,6 +26,12 @@ const routes = [
     name: 'Login',
     component: () => import('../views/Login.vue'),
     meta: { requiresAuth: false }
+  },
+  {
+    path: '/admin',
+    name: 'Admin',
+    component: () => import('../views/Admin.vue'),
+    meta: { requiresAuth: true, requiresAdmin: true }
   }
 ]
 
@@ -46,6 +52,10 @@ router.beforeEach((to, from, next) => {
     })
   } else if (to.path === '/login' && authStore.isAuthenticated) {
     // Redirect logged-in users away from login page
+    next('/')
+  } else if (to.meta.requiresAdmin && !authStore.isAdmin) {
+    // Check if route requires admin privileges
+    ElMessage.error('Access denied: Admin privileges required')
     next('/')
   } else {
     next()

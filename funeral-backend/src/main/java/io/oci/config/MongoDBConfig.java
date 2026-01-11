@@ -8,10 +8,13 @@ import io.oci.service.MongoManifestStorage;
 import io.oci.service.MongoRepositoryStorage;
 import io.oci.service.MongoUserStorage;
 import io.oci.service.MongoBlobStorage;
+import io.oci.service.MongoRepositoryPermissionStorage;
+import io.oci.service.FileRepositoryPermissionStorage;
 import io.oci.service.ManifestStorage;
 import io.oci.service.RepositoryStorage;
 import io.oci.service.UserStorage;
 import io.oci.service.BlobStorage;
+import io.oci.service.RepositoryPermissionStorage;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.inject.Produces;
 import jakarta.inject.Named;
@@ -45,6 +48,12 @@ public class MongoDBConfig {
     @Inject
     FileBlobStorage fileBlobStorage;
 
+    @Inject
+    MongoRepositoryPermissionStorage mongoRepositoryPermissionStorage;
+
+    @Inject
+    FileRepositoryPermissionStorage fileRepositoryPermissionStorage;
+
     @ConfigProperty(name = "oci.storage.no-mongo", defaultValue = "false")
     boolean noMongo;
 
@@ -70,5 +79,11 @@ public class MongoDBConfig {
     @Named("blobStorage")
     public BlobStorage blobStorage() {
         return noMongo ? fileBlobStorage : mongoBlobStorage;
+    }
+
+    @Produces
+    @Named("repositoryPermissionStorage")
+    public RepositoryPermissionStorage repositoryPermissionStorage() {
+        return noMongo ? fileRepositoryPermissionStorage : mongoRepositoryPermissionStorage;
     }
 }

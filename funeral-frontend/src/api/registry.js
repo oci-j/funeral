@@ -185,5 +185,168 @@ export const registryApi = {
       console.error('Anonymous login error:', error)
       throw error
     }
+  },
+
+  // Admin API endpoints
+  async getUsers() {
+    try {
+      const response = await fetch(`${API_BASE}/funeral_addition/admin/users`, {
+        headers: getAuthHeaders()
+      })
+
+      if (response.status === 401) {
+        const authStore = useAuthStore()
+        authStore.logout()
+        throw new Error('Authentication required')
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      return await response.json()
+    } catch (error) {
+      console.error('Error fetching users:', error)
+      throw error
+    }
+  },
+
+  async createUser(userData) {
+    try {
+      const response = await fetch(`${API_BASE}/funeral_addition/admin/users`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(userData)
+      })
+
+      if (response.status === 401) {
+        const authStore = useAuthStore()
+        authStore.logout()
+        throw new Error('Authentication required')
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      return await response.json()
+    } catch (error) {
+      console.error('Error creating user:', error)
+      throw error
+    }
+  },
+
+  async updateUser(username, userData) {
+    try {
+      const response = await fetch(`${API_BASE}/funeral_addition/admin/users/${username}`, {
+        method: 'PUT',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(userData)
+      })
+
+      if (response.status === 401) {
+        const authStore = useAuthStore()
+        authStore.logout()
+        throw new Error('Authentication required')
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      return await response.json()
+    } catch (error) {
+      console.error('Error updating user:', error)
+      throw error
+    }
+  },
+
+  async deleteUser(username) {
+    try {
+      const response = await fetch(`${API_BASE}/funeral_addition/admin/users/${username}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      })
+
+      if (response.status === 401) {
+        const authStore = useAuthStore()
+        authStore.logout()
+        throw new Error('Authentication required')
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      return response
+    } catch (error) {
+      console.error('Error deleting user:', error)
+      throw error
+    }
+  },
+
+  async getUserPermissions(username) {
+    try {
+      const response = await fetch(`${API_BASE}/funeral_addition/admin/permissions/${username}`, {
+        headers: getAuthHeaders()
+      })
+
+      if (response.status === 401) {
+        const authStore = useAuthStore()
+        authStore.logout()
+        throw new Error('Authentication required')
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      return await response.json()
+    } catch (error) {
+      console.error('Error fetching user permissions:', error)
+      throw error
+    }
+  },
+
+  async setUserPermission(username, repository, permissionData) {
+    try {
+      const response = await fetch(`${API_BASE}/funeral_addition/admin/permissions/${username}/${repository}`, {
+        method: 'POST',
+        headers: getAuthHeaders(),
+        body: JSON.stringify(permissionData)
+      })
+
+      if (response.status === 401) {
+        const authStore = useAuthStore()
+        authStore.logout()
+        throw new Error('Authentication required')
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      return await response.json()
+    } catch (error) {
+      console.error('Error setting user permission:', error)
+      throw error
+    }
+  },
+
+  async deleteUserPermission(username, repository) {
+    try {
+      const response = await fetch(`${API_BASE}/funeral_addition/admin/permissions/${username}/${repository}`, {
+        method: 'DELETE',
+        headers: getAuthHeaders()
+      })
+
+      if (response.status === 401) {
+        const authStore = useAuthStore()
+        authStore.logout()
+        throw new Error('Authentication required')
+      }
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+      return response
+    } catch (error) {
+      console.error('Error deleting user permission:', error)
+      throw error
+    }
   }
 }

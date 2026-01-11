@@ -1,7 +1,11 @@
 package io.oci.filter;
 
+import io.oci.model.User;
+import io.oci.service.UserStorage;
+import io.oci.service.RepositoryPermissionStorage;
 import jakarta.annotation.Priority;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import jakarta.json.JsonString;
 import jakarta.json.JsonValue;
 import jakarta.ws.rs.Priorities;
@@ -22,6 +26,14 @@ public class AuthenticationFilter implements ContainerRequestFilter {
     @Inject
     JsonWebToken jwt;
 
+    @Inject
+    @Named("userStorage")
+    UserStorage userStorage;
+
+    @Inject
+    @Named("repositoryPermissionStorage")
+    RepositoryPermissionStorage permissionStorage;
+
     @ConfigProperty(name = "oci.auth.enabled", defaultValue = "true")
     boolean authEnabled;
 
@@ -30,6 +42,9 @@ public class AuthenticationFilter implements ContainerRequestFilter {
 
     @ConfigProperty(name = "oci.auth.service", defaultValue = "funeral-registry")
     String authServiceName;
+
+    @ConfigProperty(name = "oci.auth.allow-anonymous-pull", defaultValue = "false")
+    boolean allowAnonymousPull;
 
     private static final Set<String> WRITE_METHODS = Set.of("POST", "PUT", "PATCH", "DELETE");
 
@@ -50,6 +65,8 @@ public class AuthenticationFilter implements ContainerRequestFilter {
                 && !path.startsWith("v2")
                 && !path.startsWith("/funeral_addition/write/upload")
                 && !path.startsWith("funeral_addition/write/upload")
+                && !path.startsWith("/funeral_addition/admin")
+                && !path.startsWith("funeral_addition/admin")
         ) {
             return;
         }
@@ -61,18 +78,52 @@ public class AuthenticationFilter implements ContainerRequestFilter {
             return;
         }
 
-        if (jwt == null || jwt.getSubject() == null) {
+        String username = jwt.getSubject();
+
+        if (username == null) {
             abortWithUnauthorized(requestContext, path);
             return;
         }
 
+        if (!(this.allowAnonymousPull && "anonymous".equals(username))) {
+            User user = userStorage.findByUsername(username);
+
+            if (user == null || !user.enabled) {
+                abortWithUnauthorized(requestContext, path);
+                return;
+            }
+        }
+
+        // Get repository name from path
+        String repositoryName = extractRepositoryName(path);
+        if (repositoryName != null) {
+            // Check repository permissions based on authentication status
+            if (WRITE_METHODS.contains(method)) {
+                // Check push permission - requires authentication
+                if (!permissionStorage.hasPushPermission(username, repositoryName)) {
+                    abortWithForbidden(requestContext, "push", repositoryName);
+                    return;
+                }
+            } else {
+                // Check pull permission
+                // Authenticated user - check permissions
+                if (!(this.allowAnonymousPull && "anonymous".equals(username))) {
+                    if (!permissionStorage.hasPullPermission(username, repositoryName)) {
+                        abortWithForbidden(requestContext, "pull", repositoryName);
+                        return;
+                    }
+                }
+            }
+        }
+
+        // Additional scope check for backward compatibility
         Object actionsClaim = jwt.getClaim("actions");
-        if (actionsClaim == null) {
+        if (actionsClaim == null && repositoryName == null) {
             abortWithForbidden(requestContext);
             return;
         }
 
-        if (WRITE_METHODS.contains(method)) {
+        if (repositoryName == null && WRITE_METHODS.contains(method)) {
             boolean hasPush = false;
             if (actionsClaim instanceof java.util.Collection<?> actions) {
                 hasPush = actions.contains("push");
@@ -92,6 +143,33 @@ public class AuthenticationFilter implements ContainerRequestFilter {
                 abortWithForbidden(requestContext);
             }
         }
+    }
+
+    private String extractRepositoryName(String path) {
+        if (!path.startsWith("/v2") && !path.startsWith("v2")) {
+            return null;
+        }
+
+        String cleanPath = path.replaceFirst("^/?v2/?", "");
+        if (cleanPath.isEmpty()) {
+            return null;
+        }
+
+        int blobsIndex = cleanPath.lastIndexOf("/blobs/");
+        int manifestsIndex = cleanPath.lastIndexOf("/manifests/");
+        int tagsIndex = cleanPath.lastIndexOf("/tags/");
+
+        int maxIndex = Math.max(Math.max(blobsIndex, manifestsIndex), tagsIndex);
+        if (maxIndex > 0) {
+            return cleanPath.substring(0, maxIndex);
+        }
+
+        // Check if it's a repository deletion request
+        if (!cleanPath.contains("/")) {
+            return cleanPath;
+        }
+
+        return null;
     }
 
     private void abortWithUnauthorized(ContainerRequestContext requestContext, String path) {
@@ -117,6 +195,15 @@ public class AuthenticationFilter implements ContainerRequestFilter {
                 Response.status(Response.Status.FORBIDDEN)
                         .header("Docker-Distribution-API-Version", "registry/2.0")
                         .entity("{\"errors\":[{\"code\":\"DENIED\",\"message\":\"requested access to the resource is denied\"}]}")
+                        .build()
+        );
+    }
+
+    private void abortWithForbidden(ContainerRequestContext requestContext, String action, String repository) {
+        requestContext.abortWith(
+                Response.status(Response.Status.FORBIDDEN)
+                        .header("Docker-Distribution-API-Version", "registry/2.0")
+                        .entity(String.format("{\"errors\":[{\"code\":\"DENIED\",\"message\":\"requested %s access to repository '%s' is denied\"}]}", action, repository))
                         .build()
         );
     }

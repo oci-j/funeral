@@ -49,7 +49,7 @@ public class AuthService {
 
     public TokenResponse authenticateWithAnonymousUser(String service) {
         User user = new User();
-        user.username = "temp_" + UUID.randomUUID().toString();
+        user.username = "anonymous";
         user.passwordHash = user.username;
         user.email = user.username;
 
