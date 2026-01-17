@@ -23,6 +23,24 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+
+    - name: Install frontend dependencies
+      working-directory: ./funeral-frontend
+      run: pnpm install
+
+    - name: Build frontend
+      working-directory: ./funeral-frontend
+      run: pnpm run build
+
     - name: Set up JDK 25
       uses: actions/setup-java@v4
       with:
@@ -47,6 +65,24 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '24'
+
+    - name: Install pnpm
+      uses: pnpm/action-setup@v2
+      with:
+        version: 8
+
+    - name: Install frontend dependencies
+      working-directory: ./funeral-frontend
+      run: pnpm install
+
+    - name: Build frontend
+      working-directory: ./funeral-frontend
+      run: pnpm run build
 
     - name: Set up GraalVM
       uses: graalvm/setup-graalvm@v1
