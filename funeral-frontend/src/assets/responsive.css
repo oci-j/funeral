@@ -352,3 +352,28 @@ body {
   }
 }
 
+/* Show utilities for responsive breakpoints */
+@media (max-width: 768px) {
+  .show-md {
+    display: block !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .show-md {
+    display: none !important;
+  }
+}
+
+/* Table horizontal scroll on mobile */
+@media (max-width: 768px) {
+  .table-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .table-container .el-table {
+    min-width: 600px;
+  }
+}
+

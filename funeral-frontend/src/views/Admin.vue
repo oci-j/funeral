@@ -11,44 +11,46 @@
         </div>
       </template>
 
-      <el-table :data="users" v-loading="loading" style="width: 100%">
-        <el-table-column prop="username" label="Username" width="150" />
-        <el-table-column prop="email" label="Email" width="200" />
-        <el-table-column label="Roles" width="150">
-          <template #default="{ row }">
-            <el-tag v-for="role in row.roles" :key="role" size="small" style="margin-right: 5px">
-              {{ role }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column label="Status" width="100">
-          <template #default="{ row }">
-            <el-tag :type="row.enabled ? 'success' : 'danger'" size="small">
-              {{ row.enabled ? 'Enabled' : 'Disabled' }}
-            </el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="createdAt" label="Created" width="180">
-          <template #default="{ row }">
-            {{ formatDate(row.createdAt) }}
-          </template>
-        </el-table-column>
-        <el-table-column label="Actions" width="250" fixed="right">
-          <template #default="{ row }">
-            <el-button-group>
-              <el-button size="small" @click="editUser(row)">
-                <el-icon><Edit /></el-icon>
-              </el-button>
-              <el-button size="small" @click="managePermissions(row)">
-                <el-icon><Key /></el-icon>
-              </el-button>
-              <el-button size="small" type="danger" @click="deleteUser(row)" :disabled="row.username === 'admin'">
-                <el-icon><Delete /></el-icon>
-              </el-button>
-            </el-button-group>
-          </template>
-        </el-table-column>
-      </el-table>
+      <div class="table-container">
+        <el-table :data="users" v-loading="loading" style="width: 100%">
+          <el-table-column prop="username" label="Username" width="150" />
+          <el-table-column prop="email" label="Email" width="200" />
+          <el-table-column label="Roles" width="150">
+            <template #default="{ row }">
+              <el-tag v-for="role in row.roles" :key="role" size="small" style="margin-right: 5px">
+                {{ role }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column label="Status" width="100">
+            <template #default="{ row }">
+              <el-tag :type="row.enabled ? 'success' : 'danger'" size="small">
+                {{ row.enabled ? 'Enabled' : 'Disabled' }}
+              </el-tag>
+            </template>
+          </el-table-column>
+          <el-table-column prop="createdAt" label="Created" width="180">
+            <template #default="{ row }">
+              {{ formatDate(row.createdAt) }}
+            </template>
+          </el-table-column>
+          <el-table-column label="Actions" width="250" fixed="right">
+            <template #default="{ row }">
+              <el-button-group>
+                <el-button size="small" @click="editUser(row)">
+                  <el-icon><Edit /></el-icon>
+                </el-button>
+                <el-button size="small" @click="managePermissions(row)">
+                  <el-icon><Key /></el-icon>
+                </el-button>
+                <el-button size="small" type="danger" @click="deleteUser(row)" :disabled="row.username === 'admin'">
+                  <el-icon><Delete /></el-icon>
+                </el-button>
+              </el-button-group>
+            </template>
+          </el-table-column>
+        </el-table>
+      </div>
     </el-card>
 
     <!-- Create/Edit User Dialog -->
