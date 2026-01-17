@@ -44,5 +44,6 @@ site/
 ###### gitignore only part start
 repository
 
-### privateKey.pem
+### pem
 **/privateKey.pem
+**/publicKey.pem

@@ -42,7 +42,7 @@ modify the resources/application.yml to config minio & mongo connection & other 
 cli demo usage is like:
 
 ```shell
-./funeral-0.1.2-runner -Dquarkus.config.locations=file:/home/xenoamess/funeral/application.yml
+./funeral-0.1.8-runner -Dquarkus.config.locations=file:/home/xenoamess/funeral/application.yml
 ```
 
 # Short-Term Goal
