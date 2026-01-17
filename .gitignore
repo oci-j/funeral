@@ -47,3 +47,6 @@ repository
 ### pem
 **/privateKey.pem
 **/publicKey.pem
+
+### frontend
+funeral-backend/src/main/resources/META-INF/resources
