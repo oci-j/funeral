@@ -96,29 +96,27 @@ jobs:
       run: |
         VERSION=$(cat ../VERSION 2>/dev/null || echo "unknown")
         echo "VERSION: ${VERSION}"
+        echo "BINARY_NAME=funeral-${VERSION}-runner" >> $GITHUB_ENV
         mvn -B clean package -Pnative -DskipTests
-        # Read version from VERSION file and rename binary
-        if [ -f "target/funeral-${VERSION}-runner" ]; then
-          mv "target/funeral-${VERSION}-runner" target/funeral-runner-linux-amd64
-          echo "Renamed funeral-${VERSION}-runner to funeral-runner-linux-amd64"
-        else
-          echo "Warning: Expected binary funeral-${VERSION}-runner not found"
+        if [ ! -f "target/funeral-${VERSION}-runner" ]; then
+          echo "Error: Expected binary target/funeral-${VERSION}-runner not found"
           ls -la target/
+          exit 1
         fi
       working-directory: ./funeral-backend
 
     - name: Display Binary Info
       working-directory: ./funeral-backend
       run: |
-        if [ -f target/funeral-runner-linux-amd64 ]; then
+        if [ -f "target/${BINARY_NAME}" ]; then
           echo "=== Binary Information ==="
-          ls -lh target/funeral-runner-linux-amd64
-          file target/funeral-runner-linux-amd64
+          ls -lh "target/${BINARY_NAME}"
+          file "target/${BINARY_NAME}"
           echo ""
           echo "=== Binary Size ==="
-          du -h target/funeral-runner-linux-amd64
+          du -h "target/${BINARY_NAME}"
         else
-          echo "Native binary not found!"
+          echo "Native binary not found: target/${BINARY_NAME}"
           ls -la target/
           exit 1
         fi
@@ -127,7 +125,7 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: funeral-native-${{ github.sha }}
-        path: funeral-backend/target/funeral-runner-linux-amd64
+        path: funeral-backend/target/${{ env.BINARY_NAME }}
         retention-days: 7
 
     - name: Upload Build Reports
@@ -157,20 +155,26 @@ jobs:
     - name: Prepare Release Files
       run: |
         mkdir -p release-files
-        # Copy native binary
-        find artifacts -name "funeral-runner-linux-amd64" -exec cp {} release-files/ \;
+        # Read version from VERSION file
+        VERSION=$(cat VERSION 2>/dev/null || echo "unknown")
+        echo "VERSION=${VERSION}" >> $GITHUB_ENV
+        # Copy native binary with versioned name
+        NATIVE_BINARY=$(find artifacts -name "funeral-${VERSION}-runner" | head -1)
+        if [ -f "$NATIVE_BINARY" ]; then
+          cp "$NATIVE_BINARY" "release-files/funeral-${VERSION}-runner"
+          BINARY_SIZE=$(du -h "$NATIVE_BINARY" | cut -f1)
+          echo "BINARY_SIZE=$BINARY_SIZE" >> $GITHUB_ENV
+        else
+          echo "Error: Native binary funeral-${VERSION}-runner not found in artifacts"
+          find artifacts -type f -name "*funeral*" | head -20
+          exit 1
+        fi
         # Copy JVM JAR
         find artifacts -name "funeral-*.jar" -not -name "*sources*" -not -name "*javadoc*" -exec cp {} release-files/ \;
         # Create checksums
         cd release-files
         sha256sum * > checksums.txt
         cd ..
-        # Extract version for release notes
-        NATIVE_BINARY=$(find artifacts -name "funeral-runner-linux-amd64" | head -1)
-        if [ -f "$NATIVE_BINARY" ]; then
-          BINARY_SIZE=$(du -h "$NATIVE_BINARY" | cut -f1)
-          echo "BINARY_SIZE=$BINARY_SIZE" >> $GITHUB_ENV
-        fi
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
@@ -179,14 +183,14 @@ jobs:
         draft: false
         prerelease: false
         files: |
-          release-files/funeral-runner-linux-amd64
+          release-files/funeral-${{ env.VERSION }}-runner
           release-files/funeral-*.jar
           release-files/checksums.txt
         body: |
           ## 🎉 Funeral OCI Registry ${{ github.ref_name }}
 
           ### 📦 Native Binary
-          - **File:** `funeral-runner-linux-amd64`
+          - **File:** `funeral-${{ env.VERSION }}-runner`
           - **Platform:** Linux x86_64
           - **Size:** ${{ env.BINARY_SIZE }}
           - **Features:** Zero-dependency, fast startup
