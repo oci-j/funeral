@@ -19,7 +19,6 @@ import io.oci.service.BlobStorage;
 import io.oci.service.DigestService;
 import io.oci.service.ManifestStorage;
 import io.oci.service.RepositoryStorage;
-import io.quarkus.security.Authenticated;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 import jakarta.inject.Named;
@@ -42,7 +41,6 @@ import org.slf4j.LoggerFactory;
     "/funeral_addition/write/upload"
 )
 @ApplicationScoped
-@Authenticated
 public class DockerTarResource {
 
     private static final Logger log = LoggerFactory.getLogger(
