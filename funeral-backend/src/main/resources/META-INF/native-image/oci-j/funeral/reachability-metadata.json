@@ -586,6 +586,12 @@
       "type" : "com.mongodb.event.CommandListener"
     },
     {
+      "type" : "com.mongodb.internal.connection.netty.NettyStream$1"
+    },
+    {
+      "type" : "com.mongodb.internal.connection.netty.NettyStream$InboundBufferHandler"
+    },
+    {
       "type" : "com.mongodb.reactivestreams.client.ReactiveContextProvider"
     },
     {
@@ -634,6 +640,15 @@
       ]
     },
     {
+      "type" : "com.sun.crypto.provider.DHParameters",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
       "type" : "com.sun.crypto.provider.GaloisCounterMode$AESGCM",
       "methods" : [
         {
@@ -643,7 +658,38 @@
       ]
     },
     {
+      "type" : "com.sun.crypto.provider.HKDFKeyDerivation$HKDFSHA256",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "javax.crypto.KDFParameters"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "com.sun.crypto.provider.HKDFKeyDerivation$HKDFSHA384",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "javax.crypto.KDFParameters"
+          ]
+        }
+      ]
+    },
+    {
       "type" : "com.sun.crypto.provider.HmacCore$HmacSHA256",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "com.sun.crypto.provider.HmacCore$HmacSHA384",
       "methods" : [
         {
           "name" : "<init>",
@@ -662,6 +708,33 @@
     },
     {
       "type" : "com.sun.crypto.provider.RSACipher",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "com.sun.crypto.provider.TlsKeyMaterialGenerator",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "com.sun.crypto.provider.TlsMasterSecretGenerator",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "com.sun.crypto.provider.TlsPrfGenerator$V12",
       "methods" : [
         {
           "name" : "<init>",
@@ -1248,6 +1321,9 @@
       ]
     },
     {
+      "type" : "io.netty.channel.ChannelInboundHandlerAdapter"
+    },
+    {
       "type" : "io.netty.channel.ChannelOutboundBuffer",
       "fields" : [
         {
@@ -1287,13 +1363,27 @@
       "type" : "io.netty.channel.EventLoopGroup"
     },
     {
+      "type" : "io.netty.channel.socket.nio.NioSocketChannel",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
       "type" : "io.netty.handler.codec.haproxy.HAProxyMessageDecoder"
     },
     {
       "type" : "io.netty.handler.timeout.IdleStateHandler"
     },
     {
-      "type" : "io.netty.util.AbstractReferenceCounted"
+      "type" : "io.netty.util.AbstractReferenceCounted",
+      "fields" : [
+        {
+          "name" : "refCnt"
+        }
+      ]
     },
     {
       "type" : "io.netty.util.DefaultAttributeMap",
@@ -1330,6 +1420,30 @@
         },
         {
           "name" : "threadProperties"
+        }
+      ]
+    },
+    {
+      "type" : "io.netty.util.internal.shaded.org.jctools.queues.BaseMpscLinkedArrayQueueColdProducerFields",
+      "fields" : [
+        {
+          "name" : "producerLimit"
+        }
+      ]
+    },
+    {
+      "type" : "io.netty.util.internal.shaded.org.jctools.queues.BaseMpscLinkedArrayQueueConsumerFields",
+      "fields" : [
+        {
+          "name" : "consumerIndex"
+        }
+      ]
+    },
+    {
+      "type" : "io.netty.util.internal.shaded.org.jctools.queues.BaseMpscLinkedArrayQueueProducerFields",
+      "fields" : [
+        {
+          "name" : "producerIndex"
         }
       ]
     },
@@ -1375,6 +1489,30 @@
     },
     {
       "type" : "io.netty.util.internal.shaded.org.jctools.queues.atomic.unpadded.MpscAtomicUnpaddedArrayQueueProducerLimitField",
+      "fields" : [
+        {
+          "name" : "producerLimit"
+        }
+      ]
+    },
+    {
+      "type" : "io.netty.util.internal.shaded.org.jctools.queues.unpadded.MpscUnpaddedArrayQueueConsumerIndexField",
+      "fields" : [
+        {
+          "name" : "consumerIndex"
+        }
+      ]
+    },
+    {
+      "type" : "io.netty.util.internal.shaded.org.jctools.queues.unpadded.MpscUnpaddedArrayQueueProducerIndexField",
+      "fields" : [
+        {
+          "name" : "producerIndex"
+        }
+      ]
+    },
+    {
+      "type" : "io.netty.util.internal.shaded.org.jctools.queues.unpadded.MpscUnpaddedArrayQueueProducerLimitField",
       "fields" : [
         {
           "name" : "producerLimit"
@@ -1440,6 +1578,32 @@
         },
         {
           "name" : "message"
+        }
+      ]
+    },
+    {
+      "type" : "io.oci.dto.ManifestInfo",
+      "fields" : [
+        {
+          "name" : "artifactType"
+        },
+        {
+          "name" : "contentLength"
+        },
+        {
+          "name" : "createdAt"
+        },
+        {
+          "name" : "digest"
+        },
+        {
+          "name" : "mediaType"
+        },
+        {
+          "name" : "tag"
+        },
+        {
+          "name" : "updatedAt"
         }
       ]
     },
@@ -2239,6 +2403,115 @@
       ]
     },
     {
+      "type" : "io.oci.resource.HealthCheckResource"
+    },
+    {
+      "type" : "io.oci.resource.HealthCheckResource$quarkusrestinvoker$getHealth_e13d60ca10f338f173d6d4c2fb6a2d9d6b4802ae",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "io.oci.resource.HealthCheckResource$quarkusrestinvoker$getLiveness_c40c0d400ad00626cfe9b75cb9d5dc1638c47f46",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "io.oci.resource.HealthCheckResource$quarkusrestinvoker$getReadiness_5272a665faaa4e673e2aec7c4ecbea3677366b46",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "io.oci.resource.MirrorHelmResource"
+    },
+    {
+      "type" : "io.oci.resource.MirrorHelmResource$MirrorResult",
+      "fields" : [
+        {
+          "name" : "blobsCount"
+        },
+        {
+          "name" : "chart"
+        },
+        {
+          "name" : "digest"
+        },
+        {
+          "name" : "format"
+        },
+        {
+          "name" : "source"
+        },
+        {
+          "name" : "success"
+        },
+        {
+          "name" : "targetChart"
+        },
+        {
+          "name" : "targetVersion"
+        },
+        {
+          "name" : "version"
+        }
+      ]
+    },
+    {
+      "type" : "io.oci.resource.MirrorHelmResource$quarkusrestinvoker$mirrorHelmChart_f14e6758bd1b464c3e350528101a362562a71158",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "io.oci.resource.MirrorResource"
+    },
+    {
+      "type" : "io.oci.resource.MirrorResource$MirrorResult",
+      "fields" : [
+        {
+          "name" : "blobsCount"
+        },
+        {
+          "name" : "manifestDigest"
+        },
+        {
+          "name" : "sourceImage"
+        },
+        {
+          "name" : "success"
+        },
+        {
+          "name" : "targetRepository"
+        },
+        {
+          "name" : "targetTag"
+        }
+      ]
+    },
+    {
+      "type" : "io.oci.resource.MirrorResource$quarkusrestinvoker$mirrorImage_6fb792c2b11a91eff50fd213fa2bad5621ccf73b",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
       "type" : "io.oci.resource.OciV2Resource"
     },
     {
@@ -2329,6 +2602,9 @@
       "type" : "io.oci.service.FileUserStorage"
     },
     {
+      "type" : "io.oci.service.HealthCheckService"
+    },
+    {
       "type" : "io.oci.service.JwtService"
     },
     {
@@ -2400,6 +2676,9 @@
       "type" : "io.quarkus.arc.AsyncObserverExceptionHandler"
     },
     {
+      "type" : "io.quarkus.arc.InjectableBean$Kind"
+    },
+    {
       "type" : "io.quarkus.arc.InjectableInstance"
     },
     {
@@ -2416,6 +2695,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -2435,6 +2718,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -2452,6 +2739,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -2531,6 +2822,16 @@
           ]
         },
         {
+          "name" : "initializeContainer",
+          "parameterTypes" : [
+            "io.quarkus.arc.deployment.ArcConfig",
+            "io.quarkus.arc.runtime.ArcRecorder",
+            "io.quarkus.deployment.builditem.ShutdownContextBuildItem",
+            "java.util.Optional",
+            "io.quarkus.deployment.builditem.LaunchModeBuildItem"
+          ]
+        },
+        {
           "name" : "launchMode",
           "parameterTypes" : [ ]
         },
@@ -2575,6 +2876,13 @@
           "name" : "registerContextPropagation",
           "parameterTypes" : [
             "io.quarkus.arc.deployment.ArcConfig",
+            "io.quarkus.deployment.annotations.BuildProducer"
+          ]
+        },
+        {
+          "name" : "registerPreShutdownListener",
+          "parameterTypes" : [
+            "io.quarkus.deployment.shutdown.ShutdownBuildTimeConfig",
             "io.quarkus.deployment.annotations.BuildProducer"
           ]
         },
@@ -2642,6 +2950,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -2874,6 +3186,19 @@
           ]
         },
         {
+          "name" : "generateConfigProperties",
+          "parameterTypes" : [
+            "io.quarkus.deployment.pkg.NativeConfig",
+            "io.quarkus.deployment.builditem.ConfigurationBuildItem",
+            "io.quarkus.deployment.builditem.CombinedIndexBuildItem",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer"
+          ]
+        },
+        {
           "name" : "registerConfigClasses",
           "parameterTypes" : [
             "io.quarkus.deployment.recording.RecorderContext",
@@ -2887,7 +3212,23 @@
           "parameterTypes" : [
             "io.quarkus.arc.deployment.BeanRegistrationPhaseBuildItem",
             "java.util.List",
+            "io.quarkus.deployment.annotations.BuildProducer"
+          ]
+        },
+        {
+          "name" : "registerConfigMappingsBean",
+          "parameterTypes" : [
+            "io.quarkus.arc.deployment.BeanRegistrationPhaseBuildItem",
+            "java.util.List",
             "io.quarkus.deployment.builditem.CombinedIndexBuildItem",
+            "io.quarkus.deployment.annotations.BuildProducer"
+          ]
+        },
+        {
+          "name" : "registerConfigPropertiesBean",
+          "parameterTypes" : [
+            "io.quarkus.arc.deployment.BeanRegistrationPhaseBuildItem",
+            "java.util.List",
             "io.quarkus.deployment.annotations.BuildProducer"
           ]
         },
@@ -3110,8 +3451,29 @@
           ]
         },
         {
+          "name" : "registerShutdownObservers",
+          "parameterTypes" : [
+            "io.quarkus.arc.deployment.ObserverRegistrationPhaseBuildItem",
+            "io.quarkus.deployment.shutdown.ShutdownBuildTimeConfig",
+            "io.quarkus.deployment.annotations.BuildProducer"
+          ]
+        },
+        {
+          "name" : "shutdownAddScope",
+          "parameterTypes" : [
+            "io.quarkus.arc.deployment.CustomScopeAnnotationsBuildItem",
+            "io.quarkus.deployment.shutdown.ShutdownBuildTimeConfig"
+          ]
+        },
+        {
           "name" : "unremovableBeans",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "unremovableBeans",
+          "parameterTypes" : [
+            "io.quarkus.deployment.shutdown.ShutdownBuildTimeConfig"
+          ]
         }
       ]
     },
@@ -3223,6 +3585,14 @@
           ]
         },
         {
+          "name" : "vetoTestClassesNotMatchingTestProfile",
+          "parameterTypes" : [
+            "java.util.Optional",
+            "io.quarkus.deployment.builditem.CombinedIndexBuildItem",
+            "java.util.List"
+          ]
+        },
+        {
           "name" : "vetoTestProfileBeans",
           "parameterTypes" : [
             "java.util.Optional",
@@ -3242,6 +3612,22 @@
         {
           "name" : "unremovableBeans",
           "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.arc.deployment.ValueRegistryProcessor",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "valueRegistry",
+          "parameterTypes" : [
+            "io.quarkus.arc.runtime.ValueRegistryRecorder",
+            "io.quarkus.deployment.annotations.BuildProducer"
+          ]
         }
       ]
     },
@@ -3584,6 +3970,19 @@
             "io.quarkus.deployment.annotations.BuildProducer",
             "io.quarkus.deployment.annotations.BuildProducer"
           ]
+        },
+        {
+          "name" : "processInterceptedStaticMethods",
+          "parameterTypes" : [
+            "io.quarkus.arc.deployment.BeanArchiveIndexBuildItem",
+            "io.quarkus.arc.deployment.BeanRegistrationPhaseBuildItem",
+            "java.util.List",
+            "io.quarkus.arc.deployment.CompletedApplicationClassPredicateBuildItem",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer"
+          ]
         }
       ]
     },
@@ -3747,6 +4146,9 @@
       ]
     },
     {
+      "type" : "io.quarkus.arc.impl.AnnotationLiterals"
+    },
+    {
       "type" : "io.quarkus.arc.impl.CurrentManagedContext$CurrentContextState",
       "fields" : [
         {
@@ -3764,7 +4166,13 @@
       "type" : "io.quarkus.arc.impl.ParameterizedTypeImpl"
     },
     {
+      "type" : "io.quarkus.arc.impl.Qualifiers"
+    },
+    {
       "type" : "io.quarkus.arc.impl.TypeVariableImpl"
+    },
+    {
+      "type" : "io.quarkus.arc.impl.UncaughtExceptions"
     },
     {
       "type" : "io.quarkus.arc.runtime.ArcRecorder"
@@ -3812,6 +4220,9 @@
       "type" : "io.quarkus.arc.runtime.LoggerProducer"
     },
     {
+      "type" : "io.quarkus.arc.runtime.ValueRegistryRecorder"
+    },
+    {
       "type" : "io.quarkus.arc.runtime.appcds.JvmStartupOptimizerArchiveRecorder"
     },
     {
@@ -3856,6 +4267,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -3876,6 +4291,9 @@
           ]
         }
       ]
+    },
+    {
+      "type" : "io.quarkus.bootstrap.logging.EmptyLogConfiguratorFactory"
     },
     {
       "type" : "io.quarkus.bootstrap.logging.EmptyLogContextConfigurator"
@@ -4018,6 +4436,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -4051,6 +4473,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -4086,6 +4512,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -4119,6 +4549,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -4146,6 +4580,17 @@
           "name" : "registerInetAddressServiceProvider",
           "parameterTypes" : [
             "io.quarkus.deployment.annotations.BuildProducer"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.IsDevServicesSupportedByLaunchMode",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "io.quarkus.runtime.LaunchMode"
           ]
         }
       ]
@@ -4185,6 +4630,17 @@
       ]
     },
     {
+      "type" : "io.quarkus.deployment.IsProduction",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "io.quarkus.runtime.LaunchMode"
+          ]
+        }
+      ]
+    },
+    {
       "type" : "io.quarkus.deployment.IsTest",
       "methods" : [
         {
@@ -4198,6 +4654,14 @@
     {
       "type" : "io.quarkus.deployment.JBossThreadsProcessor",
       "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "allowClearThreadLocals",
+          "parameterTypes" : [ ]
+        },
         {
           "name" : "build",
           "parameterTypes" : [ ]
@@ -4239,6 +4703,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -4265,6 +4733,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -4309,6 +4781,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -4378,6 +4854,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -4412,6 +4892,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -4454,6 +4938,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -4472,6 +4960,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -4489,6 +4981,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -4617,6 +5113,22 @@
       "type" : "io.quarkus.deployment.dev.JavaCompilationProvider"
     },
     {
+      "type" : "io.quarkus.deployment.dev.RecompilationDependenciesProcessor",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "consolidateRecompilationDependencies",
+          "parameterTypes" : [
+            "io.quarkus.deployment.builditem.CombinedIndexBuildItem",
+            "java.util.List"
+          ]
+        }
+      ]
+    },
+    {
       "type" : "io.quarkus.deployment.dev.devservices.ComposeBuildTimeConfig"
     },
     {
@@ -4630,6 +5142,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -4648,6 +5164,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -4696,6 +5216,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -4748,6 +5272,28 @@
       ]
     },
     {
+      "type" : "io.quarkus.deployment.dev.testing.HttpTestConfig"
+    },
+    {
+      "type" : "io.quarkus.deployment.dev.testing.HttpTestConfig$$CMImpl",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "io.smallrye.config.ConfigMappingContext"
+          ]
+        },
+        {
+          "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
       "type" : "io.quarkus.deployment.dev.testing.TestConfig"
     },
     {
@@ -4761,6 +5307,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -4780,6 +5330,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -4797,6 +5351,32 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.dev.testing.TestConfig$RestAssured"
+    },
+    {
+      "type" : "io.quarkus.deployment.dev.testing.TestConfig$RestAssured$$CMImpl",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "io.smallrye.config.ConfigMappingContext"
+          ]
+        },
+        {
+          "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -4932,6 +5512,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -4970,6 +5554,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -5050,6 +5638,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -5103,6 +5695,12 @@
           ]
         },
         {
+          "name" : "setProperties",
+          "parameterTypes" : [
+            "io.quarkus.deployment.annotations.BuildProducer"
+          ]
+        },
+        {
           "name" : "setProperty",
           "parameterTypes" : [ ]
         },
@@ -5132,6 +5730,15 @@
           "parameterTypes" : [
             "io.quarkus.runtime.logging.LogBuildTimeConfig",
             "io.quarkus.deployment.builditem.LogCategoryMinLevelDefaultsBuildItem",
+            "io.quarkus.deployment.annotations.BuildProducer"
+          ]
+        },
+        {
+          "name" : "setUpMinLevelLogging",
+          "parameterTypes" : [
+            "io.quarkus.runtime.logging.LogBuildTimeConfig",
+            "io.quarkus.deployment.builditem.LogCategoryMinLevelDefaultsBuildItem",
+            "io.quarkus.deployment.annotations.BuildProducer",
             "io.quarkus.deployment.annotations.BuildProducer"
           ]
         },
@@ -5243,6 +5850,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -5260,6 +5871,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -5279,6 +5894,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -5297,6 +5916,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -5314,6 +5937,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -5336,6 +5963,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -5353,6 +5984,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -5372,6 +6007,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -5389,6 +6028,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -5408,6 +6051,32 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.pkg.PackageConfig$JarConfig$CracConfig"
+    },
+    {
+      "type" : "io.quarkus.deployment.pkg.PackageConfig$JarConfig$CracConfig$$CMImpl",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "io.smallrye.config.ConfigMappingContext"
+          ]
+        },
+        {
+          "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -5425,6 +6094,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -5452,6 +6125,14 @@
             "java.util.List",
             "io.quarkus.deployment.annotations.BuildProducer"
           ]
+        },
+        {
+          "name" : "runtimeInitialized",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "setupReflectionClasses",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -5476,6 +6157,46 @@
             "java.util.List",
             "io.quarkus.deployment.builditem.MainClassBuildItem",
             "io.quarkus.deployment.configuration.ClassLoadingConfig"
+          ]
+        },
+        {
+          "name" : "buildNativeImageJar",
+          "parameterTypes" : [
+            "io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem",
+            "io.quarkus.deployment.pkg.builditem.OutputTargetBuildItem",
+            "io.quarkus.deployment.builditem.TransformedClassesBuildItem",
+            "io.quarkus.deployment.builditem.ApplicationArchivesBuildItem",
+            "io.quarkus.deployment.builditem.ApplicationInfoBuildItem",
+            "io.quarkus.deployment.pkg.PackageConfig",
+            "java.util.List",
+            "java.util.List",
+            "java.util.List",
+            "io.quarkus.deployment.builditem.MainClassBuildItem",
+            "io.quarkus.deployment.configuration.ClassLoadingConfig",
+            "java.util.concurrent.ExecutorService",
+            "io.quarkus.deployment.jvm.ResolvedJVMRequirements"
+          ]
+        },
+        {
+          "name" : "buildRunnerJar",
+          "parameterTypes" : [
+            "io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem",
+            "io.quarkus.deployment.jvm.ResolvedJVMRequirements",
+            "io.quarkus.deployment.pkg.builditem.OutputTargetBuildItem",
+            "io.quarkus.deployment.builditem.TransformedClassesBuildItem",
+            "io.quarkus.deployment.builditem.ApplicationArchivesBuildItem",
+            "io.quarkus.deployment.builditem.ApplicationInfoBuildItem",
+            "io.quarkus.deployment.pkg.PackageConfig",
+            "io.quarkus.deployment.configuration.ClassLoadingConfig",
+            "java.util.List",
+            "java.util.List",
+            "java.util.List",
+            "java.util.List",
+            "io.quarkus.deployment.builditem.QuarkusBuildCloseablesBuildItem",
+            "java.util.List",
+            "io.quarkus.deployment.builditem.MainClassBuildItem",
+            "java.util.Optional",
+            "java.util.concurrent.ExecutorService"
           ]
         },
         {
@@ -5656,6 +6377,32 @@
             "io.quarkus.deployment.pkg.builditem.NativeImageBuildItem",
             "io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem"
           ]
+        },
+        {
+          "name" : "runtimeInitialized",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.pkg.steps.NativeImageFutureDefault$RunTimeInitializeFileSystemProvider",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "io.quarkus.deployment.pkg.NativeConfig"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.pkg.steps.NativeImageFutureDefault$RunTimeInitializeSecurityProvider",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "io.quarkus.deployment.pkg.NativeConfig"
+          ]
         }
       ]
     },
@@ -5757,6 +6504,15 @@
           "name" : "<init>",
           "parameterTypes" : [
             "java.lang.reflect.InvocationHandler",
+            "io.quarkus.runtime.RuntimeValue"
+          ]
+        },
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler",
+            "io.quarkus.runtime.RuntimeValue",
+            "io.quarkus.runtime.RuntimeValue",
             "io.quarkus.runtime.RuntimeValue"
           ]
         },
@@ -5959,6 +6715,13 @@
           "name" : "<init>",
           "parameterTypes" : [
             "java.lang.reflect.InvocationHandler",
+            "io.quarkus.runtime.RuntimeValue"
+          ]
+        },
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler",
             "io.quarkus.runtime.RuntimeValue",
             "io.quarkus.runtime.RuntimeValue"
           ]
@@ -6075,6 +6838,13 @@
             "io.quarkus.runtime.RuntimeValue",
             "io.quarkus.runtime.RuntimeValue"
           ]
+        },
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler",
+            "io.quarkus.virtual.threads.VirtualThreadsConfig"
+          ]
         }
       ]
     },
@@ -6105,6 +6875,18 @@
             "java.lang.reflect.InvocationHandler"
           ]
         },
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler",
+            "io.quarkus.runtime.RuntimeValue"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$RecordingProxyProxy153",
+      "methods" : [
         {
           "name" : "<init>",
           "parameterTypes" : [
@@ -6472,7 +7254,41 @@
       ]
     },
     {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$RecordingProxyProxy182",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler",
+            "io.quarkus.runtime.RuntimeValue"
+          ]
+        }
+      ]
+    },
+    {
       "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$RecordingProxyProxy183",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$RecordingProxyProxy184",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$RecordingProxyProxy185",
       "methods" : [
         {
           "name" : "<init>",
@@ -6686,6 +7502,41 @@
       ]
     },
     {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$RecordingProxyProxy197",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler",
+            "io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig",
+            "io.quarkus.runtime.RuntimeValue"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$RecordingProxyProxy198",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$RecordingProxyProxy199",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
       "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$RecordingProxyProxy2",
       "methods" : [
         {
@@ -6750,6 +7601,29 @@
       ]
     },
     {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$RecordingProxyProxy200",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$RecordingProxyProxy204",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler",
+            "io.quarkus.runtime.RuntimeValue"
+          ]
+        }
+      ]
+    },
+    {
       "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$RecordingProxyProxy21",
       "methods" : [
         {
@@ -6762,6 +7636,15 @@
           "name" : "<init>",
           "parameterTypes" : [
             "java.lang.reflect.InvocationHandler",
+            "io.quarkus.runtime.RuntimeValue",
+            "io.quarkus.runtime.RuntimeValue"
+          ]
+        },
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler",
+            "io.quarkus.runtime.RuntimeValue",
             "io.quarkus.runtime.RuntimeValue",
             "io.quarkus.runtime.RuntimeValue"
           ]
@@ -6840,6 +7723,18 @@
             "io.quarkus.runtime.RuntimeValue",
             "io.quarkus.runtime.RuntimeValue"
           ]
+        },
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler",
+            "io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig",
+            "io.quarkus.vertx.http.runtime.management.ManagementInterfaceBuildTimeConfig",
+            "io.quarkus.runtime.RuntimeValue",
+            "io.quarkus.runtime.RuntimeValue",
+            "io.quarkus.runtime.RuntimeValue",
+            "io.quarkus.runtime.RuntimeValue"
+          ]
         }
       ]
     },
@@ -6885,6 +7780,18 @@
             "io.quarkus.runtime.RuntimeValue",
             "io.quarkus.runtime.RuntimeValue"
           ]
+        },
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler",
+            "io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig",
+            "io.quarkus.vertx.http.runtime.management.ManagementInterfaceBuildTimeConfig",
+            "io.quarkus.runtime.RuntimeValue",
+            "io.quarkus.runtime.RuntimeValue",
+            "io.quarkus.runtime.RuntimeValue",
+            "io.quarkus.runtime.RuntimeValue"
+          ]
         }
       ]
     },
@@ -6908,6 +7815,15 @@
           "name" : "<init>",
           "parameterTypes" : [
             "java.lang.reflect.InvocationHandler",
+            "io.quarkus.runtime.RuntimeValue",
+            "io.quarkus.runtime.RuntimeValue"
+          ]
+        },
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler",
+            "io.quarkus.runtime.RuntimeValue",
             "io.quarkus.runtime.RuntimeValue",
             "io.quarkus.runtime.RuntimeValue"
           ]
@@ -7172,6 +8088,15 @@
           "name" : "<init>",
           "parameterTypes" : [
             "java.lang.reflect.InvocationHandler",
+            "io.quarkus.runtime.RuntimeValue",
+            "io.quarkus.runtime.RuntimeValue"
+          ]
+        },
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler",
+            "io.quarkus.runtime.RuntimeValue",
             "io.quarkus.runtime.RuntimeValue",
             "io.quarkus.runtime.RuntimeValue"
           ]
@@ -7514,6 +8439,15 @@
           "parameterTypes" : [
             "java.lang.reflect.InvocationHandler",
             "io.quarkus.runtime.RuntimeValue",
+            "io.quarkus.runtime.RuntimeValue",
+            "io.quarkus.runtime.RuntimeValue"
+          ]
+        },
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler",
+            "io.quarkus.runtime.RuntimeValue",
             "io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig"
           ]
         },
@@ -7581,7 +8515,29 @@
           "parameterTypes" : [
             "java.lang.reflect.InvocationHandler",
             "io.quarkus.runtime.RuntimeValue",
+            "io.quarkus.runtime.RuntimeValue",
+            "io.quarkus.runtime.RuntimeValue"
+          ]
+        },
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler",
+            "io.quarkus.runtime.RuntimeValue",
             "io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$RecordingProxyProxy310",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler",
+            "io.quarkus.runtime.RuntimeValue",
+            "io.quarkus.runtime.RuntimeValue"
           ]
         }
       ]
@@ -7589,6 +8545,12 @@
     {
       "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$RecordingProxyProxy311",
       "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        },
         {
           "name" : "<init>",
           "parameterTypes" : [
@@ -7999,6 +8961,12 @@
         {
           "name" : "<init>",
           "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        },
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
             "java.lang.reflect.InvocationHandler",
             "io.quarkus.runtime.RuntimeValue",
             "io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig"
@@ -8084,6 +9052,13 @@
           "name" : "<init>",
           "parameterTypes" : [
             "java.lang.reflect.InvocationHandler"
+          ]
+        },
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler",
+            "io.quarkus.runtime.RuntimeValue"
           ]
         }
       ]
@@ -8268,6 +9243,14 @@
             "java.lang.reflect.InvocationHandler",
             "io.quarkus.runtime.RuntimeValue"
           ]
+        },
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler",
+            "io.quarkus.runtime.RuntimeValue",
+            "io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig"
+          ]
         }
       ]
     },
@@ -8407,6 +9390,17 @@
       ]
     },
     {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$RecordingProxyProxy42",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
       "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$RecordingProxyProxy43",
       "methods" : [
         {
@@ -8453,6 +9447,17 @@
     },
     {
       "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$RecordingProxyProxy461",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$RecordingProxyProxy47",
       "methods" : [
         {
           "name" : "<init>",
@@ -8708,6 +9713,13 @@
           "name" : "<init>",
           "parameterTypes" : [
             "java.lang.reflect.InvocationHandler"
+          ]
+        },
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler",
+            "io.quarkus.runtime.RuntimeValue"
           ]
         }
       ]
@@ -9024,6 +10036,17 @@
       ]
     },
     {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$RecordingProxyProxy86",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
       "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$RecordingProxyProxy89",
       "methods" : [
         {
@@ -9157,6 +10180,17 @@
       ]
     },
     {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$RecordingProxyProxy97",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
       "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy100",
       "methods" : [
         {
@@ -9180,6 +10214,17 @@
     },
     {
       "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy102",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy104",
       "methods" : [
         {
           "name" : "<init>",
@@ -9520,6 +10565,28 @@
       ]
     },
     {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy161",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy162",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
       "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy164",
       "methods" : [
         {
@@ -9543,6 +10610,17 @@
     },
     {
       "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy167",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy17",
       "methods" : [
         {
           "name" : "<init>",
@@ -9598,6 +10676,17 @@
     },
     {
       "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy179",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy18",
       "methods" : [
         {
           "name" : "<init>",
@@ -9795,6 +10884,50 @@
       ]
     },
     {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy206",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy208",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy210",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy212",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
       "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy215",
       "methods" : [
         {
@@ -9961,6 +11094,17 @@
     },
     {
       "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy247",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy249",
       "methods" : [
         {
           "name" : "<init>",
@@ -10378,6 +11522,17 @@
       ]
     },
     {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy301",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
       "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy304",
       "methods" : [
         {
@@ -10444,7 +11599,29 @@
       ]
     },
     {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy312",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
       "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy313",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy314",
       "methods" : [
         {
           "name" : "<init>",
@@ -10499,7 +11676,62 @@
       ]
     },
     {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy32",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
       "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy321",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy33",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy333",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy336",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy338",
       "methods" : [
         {
           "name" : "<init>",
@@ -10522,6 +11754,17 @@
     },
     {
       "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy347",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.lang.reflect.InvocationHandler"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.recording.BytecodeRecorderImpl$$ReturnValueProxy35",
       "methods" : [
         {
           "name" : "<init>",
@@ -11752,6 +12995,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -12081,6 +13328,15 @@
           "name" : "generateConfigClass",
           "parameterTypes" : [
             "io.quarkus.deployment.builditem.ConfigurationBuildItem",
+            "io.quarkus.deployment.builditem.LaunchModeBuildItem",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.builditem.LiveReloadBuildItem"
+          ]
+        },
+        {
+          "name" : "generateConfigClass",
+          "parameterTypes" : [
+            "io.quarkus.deployment.builditem.ConfigurationBuildItem",
             "java.util.List",
             "io.quarkus.deployment.builditem.LaunchModeBuildItem",
             "io.quarkus.deployment.annotations.BuildProducer",
@@ -12090,6 +13346,19 @@
         {
           "name" : "generateMappings",
           "parameterTypes" : [
+            "io.quarkus.deployment.builditem.ConfigurationBuildItem",
+            "io.quarkus.deployment.builditem.CombinedIndexBuildItem",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer"
+          ]
+        },
+        {
+          "name" : "generateMappings",
+          "parameterTypes" : [
+            "io.quarkus.deployment.pkg.NativeConfig",
             "io.quarkus.deployment.builditem.ConfigurationBuildItem",
             "io.quarkus.deployment.builditem.CombinedIndexBuildItem",
             "io.quarkus.deployment.annotations.BuildProducer",
@@ -12231,8 +13500,32 @@
             "io.quarkus.deployment.annotations.BuildProducer",
             "java.util.List",
             "java.util.List",
+            "io.quarkus.deployment.builditem.CuratedApplicationShutdownBuildItem"
+          ]
+        },
+        {
+          "name" : "setup",
+          "parameterTypes" : [
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "java.util.List",
+            "java.util.List",
             "java.util.List",
             "io.quarkus.deployment.builditem.CuratedApplicationShutdownBuildItem"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.steps.JvmRequirementsBuildStep",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "resolveJVMRequirements",
+          "parameterTypes" : [
+            "java.util.List"
           ]
         }
       ]
@@ -12312,6 +13605,28 @@
           ]
         },
         {
+          "name" : "build",
+          "parameterTypes" : [
+            "java.util.List",
+            "java.util.List",
+            "java.util.List",
+            "java.util.List",
+            "java.util.List",
+            "java.util.List",
+            "java.util.List",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "java.util.List",
+            "java.util.List",
+            "java.util.List",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.builditem.LaunchModeBuildItem",
+            "io.quarkus.deployment.builditem.LiveReloadBuildItem",
+            "io.quarkus.deployment.builditem.ApplicationInfoBuildItem",
+            "java.util.List",
+            "io.quarkus.deployment.naming.NamingConfig"
+          ]
+        },
+        {
           "name" : "mainClassBuildStep",
           "parameterTypes" : [
             "io.quarkus.deployment.annotations.BuildProducer",
@@ -12345,6 +13660,25 @@
         {
           "name" : "<init>",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "build",
+          "parameterTypes" : [
+            "io.quarkus.deployment.pkg.NativeConfig",
+            "io.quarkus.runtime.ssl.SslContextConfigurationRecorder",
+            "java.util.List",
+            "io.quarkus.deployment.builditem.SslNativeConfigBuildItem",
+            "java.util.List",
+            "java.util.List",
+            "java.util.List",
+            "java.util.List",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer"
+          ]
         },
         {
           "name" : "build",
@@ -12585,6 +13919,17 @@
           ]
         },
         {
+          "name" : "build",
+          "parameterTypes" : [
+            "io.quarkus.deployment.pkg.NativeConfig",
+            "io.quarkus.deployment.builditem.CombinedIndexBuildItem",
+            "io.quarkus.deployment.Capabilities",
+            "java.util.List",
+            "java.util.List",
+            "io.quarkus.deployment.annotations.BuildProducer"
+          ]
+        },
+        {
           "name" : "ignoreJavaClassWarnings",
           "parameterTypes" : [ ]
         }
@@ -12620,6 +13965,30 @@
             "io.quarkus.deployment.Capabilities",
             "io.quarkus.deployment.annotations.BuildProducer",
             "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.steps.RegisterResourceBundleBuildStep",
+      "methods" : [
+        {
+          "name" : "build",
+          "parameterTypes" : [
+            "io.quarkus.deployment.builditem.CombinedIndexBuildItem",
+            "io.quarkus.deployment.annotations.BuildProducer"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.deployment.steps.RegisterResourcesBuildStep",
+      "methods" : [
+        {
+          "name" : "build",
+          "parameterTypes" : [
+            "io.quarkus.deployment.builditem.CombinedIndexBuildItem",
             "io.quarkus.deployment.annotations.BuildProducer"
           ]
         }
@@ -12695,10 +14064,24 @@
       ]
     },
     {
+      "type" : "io.quarkus.deployment.steps.ValueRegistryProcessor",
+      "methods" : [
+        {
+          "name" : "serviceProvider",
+          "parameterTypes" : [
+            "io.quarkus.deployment.annotations.BuildProducer"
+          ]
+        }
+      ]
+    },
+    {
       "type" : "io.quarkus.deployment.util.ContainerRuntimeUtil$ContainerRuntime"
     },
     {
       "type" : "io.quarkus.dev.testing.ContinuousTestingSharedStateManager$State"
+    },
+    {
+      "type" : "io.quarkus.devservice.runtime.config.DevServicesConfigBuilder"
     },
     {
       "type" : "io.quarkus.devservices.deployment.DevServicesCommand"
@@ -12763,8 +14146,23 @@
         {
           "name" : "registerDevResourcesConfigSource",
           "parameterTypes" : [
+            "io.quarkus.deployment.annotations.BuildProducer"
+          ]
+        },
+        {
+          "name" : "registerDevResourcesConfigSource",
+          "parameterTypes" : [
             "java.util.List"
           ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.devservices.deployment.IsRuntimeModuleAvailable",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -12854,6 +14252,15 @@
         {
           "name" : "createKnownInternalImportMap",
           "parameterTypes" : [
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.vertx.http.deployment.NonApplicationRootPathBuildItem",
+            "io.quarkus.devui.deployment.DevUIConfig"
+          ]
+        },
+        {
+          "name" : "createKnownInternalImportMap",
+          "parameterTypes" : [
             "io.quarkus.vertx.http.deployment.NonApplicationRootPathBuildItem",
             "io.quarkus.devui.deployment.DevUIConfig"
           ]
@@ -12893,6 +14300,18 @@
             "io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem",
             "io.quarkus.deployment.annotations.BuildProducer"
           ]
+        },
+        {
+          "name" : "mapPageBuildTimeData",
+          "parameterTypes" : [
+            "java.util.List",
+            "java.util.List",
+            "java.util.List",
+            "java.util.List",
+            "java.util.List",
+            "io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem",
+            "io.quarkus.deployment.annotations.BuildProducer"
+          ]
         }
       ]
     },
@@ -12911,6 +14330,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -12928,6 +14351,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -12952,6 +14379,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -13002,8 +14433,28 @@
           ]
         },
         {
+          "name" : "findAllSupportedLocales",
+          "parameterTypes" : [ ]
+        },
+        {
           "name" : "getAllExtensions",
           "parameterTypes" : [
+            "java.util.List",
+            "java.util.List",
+            "java.util.List",
+            "io.quarkus.deployment.builditem.LaunchModeBuildItem",
+            "io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.Capabilities"
+          ]
+        },
+        {
+          "name" : "getAllExtensions",
+          "parameterTypes" : [
+            "java.util.List",
+            "java.util.List",
             "java.util.List",
             "java.util.List",
             "java.util.List",
@@ -13027,6 +14478,7 @@
           "name" : "registerDevUiHandlers",
           "parameterTypes" : [
             "io.quarkus.devui.deployment.DevUIConfig",
+            "io.quarkus.arc.deployment.BeanContainerBuildItem",
             "io.quarkus.devui.deployment.MvnpmBuildItem",
             "java.util.List",
             "java.util.List",
@@ -13037,6 +14489,34 @@
             "io.quarkus.vertx.http.deployment.HttpRootPathBuildItem",
             "io.quarkus.deployment.builditem.ShutdownContextBuildItem"
           ]
+        },
+        {
+          "name" : "registerDevUiHandlers",
+          "parameterTypes" : [
+            "io.quarkus.devui.deployment.DevUIConfig",
+            "io.quarkus.devui.deployment.MvnpmBuildItem",
+            "java.util.List",
+            "java.util.List",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.devui.runtime.DevUIRecorder",
+            "io.quarkus.deployment.builditem.LaunchModeBuildItem",
+            "io.quarkus.vertx.http.deployment.NonApplicationRootPathBuildItem",
+            "io.quarkus.vertx.http.deployment.HttpRootPathBuildItem",
+            "io.quarkus.deployment.builditem.ShutdownContextBuildItem"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.devui.deployment.DevUIProcessor$LanguageCountry",
+      "methods" : [
+        {
+          "name" : "code",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "name",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -13182,6 +14662,10 @@
           "parameterTypes" : [ ]
         },
         {
+          "name" : "getSettingPages",
+          "parameterTypes" : [ ]
+        },
+        {
           "name" : "getShortName",
           "parameterTypes" : [ ]
         },
@@ -13191,6 +14675,10 @@
         },
         {
           "name" : "getUnlisted",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getUnlistedPages",
           "parameterTypes" : [ ]
         }
       ]
@@ -13259,7 +14747,22 @@
           "parameterTypes" : [ ]
         },
         {
+          "name" : "additionalBeans",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "create",
+          "parameterTypes" : [
+            "io.quarkus.devui.runtime.build.BuildMetricsDevUIRecorder",
+            "io.quarkus.deployment.pkg.builditem.BuildSystemTargetBuildItem"
+          ]
+        },
+        {
           "name" : "createBuildMetricsPages",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "createJsonRPCService",
           "parameterTypes" : [ ]
         }
       ]
@@ -13499,9 +15002,46 @@
           ]
         },
         {
+          "name" : "listInstallableExtensions",
+          "parameterTypes" : [
+            "io.quarkus.devui.spi.buildtime.BuildTimeActionBuildItem"
+          ]
+        },
+        {
           "name" : "removeExtension",
           "parameterTypes" : [
             "io.quarkus.devui.spi.buildtime.BuildTimeActionBuildItem"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.devui.deployment.menu.MCPProcessor",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "createMCPJsonRPCService",
+          "parameterTypes" : [
+            "io.quarkus.deployment.annotations.BuildProducer"
+          ]
+        },
+        {
+          "name" : "createMCPPage",
+          "parameterTypes" : [
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer"
+          ]
+        },
+        {
+          "name" : "registerStreamableHTTPHandlers",
+          "parameterTypes" : [
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.devui.runtime.DevUIRecorder",
+            "io.quarkus.deployment.builditem.LaunchModeBuildItem",
+            "io.quarkus.vertx.http.deployment.NonApplicationRootPathBuildItem"
           ]
         }
       ]
@@ -13584,6 +15124,9 @@
           "name" : "configFile"
         },
         {
+          "name" : "dynamicContent"
+        },
+        {
           "name" : "resourcesDir"
         },
         {
@@ -13607,8 +15150,19 @@
             "io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem",
             "io.quarkus.devui.deployment.ExtensionsBuildItem"
           ]
+        },
+        {
+          "name" : "createWelcomePages",
+          "parameterTypes" : [
+            "io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem",
+            "java.util.List",
+            "io.quarkus.devui.deployment.ExtensionsBuildItem"
+          ]
         }
       ]
+    },
+    {
+      "type" : "io.quarkus.devui.runtime.DevUIBuildTimeStaticService"
     },
     {
       "type" : "io.quarkus.devui.runtime.DevUIRecorder"
@@ -13655,10 +15209,21 @@
       "type" : "io.quarkus.devui.runtime.continuoustesting.ContinuousTestingRecorder"
     },
     {
+      "type" : "io.quarkus.devui.runtime.jsonrpc.JsonRpcCodec"
+    },
+    {
       "type" : "io.quarkus.devui.runtime.jsonrpc.JsonRpcMethod",
       "methods" : [
         {
+          "name" : "getBean",
+          "parameterTypes" : [ ]
+        },
+        {
           "name" : "getClazz",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getDescription",
           "parameterTypes" : [ ]
         },
         {
@@ -13670,11 +15235,56 @@
           "parameterTypes" : [ ]
         },
         {
+          "name" : "getJavaMethod",
+          "parameterTypes" : [ ]
+        },
+        {
           "name" : "getMethodName",
           "parameterTypes" : [ ]
         },
         {
+          "name" : "getParameters",
+          "parameterTypes" : [ ]
+        },
+        {
           "name" : "getParams",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getRuntimeValue",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getUsage",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "isIsExplicitlyBlocking",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "isIsExplicitlyNonBlocking",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "isMcpEnabledByDefault",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.devui.runtime.jsonrpc.JsonRpcMethod$Parameter",
+      "methods" : [
+        {
+          "name" : "getDescription",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getType",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "isRequired",
           "parameterTypes" : [ ]
         }
       ]
@@ -13701,6 +15311,24 @@
       "type" : "io.quarkus.devui.runtime.logstream.LogStreamRecorder"
     },
     {
+      "type" : "io.quarkus.devui.runtime.mcp.McpDevUIJsonRpcService"
+    },
+    {
+      "type" : "io.quarkus.devui.runtime.mcp.McpDevUIJsonRpcService_ClientProxy"
+    },
+    {
+      "type" : "io.quarkus.devui.runtime.mcp.McpResourcesService"
+    },
+    {
+      "type" : "io.quarkus.devui.runtime.mcp.McpResourcesService_ClientProxy"
+    },
+    {
+      "type" : "io.quarkus.devui.runtime.mcp.McpToolsService"
+    },
+    {
+      "type" : "io.quarkus.devui.runtime.mcp.McpToolsService_ClientProxy"
+    },
+    {
       "type" : "io.quarkus.devui.runtime.readme.ReadmeJsonRPCService"
     },
     {
@@ -13713,6 +15341,12 @@
           "name" : "reportURL"
         }
       ]
+    },
+    {
+      "type" : "io.quarkus.devui.runtime.spi.McpEvent"
+    },
+    {
+      "type" : "io.quarkus.devui.runtime.spi.McpServerConfiguration"
     },
     {
       "type" : "io.quarkus.devui.spi.page.LibraryLink",
@@ -13829,6 +15463,99 @@
       ]
     },
     {
+      "type" : "io.quarkus.generated.boolean$quarkusrestparamConverter$",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.gizmo2.GenericType",
+      "methods" : [
+        {
+          "name" : "computeAnnotations",
+          "parameterTypes" : [
+            "java.lang.annotation.RetentionPolicy",
+            "io.smallrye.classfile.TypeAnnotation$TargetInfo",
+            "java.util.ArrayList",
+            "java.util.ArrayDeque"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.gizmo2.TypeKind",
+      "fields" : [
+        {
+          "name" : "actualKind"
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.gizmo2.TypeParameter",
+      "methods" : [
+        {
+          "name" : "computeAnnotations",
+          "parameterTypes" : [
+            "java.lang.annotation.RetentionPolicy",
+            "io.smallrye.classfile.TypeAnnotation$TargetInfo",
+            "java.util.ArrayList",
+            "java.util.ArrayDeque"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.gizmo2.TypeParameter$OfConstructor",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.util.List",
+            "java.util.List",
+            "java.lang.String",
+            "java.util.Optional",
+            "java.util.List",
+            "io.quarkus.gizmo2.desc.ConstructorDesc"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.gizmo2.TypeParameter$OfMethod",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.util.List",
+            "java.util.List",
+            "java.lang.String",
+            "java.util.Optional",
+            "java.util.List",
+            "io.quarkus.gizmo2.desc.MethodDesc"
+          ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.gizmo2.TypeParameter$OfType",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "java.util.List",
+            "java.util.List",
+            "java.lang.String",
+            "java.util.Optional",
+            "java.util.List",
+            "java.lang.constant.ClassDesc"
+          ]
+        }
+      ]
+    },
+    {
       "type" : "io.quarkus.jackson.ObjectMapperCustomizer"
     },
     {
@@ -13856,11 +15583,25 @@
           ]
         },
         {
+          "name" : "clearCachesOnShutdown",
+          "parameterTypes" : [
+            "io.quarkus.jackson.runtime.JacksonRecorder",
+            "io.quarkus.deployment.builditem.ShutdownContextBuildItem"
+          ]
+        },
+        {
           "name" : "generateCustomizer",
           "parameterTypes" : [
             "io.quarkus.deployment.annotations.BuildProducer",
             "java.util.List",
             "java.util.List"
+          ]
+        },
+        {
+          "name" : "jacksonSupport",
+          "parameterTypes" : [
+            "io.quarkus.jackson.runtime.JacksonRecorder",
+            "io.quarkus.jackson.runtime.JacksonBuildTimeConfig"
           ]
         },
         {
@@ -13876,6 +15617,15 @@
             "io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem",
             "io.quarkus.deployment.annotations.BuildProducer",
             "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer"
+          ]
+        },
+        {
+          "name" : "supportMixins",
+          "parameterTypes" : [
+            "io.quarkus.jackson.runtime.JacksonRecorder",
+            "io.quarkus.deployment.builditem.CombinedIndexBuildItem",
             "io.quarkus.deployment.annotations.BuildProducer",
             "io.quarkus.deployment.annotations.BuildProducer"
           ]
@@ -13922,8 +15672,15 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
+    },
+    {
+      "type" : "io.quarkus.jackson.runtime.JacksonRecorder"
     },
     {
       "type" : "io.quarkus.jackson.runtime.JacksonSupport"
@@ -13961,7 +15718,15 @@
     },
     {
       "type" : "io.quarkus.maven.dependency.GACT",
-      "serializable" : true
+      "serializable" : true,
+      "methods" : [
+        {
+          "name" : "parse",
+          "parameterTypes" : [
+            "java.lang.String"
+          ]
+        }
+      ]
     },
     {
       "type" : "io.quarkus.maven.dependency.GACTV",
@@ -13989,6 +15754,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -14044,6 +15813,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -14365,6 +16138,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -14383,6 +16160,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -14397,6 +16178,32 @@
     },
     {
       "type" : "io.quarkus.mongodb.runtime.MongoClients"
+    },
+    {
+      "type" : "io.quarkus.mongodb.runtime.MongoConfig"
+    },
+    {
+      "type" : "io.quarkus.mongodb.runtime.MongoConfig$$CMImpl",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "io.smallrye.config.ConfigMappingContext"
+          ]
+        },
+        {
+          "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
+        }
+      ]
     },
     {
       "type" : "io.quarkus.mongodb.runtime.MongoConfigSourceInterceptor"
@@ -14437,6 +16244,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -14594,6 +16405,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -14619,6 +16434,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -14636,6 +16455,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -14657,6 +16480,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -14685,7 +16512,25 @@
             "io.quarkus.netty.deployment.NettyBuildTimeConfig",
             "io.quarkus.deployment.annotations.BuildProducer",
             "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
             "java.util.List"
+          ]
+        },
+        {
+          "name" : "build",
+          "parameterTypes" : [
+            "io.quarkus.netty.deployment.NettyBuildTimeConfig",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "java.util.List"
+          ]
+        },
+        {
+          "name" : "build25Specific",
+          "parameterTypes" : [
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer"
           ]
         },
         {
@@ -14764,6 +16609,9 @@
       "serializable" : true
     },
     {
+      "type" : "io.quarkus.registry.ValueRegistry"
+    },
+    {
       "type" : "io.quarkus.rest.runtime.__QuarkusInit",
       "methods" : [
         {
@@ -14786,6 +16634,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -14901,6 +16753,12 @@
           ]
         },
         {
+          "name" : "setupBlockingOperationSupport",
+          "parameterTypes" : [
+            "io.quarkus.resteasy.reactive.common.runtime.ResteasyReactiveCommonRecorder"
+          ]
+        },
+        {
           "name" : "setupEndpoints",
           "parameterTypes" : [
             "io.quarkus.arc.deployment.BeanArchiveIndexBuildItem",
@@ -14932,6 +16790,32 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.resteasy.reactive.common.runtime.ResteasyReactiveConfig$ExceptionMappingConfig"
+    },
+    {
+      "type" : "io.quarkus.resteasy.reactive.common.runtime.ResteasyReactiveConfig$ExceptionMappingConfig$$CMImpl",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "io.smallrye.config.ConfigMappingContext"
+          ]
+        },
+        {
+          "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -14949,6 +16833,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -15340,6 +17228,18 @@
           ]
         },
         {
+          "name" : "integrateEagerSecurity",
+          "parameterTypes" : [
+            "io.quarkus.deployment.Capabilities",
+            "io.quarkus.deployment.builditem.CombinedIndexBuildItem",
+            "java.util.Optional",
+            "java.util.List",
+            "io.quarkus.resteasy.reactive.common.deployment.JaxRsSecurityConfig",
+            "java.util.Optional",
+            "java.util.Optional"
+          ]
+        },
+        {
           "name" : "providersFromClasspath",
           "parameterTypes" : [
             "io.quarkus.deployment.annotations.BuildProducer",
@@ -15476,6 +17376,39 @@
           ]
         },
         {
+          "name" : "setupEndpoints",
+          "parameterTypes" : [
+            "io.quarkus.deployment.builditem.ApplicationIndexBuildItem",
+            "io.quarkus.arc.deployment.BeanArchiveIndexBuildItem",
+            "io.quarkus.arc.deployment.BeanContainerBuildItem",
+            "io.quarkus.resteasy.reactive.common.runtime.ResteasyReactiveConfig",
+            "java.util.Optional",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.resteasy.reactive.server.runtime.ResteasyReactiveRecorder",
+            "java.util.List",
+            "java.util.Optional",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.resteasy.reactive.common.deployment.ApplicationResultBuildItem",
+            "io.quarkus.resteasy.reactive.server.deployment.ParamConverterProvidersBuildItem",
+            "io.quarkus.resteasy.reactive.common.deployment.AggregatedParameterContainersBuildItem",
+            "java.util.List",
+            "java.util.List",
+            "java.util.List",
+            "java.util.List",
+            "io.quarkus.deployment.pkg.builditem.CompiledJavaVersionBuildItem",
+            "io.quarkus.resteasy.reactive.common.deployment.ResourceInterceptorsBuildItem",
+            "io.quarkus.deployment.Capabilities",
+            "java.util.Optional",
+            "java.util.List",
+            "java.util.List",
+            "java.util.Optional"
+          ]
+        },
+        {
           "name" : "transformEndpoints",
           "parameterTypes" : [
             "io.quarkus.resteasy.reactive.common.deployment.ResourceScanningResultBuildItem",
@@ -15579,6 +17512,19 @@
           ]
         },
         {
+          "name" : "scanForExceptionMappers",
+          "parameterTypes" : [
+            "io.quarkus.deployment.builditem.CombinedIndexBuildItem",
+            "io.quarkus.resteasy.reactive.common.deployment.ApplicationResultBuildItem",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "java.util.List",
+            "java.util.List",
+            "io.quarkus.deployment.Capabilities",
+            "io.quarkus.resteasy.reactive.common.runtime.ResteasyReactiveConfig"
+          ]
+        },
+        {
           "name" : "scanForFeatures",
           "parameterTypes" : [
             "io.quarkus.deployment.builditem.CombinedIndexBuildItem",
@@ -15625,6 +17571,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -15700,6 +17650,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -15718,6 +17672,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -15735,6 +17693,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -15819,6 +17781,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -15855,6 +17821,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -15879,6 +17849,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -15897,8 +17871,15 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
+    },
+    {
+      "type" : "io.quarkus.runtime.BuilderConfig$Metrics"
     },
     {
       "type" : "io.quarkus.runtime.ClassPathSystemPropertyRecorder"
@@ -15918,6 +17899,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -15936,6 +17921,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -15953,6 +17942,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -15978,6 +17971,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -15999,6 +17996,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -16016,6 +18017,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -16068,6 +18073,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -16220,6 +18229,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -16271,6 +18284,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -16331,6 +18348,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -16348,6 +18369,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -16374,6 +18399,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -16391,6 +18420,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -16410,6 +18443,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -16427,6 +18464,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -16446,6 +18487,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -16463,6 +18508,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -16482,6 +18531,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -16500,6 +18553,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -16517,6 +18574,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -16543,6 +18604,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -16554,6 +18619,15 @@
     },
     {
       "type" : "io.quarkus.runtime.ssl.SslContextConfigurationRecorder"
+    },
+    {
+      "type" : "io.quarkus.runtime.util.JavaVersionGreaterOrEqual25",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        }
+      ]
     },
     {
       "type" : "io.quarkus.security.AuthenticationCompletionException"
@@ -16590,6 +18664,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -16655,12 +18733,27 @@
           ]
         },
         {
+          "name" : "createPermissionSecurityChecksBuilder",
+          "parameterTypes" : [
+            "io.quarkus.arc.deployment.BeanArchiveIndexBuildItem",
+            "io.quarkus.security.spi.PermissionsAllowedMetaAnnotationBuildItem",
+            "io.quarkus.security.spi.SecurityTransformerBuildItem"
+          ]
+        },
+        {
           "name" : "createSecurityCheckStorage",
           "parameterTypes" : [
             "io.quarkus.deployment.annotations.BuildProducer",
             "io.quarkus.deployment.annotations.BuildProducer",
             "io.quarkus.security.runtime.SecurityCheckRecorder",
             "io.quarkus.security.deployment.SecurityProcessor$MethodSecurityChecks",
+            "java.util.List"
+          ]
+        },
+        {
+          "name" : "createSecurityTransformerBuildItem",
+          "parameterTypes" : [
+            "java.util.List",
             "java.util.List"
           ]
         },
@@ -16675,6 +18768,16 @@
             "io.quarkus.arc.deployment.BeanArchiveIndexBuildItem",
             "io.quarkus.security.spi.PermissionsAllowedMetaAnnotationBuildItem",
             "java.util.List"
+          ]
+        },
+        {
+          "name" : "gatherClassSecurityChecks",
+          "parameterTypes" : [
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.arc.deployment.BeanArchiveIndexBuildItem",
+            "io.quarkus.security.spi.PermissionsAllowedMetaAnnotationBuildItem",
+            "java.util.List",
+            "io.quarkus.security.spi.SecurityTransformerBuildItem"
           ]
         },
         {
@@ -16695,6 +18798,25 @@
             "io.quarkus.security.deployment.PermissionSecurityChecksBuilderBuildItem",
             "io.quarkus.deployment.annotations.BuildProducer",
             "io.quarkus.deployment.annotations.BuildProducer"
+          ]
+        },
+        {
+          "name" : "gatherSecurityChecks",
+          "parameterTypes" : [
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "java.util.List",
+            "io.quarkus.arc.deployment.BeanArchiveIndexBuildItem",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "java.util.List",
+            "io.quarkus.security.runtime.SecurityCheckRecorder",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "java.util.List",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "java.util.List",
+            "io.quarkus.security.deployment.PermissionSecurityChecksBuilderBuildItem",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.security.spi.SecurityTransformerBuildItem"
           ]
         },
         {
@@ -16734,6 +18856,22 @@
           ]
         },
         {
+          "name" : "recordBouncyCastleProvidersRuntimeInit",
+          "parameterTypes" : [
+            "io.quarkus.security.runtime.SecurityProviderRecorder",
+            "java.util.List",
+            "java.util.List"
+          ]
+        },
+        {
+          "name" : "recordBouncyCastleProvidersStaticInit",
+          "parameterTypes" : [
+            "io.quarkus.security.runtime.SecurityProviderRecorder",
+            "java.util.List",
+            "java.util.List"
+          ]
+        },
+        {
           "name" : "recordRuntimeConfigReady",
           "parameterTypes" : [
             "io.quarkus.security.runtime.SecurityCheckRecorder",
@@ -16748,12 +18886,42 @@
           ]
         },
         {
+          "name" : "registerAdditionalIndexedClassesBuildItem",
+          "parameterTypes" : [
+            "io.quarkus.security.spi.SecurityTransformerBuildItem"
+          ]
+        },
+        {
+          "name" : "registerBouncyCastleReflection",
+          "parameterTypes" : [
+            "io.quarkus.deployment.pkg.builditem.CurateOutcomeBuildItem",
+            "io.quarkus.deployment.annotations.BuildProducer"
+          ]
+        },
+        {
+          "name" : "registerCurrentIdentityAssociationBean",
+          "parameterTypes" : [
+            "java.util.Optional"
+          ]
+        },
+        {
           "name" : "registerJCAProvidersForReflection",
           "parameterTypes" : [
             "io.quarkus.deployment.annotations.BuildProducer",
             "java.util.List",
             "io.quarkus.deployment.annotations.BuildProducer"
           ]
+        },
+        {
+          "name" : "registerRunAsUserInterceptorBean",
+          "parameterTypes" : [
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer"
+          ]
+        },
+        {
+          "name" : "registerRunAsUserInterceptorBinding",
+          "parameterTypes" : [ ]
         },
         {
           "name" : "registerSecurityInterceptors",
@@ -16773,6 +18941,14 @@
           ]
         },
         {
+          "name" : "secureInterfaceImplementations",
+          "parameterTypes" : [
+            "io.quarkus.security.spi.SecurityTransformerBuildItem",
+            "io.quarkus.deployment.builditem.CombinedIndexBuildItem",
+            "io.quarkus.deployment.annotations.BuildProducer"
+          ]
+        },
+        {
           "name" : "supportBlockingExecutionOfPermissionChecks",
           "parameterTypes" : [ ]
         },
@@ -16785,10 +18961,36 @@
           ]
         },
         {
+          "name" : "transformPermissionsAllowedMetaAnnotations",
+          "parameterTypes" : [
+            "io.quarkus.arc.deployment.BeanArchiveIndexBuildItem",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "java.util.List",
+            "io.quarkus.security.spi.SecurityTransformerBuildItem"
+          ]
+        },
+        {
           "name" : "transformSecurityAnnotations",
           "parameterTypes" : [
             "io.quarkus.deployment.annotations.BuildProducer",
             "java.util.List"
+          ]
+        },
+        {
+          "name" : "transformSecurityAnnotations",
+          "parameterTypes" : [
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "java.util.List",
+            "io.quarkus.security.spi.SecurityTransformerBuildItem",
+            "io.quarkus.deployment.builditem.CombinedIndexBuildItem"
+          ]
+        },
+        {
+          "name" : "validateRunAsUserUsage",
+          "parameterTypes" : [
+            "java.util.List",
+            "io.quarkus.arc.deployment.BeanArchiveIndexBuildItem",
+            "io.quarkus.deployment.annotations.BuildProducer"
           ]
         },
         {
@@ -16798,6 +19000,16 @@
             "io.quarkus.arc.deployment.ValidationPhaseBuildItem",
             "io.quarkus.arc.deployment.BeanArchiveIndexBuildItem",
             "io.quarkus.deployment.annotations.BuildProducer"
+          ]
+        },
+        {
+          "name" : "validateStartUpObserversNotSecured",
+          "parameterTypes" : [
+            "io.quarkus.arc.deployment.SynthesisFinishedBuildItem",
+            "io.quarkus.arc.deployment.ValidationPhaseBuildItem",
+            "io.quarkus.arc.deployment.BeanArchiveIndexBuildItem",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.security.spi.SecurityTransformerBuildItem"
           ]
         }
       ]
@@ -16827,6 +19039,9 @@
       "type" : "io.quarkus.security.runtime.IdentityProviderManagerCreator"
     },
     {
+      "type" : "io.quarkus.security.runtime.PrincipalProducer"
+    },
+    {
       "type" : "io.quarkus.security.runtime.SecurityCheckRecorder"
     },
     {
@@ -16843,6 +19058,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -16862,6 +19081,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -16879,6 +19102,9 @@
     },
     {
       "type" : "io.quarkus.security.runtime.interceptor.AuthenticatedInterceptor"
+    },
+    {
+      "type" : "io.quarkus.security.runtime.interceptor.RunAsUserInterceptor"
     },
     {
       "type" : "io.quarkus.security.runtime.interceptor.SecurityConstrainer"
@@ -17005,6 +19231,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -17126,6 +19356,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -17491,6 +19725,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -17526,6 +19764,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -17543,6 +19785,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -17562,6 +19808,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -17579,6 +19829,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -17598,6 +19852,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -17615,6 +19873,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -17634,6 +19896,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -17651,6 +19917,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -17670,6 +19940,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -17687,6 +19961,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -17710,6 +19988,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -17728,6 +20010,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -17745,6 +20031,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -17773,6 +20063,19 @@
             "io.quarkus.deployment.annotations.BuildProducer",
             "io.quarkus.deployment.annotations.BuildProducer",
             "io.quarkus.deployment.builditem.ExecutorBuildItem"
+          ]
+        },
+        {
+          "name" : "build",
+          "parameterTypes" : [
+            "io.quarkus.vertx.core.runtime.VertxCoreRecorder",
+            "io.quarkus.deployment.builditem.LaunchModeBuildItem",
+            "io.quarkus.deployment.builditem.ShutdownContextBuildItem",
+            "java.util.List",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.builditem.ExecutorBuildItem",
+            "io.quarkus.mutiny.deployment.MutinyRuntimeInitBuildItem"
           ]
         },
         {
@@ -17840,6 +20143,13 @@
           "parameterTypes" : [ ]
         },
         {
+          "name" : "registerBlockingSecurityExecutor",
+          "parameterTypes" : [
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.Capabilities"
+          ]
+        },
+        {
           "name" : "registerSafeDuplicatedContextInterceptor",
           "parameterTypes" : [ ]
         },
@@ -17889,6 +20199,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -17906,6 +20220,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -17925,6 +20243,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -17942,6 +20264,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -17961,6 +20287,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -17979,6 +20309,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -17996,6 +20330,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -18019,8 +20357,15 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
+    },
+    {
+      "type" : "io.quarkus.vertx.core.runtime.security.VertxBlockingSecurityExecutor"
     },
     {
       "type" : "io.quarkus.vertx.deployment.EventBusCodecProcessor",
@@ -18069,6 +20414,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -18103,6 +20452,23 @@
         {
           "name" : "autoAddScope",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "build",
+          "parameterTypes" : [
+            "io.quarkus.vertx.core.deployment.CoreVertxBuildItem",
+            "io.quarkus.vertx.runtime.VertxEventBusConsumerRecorder",
+            "java.util.List",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.builditem.AnnotationProxyBuildItem",
+            "io.quarkus.deployment.builditem.LaunchModeBuildItem",
+            "io.quarkus.deployment.builditem.ShutdownContextBuildItem",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "java.util.List",
+            "io.quarkus.vertx.deployment.LocalCodecSelectorTypesBuildItem",
+            "io.quarkus.deployment.recording.RecorderContext"
+          ]
         },
         {
           "name" : "build",
@@ -18186,6 +20552,15 @@
       ]
     },
     {
+      "type" : "io.quarkus.vertx.http.HttpServer"
+    },
+    {
+      "type" : "io.quarkus.vertx.http.HttpServerProducer"
+    },
+    {
+      "type" : "io.quarkus.vertx.http.HttpServerRuntimeInfoProvider"
+    },
+    {
       "type" : "io.quarkus.vertx.http.deployment.GeneratedStaticResourcesProcessor",
       "methods" : [
         {
@@ -18248,6 +20623,10 @@
           ]
         },
         {
+          "name" : "createCurrentIdentityAssociation",
+          "parameterTypes" : [ ]
+        },
+        {
           "name" : "createHttpAuthenticationHandler",
           "parameterTypes" : [
             "io.quarkus.vertx.http.runtime.security.HttpSecurityRecorder",
@@ -18281,6 +20660,22 @@
           "parameterTypes" : [
             "io.quarkus.deployment.builditem.CombinedIndexBuildItem",
             "io.quarkus.deployment.Capabilities"
+          ]
+        },
+        {
+          "name" : "gatherAuthorizationPolicyInstances",
+          "parameterTypes" : [
+            "io.quarkus.deployment.builditem.CombinedIndexBuildItem",
+            "io.quarkus.deployment.Capabilities",
+            "java.util.Optional"
+          ]
+        },
+        {
+          "name" : "generateAuthorizationPolicyStorage",
+          "parameterTypes" : [
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.Capabilities",
+            "io.quarkus.vertx.http.deployment.AuthorizationPolicyInstancesBuildItem"
           ]
         },
         {
@@ -18331,6 +20726,14 @@
           ]
         },
         {
+          "name" : "prepareCsrfConfigBuilder",
+          "parameterTypes" : [
+            "io.quarkus.deployment.Capabilities",
+            "java.util.Optional",
+            "io.quarkus.deployment.annotations.BuildProducer"
+          ]
+        },
+        {
           "name" : "produceEagerSecurityInterceptorStorage",
           "parameterTypes" : [
             "io.quarkus.vertx.http.runtime.security.HttpSecurityRecorder",
@@ -18355,6 +20758,25 @@
           ]
         },
         {
+          "name" : "registerAuthMechanismSelectionInterceptor",
+          "parameterTypes" : [
+            "io.quarkus.deployment.Capabilities",
+            "io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.vertx.http.runtime.security.HttpSecurityRecorder",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "io.quarkus.deployment.annotations.BuildProducer",
+            "java.util.List",
+            "java.util.List",
+            "io.quarkus.deployment.builditem.CombinedIndexBuildItem",
+            "java.util.Optional"
+          ]
+        },
+        {
+          "name" : "registerAuthorizationPolicyAnnotation",
+          "parameterTypes" : [ ]
+        },
+        {
           "name" : "registerFormAuthMechanism",
           "parameterTypes" : [
             "io.quarkus.deployment.annotations.BuildProducer",
@@ -18365,6 +20787,13 @@
         {
           "name" : "registerHttpAuthMechanismAnnotations",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "setMtlsCertificateRoleProperties",
+          "parameterTypes" : [
+            "io.quarkus.vertx.http.runtime.security.HttpSecurityRecorder",
+            "io.quarkus.deployment.Capabilities"
+          ]
         },
         {
           "name" : "setMtlsCertificateRoleProperties",
@@ -18541,6 +20970,13 @@
           ]
         },
         {
+          "name" : "cors",
+          "parameterTypes" : [
+            "io.quarkus.vertx.http.runtime.cors.CORSRecorder",
+            "java.util.Optional"
+          ]
+        },
+        {
           "name" : "createDevUILog",
           "parameterTypes" : [
             "io.quarkus.deployment.annotations.BuildProducer",
@@ -18673,6 +21109,13 @@
           ]
         },
         {
+          "name" : "registerHttpStaticDir",
+          "parameterTypes" : [
+            "io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig",
+            "io.quarkus.deployment.annotations.BuildProducer"
+          ]
+        },
+        {
           "name" : "shouldNotRemoveHttpServerOptionsCustomizers",
           "parameterTypes" : [ ]
         },
@@ -18680,6 +21123,13 @@
           "name" : "useManagementInterfaceBuildItem",
           "parameterTypes" : [
             "io.quarkus.vertx.http.runtime.management.ManagementInterfaceBuildTimeConfig"
+          ]
+        },
+        {
+          "name" : "watchHttpStaticDirForDev",
+          "parameterTypes" : [
+            "io.quarkus.vertx.http.runtime.VertxHttpBuildTimeConfig",
+            "io.quarkus.deployment.annotations.BuildProducer"
           ]
         }
       ]
@@ -18827,6 +21277,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -18845,6 +21299,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -18862,6 +21320,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -18902,6 +21364,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -18920,6 +21386,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -18928,6 +21398,50 @@
     },
     {
       "type" : "io.quarkus.vertx.http.runtime.CurrentVertxRequest"
+    },
+    {
+      "type" : "io.quarkus.vertx.http.runtime.DefaultAuthConfig"
+    },
+    {
+      "type" : "io.quarkus.vertx.http.runtime.DefaultAuthConfig$$CMImpl",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "io.smallrye.config.ConfigMappingContext"
+          ]
+        },
+        {
+          "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "io.quarkus.vertx.http.runtime.DefaultAuthConfig$Defaults"
+    },
+    {
+      "type" : "io.quarkus.vertx.http.runtime.DefaultAuthConfig$Defaults$$CMImpl",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "io.smallrye.config.ConfigMappingContext"
+          ]
+        },
+        {
+          "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
+        }
+      ]
     },
     {
       "type" : "io.quarkus.vertx.http.runtime.FilterConfig"
@@ -18943,6 +21457,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -18961,6 +21479,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -18985,6 +21507,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -19019,6 +21545,28 @@
       "type" : "io.quarkus.vertx.http.runtime.HttpConfiguration$StaticResourcesConfig"
     },
     {
+      "type" : "io.quarkus.vertx.http.runtime.HttpStaticDirConfig"
+    },
+    {
+      "type" : "io.quarkus.vertx.http.runtime.HttpStaticDirConfig$$CMImpl",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [
+            "io.smallrye.config.ConfigMappingContext"
+          ]
+        },
+        {
+          "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
       "type" : "io.quarkus.vertx.http.runtime.MultiPartConfig"
     },
     {
@@ -19032,6 +21580,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -19051,6 +21603,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -19068,6 +21624,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -19087,6 +21647,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -19104,6 +21668,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -19123,6 +21691,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -19141,6 +21713,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -19158,6 +21734,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -19179,6 +21759,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -19210,6 +21794,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -19231,6 +21819,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -19258,6 +21850,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -19372,6 +21968,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -19510,6 +22110,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -19532,6 +22136,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -19550,6 +22158,10 @@
         {
           "name" : "getProperties",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -19567,6 +22179,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -19639,6 +22255,10 @@
         },
         {
           "name" : "getProperties",
+          "parameterTypes" : [ ]
+        },
+        {
+          "name" : "getSecrets",
           "parameterTypes" : [ ]
         }
       ]
@@ -19830,6 +22450,9 @@
       "type" : "io.smallrye.jwt.config.JWTAuthContextInfoProvider"
     },
     {
+      "type" : "io.smallrye.mutiny.Multi"
+    },
+    {
       "type" : "io.smallrye.mutiny.context.DefaultContextPropagationInterceptor"
     },
     {
@@ -19840,6 +22463,9 @@
           "parameterTypes" : [ ]
         }
       ]
+    },
+    {
+      "type" : "io.smallrye.mutiny.helpers.UniCallbackSubscriber"
     },
     {
       "type" : "io.smallrye.mutiny.operators.uni.UniOperatorProcessor",
@@ -20016,6 +22642,9 @@
       "type" : "io.vertx.core.streams.StreamBase"
     },
     {
+      "type" : "io.vertx.core.streams.WriteStream"
+    },
+    {
       "type" : "io.vertx.ext.web.Router"
     },
     {
@@ -20103,6 +22732,9 @@
     },
     {
       "type" : "jakarta.enterprise.inject.Instance"
+    },
+    {
+      "type" : "jakarta.enterprise.inject.literal.InjectLiteral"
     },
     {
       "type" : "jakarta.enterprise.inject.spi.InjectionPoint"
@@ -20320,6 +22952,10 @@
         {
           "name" : "getRecordComponents",
           "parameterTypes" : [ ]
+        },
+        {
+          "name" : "isRecord",
+          "parameterTypes" : [ ]
         }
       ]
     },
@@ -20479,6 +23115,24 @@
     },
     {
       "type" : "java.lang.Record"
+    },
+    {
+      "type" : "java.lang.Runtime",
+      "methods" : [
+        {
+          "name" : "version",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "java.lang.Runtime$Version",
+      "methods" : [
+        {
+          "name" : "version",
+          "parameterTypes" : [ ]
+        }
+      ]
     },
     {
       "type" : "java.lang.RuntimeException"
@@ -20712,8 +23366,16 @@
       ]
     },
     {
+      "type" : "java.nio.Bits"
+    },
+    {
       "type" : "java.nio.Buffer",
       "jniAccessible" : true,
+      "fields" : [
+        {
+          "name" : "address"
+        }
+      ],
       "methods" : [
         {
           "name" : "position",
@@ -20748,6 +23410,9 @@
           "parameterTypes" : [ ]
         }
       ]
+    },
+    {
+      "type" : "java.nio.DirectByteBuffer"
     },
     {
       "type" : "java.nio.DoubleBuffer",
@@ -20854,6 +23519,9 @@
     },
     {
       "type" : "java.time.Duration"
+    },
+    {
+      "type" : "java.time.Instant"
     },
     {
       "type" : "java.time.ZoneId"
@@ -21037,7 +23705,13 @@
       "type" : "jdk.internal.jrtfs.JrtFileSystemProvider"
     },
     {
-      "type" : "jdk.internal.misc.Unsafe"
+      "type" : "jdk.internal.misc.Unsafe",
+      "methods" : [
+        {
+          "name" : "getUnsafe",
+          "parameterTypes" : [ ]
+        }
+      ]
     },
     {
       "type" : "jdk.net.ExtendedSocketOptions",
@@ -21073,6 +23747,9 @@
     },
     {
       "type" : "org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream"
+    },
+    {
+      "type" : "org.brotli.dec.BrotliInputStream"
     },
     {
       "type" : "org.bson.UuidRepresentation"
@@ -21666,6 +24343,10 @@
           "parameterTypes" : [ ]
         },
         {
+          "name" : "getDisabledMappers",
+          "parameterTypes" : [ ]
+        },
+        {
           "name" : "getMappers",
           "parameterTypes" : [ ]
         },
@@ -21709,6 +24390,15 @@
       "methods" : [
         {
           "name" : "getDelegate",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "org.jboss.resteasy.reactive.server.core.parameters.converters.LoadedParameterConverter",
+      "methods" : [
+        {
+          "name" : "getClassName",
           "parameterTypes" : [ ]
         }
       ]
@@ -22326,6 +25016,26 @@
       "type" : "sun.misc.SignalHandler"
     },
     {
+      "type" : "sun.misc.Unsafe",
+      "fields" : [
+        {
+          "name" : "theUnsafe"
+        }
+      ],
+      "methods" : [
+        {
+          "name" : "invokeCleaner",
+          "parameterTypes" : [
+            "java.nio.ByteBuffer"
+          ]
+        },
+        {
+          "name" : "trySetMemoryAccessWarned",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
       "type" : "sun.misc.VM"
     },
     {
@@ -22353,6 +25063,42 @@
     },
     {
       "type" : "sun.security.pkcs12.PKCS12KeyStore$DualFormatPKCS12",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "sun.security.provider.DSA$SHA224withDSA",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "sun.security.provider.DSA$SHA256withDSA",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "sun.security.provider.JavaKeyStore$DualFormatJKS",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "sun.security.provider.JavaKeyStore$JKS",
       "methods" : [
         {
           "name" : "<init>",
@@ -22401,6 +25147,15 @@
       ]
     },
     {
+      "type" : "sun.security.provider.SHA2$SHA224",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
       "type" : "sun.security.provider.SHA2$SHA256",
       "methods" : [
         {
@@ -22437,6 +25192,24 @@
       ]
     },
     {
+      "type" : "sun.security.provider.certpath.PKIXCertPathValidator",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "sun.security.rsa.PSSParameters",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
       "type" : "sun.security.rsa.RSAKeyFactory$Legacy",
       "methods" : [
         {
@@ -22455,7 +25228,43 @@
       ]
     },
     {
+      "type" : "sun.security.rsa.RSASignature$SHA224withRSA",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
       "type" : "sun.security.rsa.RSASignature$SHA256withRSA",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "sun.security.rsa.RSASignature$SHA384withRSA",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "sun.security.ssl.KeyManagerFactoryImpl$SunX509",
+      "methods" : [
+        {
+          "name" : "<init>",
+          "parameterTypes" : [ ]
+        }
+      ]
+    },
+    {
+      "type" : "sun.security.ssl.SSLContextImpl$DefaultSSLContext",
       "methods" : [
         {
           "name" : "<init>",
@@ -22650,6 +25459,9 @@
       "type" : "sun.util.resources.cldr.CalendarData"
     },
     {
+      "type" : "sun.util.resources.cldr.LocaleNames"
+    },
+    {
       "type" : {
         "proxy" : [
           "org.testcontainers.dockerclient.RootlessDockerClientProviderStrategy$LibC"
@@ -22661,6 +25473,16 @@
         "proxy" : [
           "sun.misc.SignalHandler"
         ]
+      }
+    },
+    {
+      "type" : {
+        "lambda" : {
+          "declaringClass" : "org.testcontainers.dockerclient.DockerClientProviderStrategy",
+          "interfaces" : [
+            "org.testcontainers.shaded.org.awaitility.core.ThrowingRunnable"
+          ]
+        }
       }
     }
   ],
@@ -22919,6 +25741,9 @@
     },
     {
       "glob" : "java/util/concurrent/ExecutorService.class"
+    },
+    {
+      "glob" : "java/util/concurrent/Flow$Publisher.class"
     },
     {
       "glob" : "java/util/concurrent/ScheduledExecutorService.class"
@@ -23375,6 +26200,10 @@
     {
       "module" : "java.base",
       "glob" : "java/util/concurrent/ExecutorService.class"
+    },
+    {
+      "module" : "java.base",
+      "glob" : "java/util/concurrent/Flow$Publisher.class"
     },
     {
       "module" : "java.base",
