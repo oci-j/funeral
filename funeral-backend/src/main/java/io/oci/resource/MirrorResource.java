@@ -374,43 +374,13 @@ public class MirrorResource {
         );
 
         if (response.statusCode() == 200) {
-            // Check if this is a manifest list or OCI index
-            String contentType = response.headers()
-                    .firstValue(
-                            "Content-Type"
-                    )
-                    .orElse(
-                            ""
-                    )
-                    .toLowerCase();
-
-            log.info(
-                    "Manifest Content-Type: {}",
-                    contentType
-            );
-
-            boolean isManifestList = contentType.contains(
-                    "manifest.list"
-            ) || contentType.contains(
-                    "image.index"
-            );
-
-            if (isManifestList) {
-                log.info(
-                        "Received manifest list/OCI index, looking up platform-specific manifest"
-                );
-                return parseAndResolveManifestList(
-                        ref,
-                        username,
-                        password,
-                        protocol,
-                        insecure,
-                        response.body()
-                );
-            }
-
-            return parseManifest(
-                    response.body()
+            return processManifestResponse(
+                    ref,
+                    username,
+                    password,
+                    protocol,
+                    insecure,
+                    response
             );
         }
         else if (response.statusCode() == 401) {
@@ -451,8 +421,13 @@ public class MirrorResource {
                             token
                     );
                     if (retryResponse.statusCode() == 200) {
-                        return parseManifest(
-                                retryResponse.body()
+                        return processManifestResponse(
+                                ref,
+                                username,
+                                password,
+                                protocol,
+                                insecure,
+                                retryResponse
                         );
                     }
                 }
@@ -471,6 +446,58 @@ public class MirrorResource {
                     "Failed to pull manifest. Status: " + response.statusCode()
             );
         }
+    }
+
+    /**
+     * Process manifest response, handling both regular manifests and manifest lists
+     */
+    private ManifestContent processManifestResponse(
+            ImageRef ref,
+            String username,
+            String password,
+            String protocol,
+            boolean insecure,
+            HttpResponse<String> response
+    )
+            throws IOException {
+        // Check if this is a manifest list or OCI index
+        String contentType = response.headers()
+                .firstValue(
+                        "Content-Type"
+                )
+                .orElse(
+                        ""
+                )
+                .toLowerCase();
+
+        log.info(
+                "Manifest Content-Type: {}",
+                contentType
+        );
+
+        boolean isManifestList = contentType.contains(
+                "manifest.list"
+        ) || contentType.contains(
+                "image.index"
+        );
+
+        if (isManifestList) {
+            log.info(
+                    "Received manifest list/OCI index, looking up platform-specific manifest"
+            );
+            return parseAndResolveManifestList(
+                    ref,
+                    username,
+                    password,
+                    protocol,
+                    insecure,
+                    response.body()
+            );
+        }
+
+        return parseManifest(
+                response.body()
+        );
     }
 
     /**

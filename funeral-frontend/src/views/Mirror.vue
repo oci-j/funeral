@@ -23,11 +23,11 @@
         <el-form-item label="Source Image" prop="sourceImage">
           <el-input
             v-model="form.sourceImage"
-            placeholder="docker.io/library/nginx:latest"
+            placeholder="docker.1ms.run/library/nginx:latest"
             clearable
           >
             <template #append>
-              <el-tooltip content="Examples: nginx:latest, docker.io/library/mysql:8.0, gcr.io/project/image:tag">
+              <el-tooltip content="Examples: nginx:latest, docker.1ms.run/library/mysql:8.0">
                 <el-icon><QuestionFilled /></el-icon>
               </el-tooltip>
             </template>
