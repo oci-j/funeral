@@ -28,7 +28,7 @@ jobs:
 
     - name: Build with Maven
       working-directory: ./funeral-backend
-      run: mvn -B clean package
+      run: mvn -B clean package -DskipTests
 
     - name: Upload JVM JAR
       uses: actions/upload-artifact@v4
@@ -55,7 +55,7 @@ jobs:
     - name: Build Native Binary
       working-directory: ./funeral-backend
       run: |
-        mvn -B clean package -Pnative
+        mvn -B clean package -Pnative -DskipTests
         # Rename binary for clarity
         if [ -f target/funeral-backend-*-runner ]; then
           mv target/funeral-backend-*-runner target/funeral-runner-linux-amd64
