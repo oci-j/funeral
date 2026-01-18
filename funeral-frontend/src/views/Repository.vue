@@ -26,7 +26,7 @@
               size="small"
               @click="goToTagDetail(tag.name)"
             >
-              <el-icon><InfoFilled /></el-icon>
+              <el-icon><Document /></el-icon>
               Details
             </el-button>
             <el-button
@@ -74,7 +74,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import { Back, DocumentCopy, Delete, InfoFilled } from '@element-plus/icons-vue'
+import { Back, DocumentCopy, Delete, Document } from '@element-plus/icons-vue'
 import { registryApi } from '../api/registry'
 import { ElMessage, ElMessageBox } from "element-plus";
 import { useProtectedPage } from '../composables/useAuthCheck'
