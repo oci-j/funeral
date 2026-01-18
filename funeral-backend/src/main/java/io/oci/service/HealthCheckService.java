@@ -6,6 +6,7 @@ import io.quarkus.runtime.StartupEvent;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.enterprise.event.Observes;
 import jakarta.inject.Inject;
+import jakarta.inject.Named;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,12 +19,21 @@ public class HealthCheckService {
     );
 
     @Inject
+    @Named(
+        "repositoryStorage"
+    )
     RepositoryStorage repositoryStorage;
 
     @Inject
-    MongoManifestStorage mongoManifestStorage;
+    @Named(
+        "manifestStorage"
+    )
+    ManifestStorage manifestStorage;
 
     @Inject
+    @Named(
+        "storage"
+    )
     AbstractStorageService abstractStorageService;
 
     @Inject

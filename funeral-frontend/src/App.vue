@@ -74,6 +74,10 @@
                   <el-icon><UploadFilled /></el-icon>
                   <span>Upload Image</span>
                 </el-menu-item>
+                <el-menu-item index="/mirror">
+                  <el-icon><Download /></el-icon>
+                  <span>Mirror Image</span>
+                </el-menu-item>
                 <el-menu-item v-if="authStore.isAdmin" index="/admin">
                   <el-icon><Tools /></el-icon>
                   <span>Admin</span>
@@ -97,6 +101,7 @@
 import {
   HomeFilled,
   UploadFilled,
+  Download,
   User,
   SwitchButton,
   Tools,
