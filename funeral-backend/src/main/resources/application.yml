@@ -12,9 +12,6 @@ quarkus:
       origins: "*"
       headers: "*"
       methods: "*"
-    auth:
-      # Disable proactive authentication to prevent Quarkus from automatically applying JWT auth
-      proactive: false
   smallrye-openapi:
     info-title: OCI Distribution Registry API
     info-version: 1.0.0
@@ -39,11 +36,22 @@ oci:
     jwt:
       issuer: ${JWT_ISSUER:funeral-registry}
       expiration-seconds: ${JWT_EXPIRATION:3600}
-      # RSA key size for JWT signing (default: 2048 bits)
-      key-size: ${JWT_KEY_SIZE:2048}
     auto-create:
       enabled: ${AUTH_AUTO_CREATE_ENABLED:true}
       username: ${AUTH_AUTO_CREATE_USERNAME:admin}
       password: ${AUTH_AUTO_CREATE_PASSWORD:password}
       email: ${AUTH_AUTO_CREATE_EMAIL:admin@funeral.local}
       roles: ${AUTH_AUTO_CREATE_ROLES:ADMIN;USER;PUSH_ALL;PULL_ALL}
+
+smallrye-jwt:
+  sign:
+    key:
+      location: classpath:privateKey.pem
+    algorithm: RS256
+
+mp:
+  jwt:
+    verify:
+      publickey:
+        location: classpath:publicKey.pem
+      issuer: ${JWT_ISSUER:funeral-registry}
