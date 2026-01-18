@@ -1,6 +1,6 @@
 {
   "name": "funeral-frontend",
-  "version": "0.1.8",
+  "version": "0.1.9",
   "type": "module",
   "scripts": {
     "dev": "cd .. && ./sync-frontend-from-pom.sh && cd funeral-frontend && vite",
