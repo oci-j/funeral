@@ -2,6 +2,49 @@ FUNERAL is an oci image registry following [oci-distribution-spec](https://githu
 
 In java.
 
+# Demo
+
+There be a demo page at https://funeral.xenoamess.com , at AUTH_ENABLED=false, NO_MONGO=true, NO_MINIO=true mode.
+
+Related docker image at here https://hub.docker.com/r/xenoamess/funeral
+
+# Usage
+
+Startup in no auth mode:
+
+```shell
+export AUTH_ENABLED=false
+./funeral-0.1.8-runner
+```
+
+Or, startup in default auth mode:
+
+```shell
+export AUTH_REALM=http://your-local-ip:8911/v2/token
+./funeral-0.1.8-runner
+```
+
+Otherwise, you can copy&modify the [application.yml](funeral-backend/src/main/resources/application.yml) to config minio & mongo connection & other configs
+
+Like this:
+
+```shell
+./funeral-0.1.8-runner -Dquarkus.config.locations=file:/home/xenoamess/funeral/application.yml
+```
+
+# Develop
+
+1. setup
+
+```shell
+cd funeral-frontend
+pnpm install
+pnpm build
+cd ../funeral-backend
+mvn quarkus:dev
+#mvn clean install
+```
+
 # Current Status
 
 It just begins the development.
@@ -29,20 +72,6 @@ HTML report was created: /home/xenoamess/workspace/distribution-spec/conformance
 Ran 74 of 79 Specs in 1.636 seconds
 SUCCESS! -- 74 Passed | 0 Failed | 0 Pending | 5 Skipped
 PASS
-```
-
-# Usage
-
-ignore the funeral-frontend folder.
-
-use funeral-backend folder, it is a quarkus maven project, you can use it as `mvn quarkus:dev`
-
-modify the resources/application.yml to config minio & mongo connection & other configs
-
-cli demo usage is like:
-
-```shell
-./funeral-0.1.8-runner -Dquarkus.config.locations=file:/home/xenoamess/funeral/application.yml
 ```
 
 # Short-Term Goal
