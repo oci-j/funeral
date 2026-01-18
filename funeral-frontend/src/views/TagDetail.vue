@@ -14,6 +14,15 @@
         <template #header>
           <div class="card-header">
             <span>{{ repositoryName }}:{{ tagName }}</span>
+            <div class="header-actions">
+              <el-tag type="info" size="small">
+                {{ tagInfo.mediaType?.split('/').pop() || 'Manifest' }}
+              </el-tag>
+              <el-button type="primary" size="small" @click="showTagDetails">
+                <el-icon><Document /></el-icon>
+                Details
+              </el-button>
+            </div>
           </div>
         </template>
         <div class="tag-properties">
@@ -354,6 +363,29 @@ const showBlobContent = async (blob) => {
   }
 }
 
+const showTagDetails = async () => {
+  dialogTitle.value = `Manifest Details: ${repositoryName.value}:${tagName.value}`
+  dialogVisible.value = true
+  dialogLoading.value = true
+  dialogError.value = ''
+  blobContent.value = null
+
+  try {
+    // Fetch the full manifest
+    const manifest = await registryApi.getManifest(repositoryName.value, tagName.value)
+    blobContent.value = {
+      type: 'text',
+      content: JSON.stringify(manifest, null, 2),
+      contentType: 'application/json'
+    }
+  } catch (error) {
+    dialogError.value = `Failed to fetch manifest: ${error.message}`
+    console.error('Error fetching manifest:', error)
+  } finally {
+    dialogLoading.value = false
+  }
+}
+
 const isJsonContent = computed(() => {
   if (!blobContent.value || blobContent.value.type !== 'text') return false
   const contentType = blobContent.value.contentType.toLowerCase()
@@ -636,6 +668,19 @@ onMounted(async () => {
 .json-viewer::-webkit-scrollbar-thumb:hover,
 .text-viewer::-webkit-scrollbar-thumb:hover {
   background: #a8a8a8;
+}
+
+/* Header Actions */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 /* Docker Layer Binary Styles */
