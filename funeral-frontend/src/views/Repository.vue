@@ -11,7 +11,12 @@
     <el-card class="tag-card" v-for="tag in tags" :key="tag.name">
       <template #header>
         <div class="card-header">
-          <span class="tag-name">{{ tag.name }}</span>
+          <div class="tag-header-info">
+            <span class="tag-name">{{ tag.name }}</span>
+            <el-tag :type="getTagTypeTag(tag.name)" size="small">
+              {{ getTagTypeTitle(tag.name) }}
+            </el-tag>
+          </div>
           <div class="header-actions">
             <el-text type="info" size="small">
               {{ formatSize(tag.size) }}
@@ -46,7 +51,7 @@
           <el-text class="digest-text">{{ tag.digest }}</el-text>
         </div>
         <div class="pull-command">
-          <el-text type="info">Pull Command:</el-text>
+          <el-text type="info">{{ isHelmChart(tag.name) ? 'Helm Command:' : 'Pull Command:' }}</el-text>
           <el-input
             :model-value="getPullCommand(tag)"
             readonly
@@ -80,6 +85,7 @@ const router = useRouter()
 // Decode the repository name from URL to handle special characters
 const repositoryName = ref(decodeURIComponent(route.params.name))
 const tags = ref([])
+const tagManifests = ref({})
 const loading = ref(false)
 const deletingTag = ref(null)
 
@@ -92,7 +98,12 @@ const fetchRepositoryTags = async () => {
       const tagDetails = await Promise.allSettled(
         data.tags.map(async (tag) => {
           try {
+            // Fetch both manifest info and full manifest for type detection
             const manifestInfo = await registryApi.getManifestInfo(repositoryName.value, tag)
+            const manifest = await registryApi.getManifest(repositoryName.value, tag)
+
+            // Store manifest for type detection
+            tagManifests.value[tag] = manifest
             return {
               name: tag,
               digest: manifestInfo.digest || 'Unknown',
@@ -126,7 +137,87 @@ const fetchRepositoryTags = async () => {
 }
 
 const getPullCommand = (tag) => {
+  if (isHelmChart(tag.name)) {
+    return `helm pull oci://${window.location.hostname}:${window.location.port || 80}/${repositoryName.value} --version ${tag.name}`
+  }
   return `docker pull ${window.location.hostname}:${window.location.port || 80}/${repositoryName.value}:${tag.name}`
+}
+
+const isHelmChart = (tagName) => {
+  const manifest = tagManifests.value[tagName]
+  if (!manifest) return false
+
+  // Check config media type
+  if (manifest.config?.mediaType?.includes('helm')) return true
+
+  // Check layers media types
+  if (manifest.layers?.length > 0) {
+    return manifest.layers.some(layer =>
+      layer.mediaType && layer.mediaType.includes('helm')
+    )
+  }
+
+  // Check top-level media type
+  if (manifest.mediaType?.includes('helm')) return true
+
+  // Check artifact type
+  if (manifest.artifactType?.includes('helm')) return true
+
+  return false
+}
+
+const isDockerImage = (tagName) => {
+  const manifest = tagManifests.value[tagName]
+  if (!manifest) return false
+
+  // Check config media type
+  if (manifest.config?.mediaType?.includes('image') ||
+      manifest.config?.mediaType?.includes('container')) return true
+
+  // Check layers media types
+  if (manifest.layers?.length > 0) {
+    return manifest.layers.some(layer =>
+      layer.mediaType && (
+        layer.mediaType.includes('image') ||
+        layer.mediaType.includes('rootfs') ||
+        layer.mediaType.includes('docker')
+      )
+    )
+  }
+
+  // Check top-level media type
+  if (manifest.mediaType?.includes('image') ||
+      manifest.mediaType?.includes('docker')) return true
+
+  // Check artifact type
+  if (manifest.artifactType?.includes('image') ||
+      manifest.artifactType?.includes('docker')) return true
+
+  return false
+}
+
+const getTagType = (tagName) => {
+  if (isHelmChart(tagName)) return 'helm'
+  if (isDockerImage(tagName)) return 'docker'
+  return 'unknown'
+}
+
+const getTagTypeTitle = (tagName) => {
+  const type = getTagType(tagName)
+  switch (type) {
+    case 'helm': return 'Helm Chart'
+    case 'docker': return 'Docker Image'
+    default: return 'OCI Artifact'
+  }
+}
+
+const getTagTypeTag = (tagName) => {
+  const type = getTagType(tagName)
+  switch (type) {
+    case 'helm': return 'success'
+    case 'docker': return 'info'
+    default: return 'warning'
+  }
 }
 
 const copyToClipboard = async (text) => {
@@ -223,6 +314,12 @@ onMounted(() => {
 .tag-name {
   font-weight: bold;
   font-size: 16px;
+}
+
+.tag-header-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .header-actions {
