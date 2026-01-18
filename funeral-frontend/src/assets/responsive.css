@@ -1,0 +1,354 @@
+/* Global Responsive Styles for FUNERAL Frontend */
+
+/* CSS Variables for responsive breakpoints */
+:root {
+  --breakpoint-xs: 480px;
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1200px;
+  --breakpoint-xxl: 1440px;
+
+  /* Mobile-first spacing */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 16px;
+  --spacing-xl: 20px;
+  --spacing-xxl: 24px;
+  --spacing-xxxl: 32px;
+}
+
+/* Base responsive utilities */
+@media (max-width: 576px) {
+  :root {
+    --spacing-xs: 2px;
+    --spacing-sm: 4px;
+    --spacing-md: 8px;
+    --spacing-lg: 12px;
+    --spacing-xl: 16px;
+    --spacing-xxl: 20px;
+    --spacing-xxxl: 24px;
+  }
+}
+
+/* Mobile-first improvements */
+body {
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+@media (max-width: 576px) {
+  body {
+    font-size: 13px;
+  }
+}
+
+/* Hide on mobile utilities */
+@media (max-width: 768px) {
+  .hide-mobile {
+    display: none !important;
+  }
+  .show-mobile {
+    display: block !important;
+  }
+  .show-mobile-flex {
+    display: flex !important;
+  }
+  .show-mobile-inline {
+    display: inline !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .show-mobile,
+  .show-mobile-flex,
+  .show-mobile-inline {
+    display: none !important;
+  }
+}
+
+/* Responsive tables */
+.responsive-table {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.responsive-table table {
+  min-width: 600px;
+}
+
+/* Responsive card */
+.responsive-card {
+  margin: var(--spacing-md);
+}
+
+@media (max-width: 768px) {
+  .responsive-card {
+    margin: var(--spacing-sm) var(--spacing-xs);
+  }
+}
+
+/* Touch-friendly buttons and links */
+.touch-friendly {
+  min-height: 44px;
+  min-width: 44px;
+  padding: var(--spacing-sm) var(--spacing-md);
+}
+
+@media (max-width: 768px) {
+  .el-button {
+    min-height: 40px;
+    padding: 10px 16px;
+  }
+
+  .el-menu-item {
+    height: 50px;
+    line-height: 50px;
+  }
+}
+
+/* Responsive form controls */
+@media (max-width: 768px) {
+  .el-form-item__label {
+    text-align: left !important;
+    float: none !important;
+    display: block !important;
+    width: 100% !important;
+    padding-bottom: 4px;
+  }
+
+  .el-form-item__content {
+    margin-left: 0 !important;
+  }
+}
+
+/* Responsive grid */
+.responsive-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+}
+
+.responsive-col {
+  flex: 1;
+  min-width: 250px;
+}
+
+@media (max-width: 768px) {
+  .responsive-row {
+    flex-direction: column;
+  }
+
+  .responsive-col {
+    min-width: 100%;
+  }
+}
+
+/* Responsive spacing utilities */
+.r-mt-xs { margin-top: var(--spacing-xs); }
+.r-mt-sm { margin-top: var(--spacing-sm); }
+.r-mt-md { margin-top: var(--spacing-md); }
+.r-mt-lg { margin-top: var(--spacing-lg); }
+.r-mt-xl { margin-top: var(--spacing-xl); }
+.r-mt-xxl { margin-top: var(--spacing-xxl); }
+
+.r-mb-xs { margin-bottom: var(--spacing-xs); }
+.r-mb-sm { margin-bottom: var(--spacing-sm); }
+.r-mb-md { margin-bottom: var(--spacing-md); }
+.r-mb-lg { margin-bottom: var(--spacing-lg); }
+.r-mb-xl { margin-bottom: var(--spacing-xl); }
+.r-mb-xxl { margin-bottom: var(--spacing-xxl); }
+
+.r-ml-xs { margin-left: var(--spacing-xs); }
+.r-ml-sm { margin-left: var(--spacing-sm); }
+.r-ml-md { margin-left: var(--spacing-md); }
+.r-ml-lg { margin-left: var(--spacing-lg); }
+.r-ml-xl { margin-left: var(--spacing-xl); }
+.r-ml-xxl { margin-left: var(--spacing-xxl); }
+
+.r-mr-xs { margin-right: var(--spacing-xs); }
+.r-mr-sm { margin-right: var(--spacing-sm); }
+.r-mr-md { margin-right: var(--spacing-md); }
+.r-mr-lg { margin-right: var(--spacing-lg); }
+.r-mr-xl { margin-right: var(--spacing-xl); }
+.r-mr-xxl { margin-right: var(--spacing-xxl); }
+
+.r-p-xs { padding: var(--spacing-xs); }
+.r-p-sm { padding: var(--spacing-sm); }
+.r-p-md { padding: var(--spacing-md); }
+.r-p-lg { padding: var(--spacing-lg); }
+.r-p-xl { padding: var(--spacing-xl); }
+.r-p-xxl { padding: var(--spacing-xxl); }
+
+/* Typography responsiveness */
+@media (max-width: 576px) {
+  h1 { font-size: 1.5rem; }
+  h2 { font-size: 1.25rem; }
+  h3 { font-size: 1.125rem; }
+  h4 { font-size: 1rem; }
+  h5 { font-size: 0.875rem; }
+  h6 { font-size: 0.75rem; }
+}
+
+/* El-Dialog responsive */
+@media (max-width: 768px) {
+  .el-dialog {
+    width: 95% !important;
+    margin: 10px auto !important;
+  }
+
+  .el-dialog__body {
+    padding: 20px 15px !important;
+  }
+}
+
+/* Responsive image */
+.responsive-img {
+  max-width: 100%;
+  height: auto;
+}
+
+/* Breakpoint specific display utilities */
+@media (max-width: 480px) {
+  .hide-xs { display: none !important; }
+}
+
+@media (max-width: 576px) {
+  .hide-sm { display: none !important; }
+}
+
+@media (max-width: 768px) {
+  .hide-md { display: none !important; }
+}
+
+@media (max-width: 992px) {
+  .hide-lg { display: none !important; }
+}
+
+@media (max-width: 1200px) {
+  .hide-xl { display: none !important; }
+}
+
+/* Text alignment utilities */
+.r-text-left { text-align: left; }
+.r-text-center { text-align: center; }
+.r-text-right { text-align: right; }
+
+@media (max-width: 768px) {
+  .r-text-left-sm { text-align: left; }
+  .r-text-center-sm { text-align: center; }
+  .r-text-right-sm { text-align: right; }
+}
+
+/* Prevent text overflow */
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .text-truncate-sm {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+}
+
+/* Additional element-specific responsiveness */
+@media (max-width: 768px) {
+  .el-button {
+    min-height: 40px;
+    padding: 10px 16px;
+  }
+
+  .el-menu-item {
+    height: 50px;
+    line-height: 50px;
+  }
+
+  /* Form responsiveness */
+  .el-form-item__label {
+    text-align: left !important;
+    float: none !important;
+    display: block !important;
+    width: 100% !important;
+    padding-bottom: 4px;
+    padding-left: 0 !important;
+  }
+
+  .el-form-item__content {
+    margin-left: 0 !important;
+    padding-left: 0 !important;
+  }
+
+  .el-form-item {
+    flex-direction: column;
+  }
+
+  .el-dialog {
+    min-width: 280px !important;
+  }
+
+  .el-message-box {
+    width: 90% !important;
+  }
+
+  /* Table responsiveness */
+  .el-table .cell {
+    word-break: break-word;
+  }
+
+  /* Input responsiveness */
+  .el-input {
+    width: 100%;
+  }
+
+  /* Upload responsiveness */
+  .el-upload__tip {
+    font-size: 12px;
+  }
+
+  .el-upload__tip code {
+    font-size: 11px;
+  }
+
+  /* Alert responsiveness */
+  .el-alert__title {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 576px) {
+  .el-button {
+    min-height: 36px;
+    padding: 8px 12px;
+    font-size: 14px;
+  }
+
+  .el-button .el-icon {
+    font-size: 14px;
+  }
+
+  .el-badge__content {
+    font-size: 10px;
+  }
+
+  .el-input__inner {
+    font-size: 14px;
+  }
+
+  /* Smaller tags */
+  .el-tag {
+    height: 22px !important;
+    line-height: 22px !important;
+    font-size: 12px;
+  }
+
+  .el-tag .el-icon {
+    font-size: 12px;
+  }
+}
+

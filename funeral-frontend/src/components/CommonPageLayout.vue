@@ -146,14 +146,14 @@ const openAbout = () => {
 <style scoped>
 .page-container {
   min-height: 100%;
-  padding: 20px;
+  padding: var(--spacing-lg);
 }
 
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: var(--spacing-lg);
 }
 
 .page-header h1 {
@@ -165,7 +165,7 @@ const openAbout = () => {
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--spacing-sm);
 }
 
 .page-content {
@@ -173,7 +173,7 @@ const openAbout = () => {
 }
 
 .content-card {
-  margin-bottom: 20px;
+  margin-bottom: var(--spacing-lg);
 }
 
 .card-header {
@@ -195,7 +195,7 @@ const openAbout = () => {
 }
 
 .page-footer {
-  margin-top: 20px;
+  margin-top: var(--spacing-lg);
   display: flex;
   justify-content: flex-end;
 }
@@ -203,8 +203,8 @@ const openAbout = () => {
 /* About button styles */
 :global(.about-button-container) {
   position: fixed;
-  bottom: 20px;
-  left: 20px;
+  bottom: var(--spacing-lg);
+  left: var(--spacing-lg);
   z-index: 1000;
 }
 
@@ -218,5 +218,52 @@ const openAbout = () => {
 :global(.about-button-container .el-button:hover) {
   transform: translateY(-2px);
   box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.15);
+}
+
+/* Mobile responsive adjustments */
+@media (max-width: 768px) {
+  .page-container {
+    padding: var(--spacing-sm);
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .page-header h1 {
+    font-size: 20px;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .content-card {
+    margin-bottom: var(--spacing-md);
+  }
+
+  .page-footer {
+    margin-top: var(--spacing-md);
+  }
+}
+
+@media (max-width: 480px) {
+  .page-header h1 {
+    font-size: 18px;
+  }
+
+  :global(.about-button-container) {
+    bottom: var(--spacing-md);
+    left: var(--spacing-md);
+  }
+
+  :global(.about-button-container .el-button) {
+    width: 40px;
+    height: 40px;
+  }
 }
 </style>

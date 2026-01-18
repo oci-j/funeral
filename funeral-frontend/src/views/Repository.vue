@@ -285,74 +285,142 @@ onMounted(() => {
 
 <style scoped>
 .repository-container {
-  padding: 20px;
+  padding: var(--spacing-lg);
 }
 
 .page-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
+  margin-bottom: var(--spacing-lg);
 }
 
 .page-header h1 {
   margin: 0;
   font-size: 24px;
   color: #409EFF;
+  word-break: break-all;
 }
 
 .tag-card {
-  margin-bottom: 16px;
+  margin-bottom: var(--spacing-md);
 }
 
 .card-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: var(--spacing-sm);
 }
 
 .tag-name {
   font-weight: bold;
   font-size: 16px;
+  word-break: break-all;
 }
 
 .tag-header-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
 }
 
 .header-actions {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
 }
 
 .tag-details {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--spacing-sm);
 }
 
 .detail-item {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--spacing-xs);
+  flex-wrap: wrap;
 }
 
 .digest-text {
   font-family: monospace;
   font-size: 12px;
+  word-break: break-all;
 }
 
 .pull-command {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-top: 12px;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-sm);
 }
 
 .command-input {
   flex: 1;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .repository-container {
+    padding: var(--spacing-sm);
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+    margin-bottom: var(--spacing-md);
+  }
+
+  .page-header h1 {
+    font-size: 20px;
+  }
+
+  .card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-md);
+  }
+
+  .header-actions {
+    justify-content: flex-start;
+  }
+
+  .pull-command {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--spacing-xs);
+  }
+
+  .command-input {
+    width: 100%;
+  }
+
+  .digest-text {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 576px) {
+  .page-header h1 {
+    font-size: 18px;
+  }
+
+  .tag-name {
+    font-size: 14px;
+  }
+
+  .header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .header-actions .el-button {
+    padding: 6px 10px;
+  }
 }
 </style>

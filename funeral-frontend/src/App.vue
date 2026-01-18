@@ -11,8 +11,10 @@
         <el-header>
           <div class="header-content">
             <div class="logo-section">
+              <el-button class="menu-toggle show-mobile-inline" :icon="Menu" @click="toggleMobileMenu" circle style="border: none; background: rgba(255,255,255,0.2); color: white; margin-right: 12px"/>
               <img src="/image/funeral.jpg" alt="FUNERAL Logo" class="logo-image" />
-              <h2>FUNERAL - OCI Registry</h2>
+              <h2 class="hide-xs">FUNERAL - OCI Registry</h2>
+              <h2 class="show-mobile" style="display: none;">FUNERAL</h2>
               <el-button
                 type="info"
                 :icon="InfoFilled"
@@ -20,6 +22,7 @@
                 @click="$refs.aboutDialog.open()"
                 title="About FUNERAL"
                 style="margin-left: 0;"
+                class="hide-xs"
               />
             </div>
             <div class="header-actions">
@@ -31,7 +34,7 @@
                       <el-icon v-if="authStore.checkingConfig"><Loading /></el-icon>
                       <el-icon v-else><User v-if="authStore.authEnabled" /><Unlock v-else /></el-icon>
                     </el-icon>
-                    {{ authStore.authEnabled ? authStore.user?.username : 'auth disabled' }}
+                    <span class="hide-xs">{{ authStore.authEnabled ? authStore.user?.username : 'auth disabled' }}</span>
                     <el-icon class="el-icon--right" v-if= "authStore.authEnabled"><arrow-down /></el-icon>
                   </span>
                   <template #dropdown>
@@ -59,12 +62,13 @@
         </el-header>
 
         <el-container>
-          <el-aside width="200px" class="sidebar">
+          <el-aside width="200px" class="sidebar" :class="{ 'mobile-menu-open': mobileMenuOpen }">
             <div class="sidebar-container">
               <el-menu
                 router
                 :default-active="$route.path"
                 class="el-menu-vertical"
+                @select="handleMenuSelect"
               >
                 <el-menu-item index="/">
                   <el-icon><HomeFilled /></el-icon>
@@ -90,7 +94,10 @@
             </div>
           </el-aside>
 
-          <el-main>
+          <!-- Overlay for mobile menu -->
+          <div v-if="mobileMenuOpen" class="el-overlay active" @click="toggleMobileMenu"></div>
+
+          <el-main class="main-content">
             <router-view />
           </el-main>
         </el-container>
@@ -113,7 +120,8 @@ import {
   Unlock,
   Loading,
   ArrowDown,
-  InfoFilled
+  InfoFilled,
+  Menu
 } from '@element-plus/icons-vue'
 import { useAuthStore } from './stores/auth'
 import { useRouter } from 'vue-router'
@@ -124,6 +132,7 @@ import AboutDialog from './components/AboutDialog.vue'
 const authStore = useAuthStore()
 const router = useRouter()
 const aboutDialog = ref()
+const mobileMenuOpen = ref(false)
 
 const authStatusText = computed(() => {
   if (authStore.checkingConfig) return 'Checking Auth...'
@@ -147,6 +156,12 @@ const handleMenuSelect = (index) => {
   if (index === 'about') {
     aboutDialog.value?.open()
   }
+  // Close mobile menu when a menu item is selected
+  mobileMenuOpen.value = false
+}
+
+const toggleMobileMenu = () => {
+  mobileMenuOpen.value = !mobileMenuOpen.value
 }
 </script>
 
@@ -269,4 +284,72 @@ body {
 .sidebar-footer .el-menu-vertical {
   flex: none;
 }
+
+/* Mobile responsive styles */
+@media (max-width: 768px) {
+  .el-header {
+    padding: 0 15px;
+    line-height: 50px;
+    height: 50px !important;
+  }
+
+  .logo-section h2 {
+    font-size: 18px;
+  }
+
+  .logo-image {
+    width: 28px;
+    height: 28px;
+  }
+
+  .el-aside {
+    position: fixed !important;
+    top: 0;
+    left: -250px;
+    height: 100vh;
+    width: 250px !important;
+    z-index: 1000;
+    transition: left 0.3s ease;
+    background-color: #f5f7fa;
+    border-right: 1px solid #e4e7ed;
+  }
+
+  .el-aside.mobile-menu-open {
+    left: 0;
+  }
+
+  .el-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    z-index: 999;
+    display: none;
+  }
+
+  .el-overlay.active {
+    display: block;
+  }
+
+  .menu-toggle {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+  }
+
+  .el-main {
+    padding: 15px !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .logo-section h2 {
+    font-size: 16px;
+  }
+}
+
 </style>
