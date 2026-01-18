@@ -97,13 +97,3 @@ It would focus more on usability, and become straightforward to use/establish.
    would I start another project to make the storage more compressed...by replacing the TAR.
 
    But that would be a long-term goal, and we shall do things one by one.
-
-5. this repo doesn't focus on security, so it won't support things like
-    - image signing
-    - image scanning
-    - etc.
-
-   It be based on the assumption that the image registry is used in a trusted environment, like a private network.
-   At least any people who have log in access to the FUNERAL do not use any malicious images/clients.
-   (And this is the case for my research and work, so I don't care much about security for now.)
-   Though pull requests be welcomed if there be people who want to add security features.
