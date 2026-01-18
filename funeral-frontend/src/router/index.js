@@ -35,6 +35,12 @@ const routes = [
     meta: { requiresAuth: true }
   },
   {
+    path: '/mirror-helm',
+    name: 'MirrorHelm',
+    component: () => import('../views/MirrorHelm.vue'),
+    meta: { requiresAuth: true }
+  },
+  {
     path: '/login',
     name: 'Login',
     component: () => import('../views/Login.vue'),

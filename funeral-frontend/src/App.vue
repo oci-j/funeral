@@ -78,6 +78,10 @@
                   <el-icon><Download /></el-icon>
                   <span>Mirror Image</span>
                 </el-menu-item>
+                <el-menu-item index="/mirror-helm">
+                  <el-icon><Download /></el-icon>
+                  <span>Mirror Helm</span>
+                </el-menu-item>
                 <el-menu-item v-if="authStore.isAdmin" index="/admin">
                   <el-icon><Tools /></el-icon>
                   <span>Admin</span>
