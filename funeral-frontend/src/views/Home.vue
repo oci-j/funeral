@@ -44,6 +44,7 @@
             size="small"
             @click="handleDeleteRepository(scope.row.name)"
           >
+            <el-icon><Delete /></el-icon>
             Delete
           </el-button>
         </template>
@@ -55,7 +56,7 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { RefreshRight } from '@element-plus/icons-vue'
+import { RefreshRight, Delete } from '@element-plus/icons-vue'
 import { registryApi } from '../api/registry'
 import { useProtectedPage } from '../composables/useAuthCheck'
 import { formatDate } from '../utils/common'
