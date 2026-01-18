@@ -22,7 +22,7 @@
               <el-tag type="info">{{ version }}</el-tag>
             </el-descriptions-item>
 
-            <el-descriptions-item label="Project URL">
+            <el-descriptions-item label="Sources">
               <el-link
                 type="primary"
                 href="https://github.com/oci-j/funeral.git"
