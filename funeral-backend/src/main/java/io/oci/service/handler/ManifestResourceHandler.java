@@ -3,7 +3,9 @@ package io.oci.service.handler;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import io.oci.annotation.CommentDELETE;
 import io.oci.annotation.CommentGET;
@@ -31,6 +33,10 @@ import org.apache.commons.lang3.StringUtils;
 )
 @ApplicationScoped
 public class ManifestResourceHandler {
+
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(
+            ManifestResourceHandler.class
+    );
 
     @Inject
     DigestService digestService;
@@ -379,8 +385,29 @@ public class ManifestResourceHandler {
                     manifestContent,
                     Manifest.class
             );
+            log.info(
+                    "Successfully parsed manifest for repository: {}, digest: {}, tag: {}",
+                    repositoryName,
+                    manifest.digest,
+                    manifest.tag
+            );
         }
-        catch (Exception ignored) {
+        catch (Exception e) {
+            log.warn(
+                    "Failed to parse manifest JSON for repository {}: {}",
+                    repositoryName,
+                    e.getMessage()
+            );
+            log.warn(
+                    "Manifest content (first 200 chars): {}",
+                    manifestContent.substring(
+                            0,
+                            Math.min(
+                                    200,
+                                    manifestContent.length()
+                            )
+                    )
+            );
             manifest = new Manifest();
         }
         if (manifest.digest == null) {
@@ -425,14 +452,103 @@ public class ManifestResourceHandler {
         manifest.mediaType = contentType != null ? contentType : "application/vnd.docker.distribution.manifest.v2+json";
         manifest.content = manifestContent;
         manifest.contentLength = (long) manifestContent.getBytes().length;
-        if (!reference.startsWith(
+
+        // Calculate digest from manifest content (the correct OCI way)
+        manifest.digest = digestService.calculateDigest(
+                manifestContent
+        );
+
+        // Extract OCI fields from manifest content
+        try {
+            var parsed = JsonUtil.fromJson(
+                    manifestContent,
+                    Map.class
+            );
+
+            // Extract artifactType
+            if (parsed.get(
+                    "artifactType"
+            ) != null) {
+                manifest.artifactType = parsed.get(
+                        "artifactType"
+                ).toString();
+            }
+
+            // Extract config digest
+            if (manifest.configDigest == null) {
+                Object config = parsed.get(
+                        "config"
+                );
+                if (config instanceof Map) {
+                    Object digest = ((Map<?, ?>) config).get(
+                            "digest"
+                    );
+                    if (digest != null) {
+                        manifest.configDigest = digest.toString();
+                    }
+                }
+            }
+
+            // Extract tag from annotations if available
+            if (manifest.tag == null) {
+                Object annotations = parsed.get(
+                        "annotations"
+                );
+                if (annotations instanceof Map) {
+                    Object version = ((Map<?, ?>) annotations).get(
+                            "org.opencontainers.image.version"
+                    );
+                    if (version != null) {
+                        manifest.tag = version.toString();
+                    }
+                }
+            }
+
+            // Extract layer digests
+            if (manifest.layerDigests == null) {
+                Object layers = parsed.get(
+                        "layers"
+                );
+                if (layers instanceof List) {
+                    List<String> digests = new ArrayList<>();
+                    for (Object layer : (List<?>) layers) {
+                        if (layer instanceof Map) {
+                            Object digest = ((Map<?, ?>) layer).get(
+                                    "digest"
+                            );
+                            if (digest != null) {
+                                digests.add(
+                                        digest.toString()
+                                );
+                            }
+                        }
+                    }
+                    manifest.layerDigests = digests;
+                }
+            }
+        }
+        catch (Exception ignored) {
+        }
+
+        // Always set tag from reference if not a digest
+        if (manifest.tag == null && !reference.startsWith(
                 "sha256:"
         )) {
             manifest.tag = reference;
         }
 
+        log.info(
+                "About to persist manifest for repository: {}, digest: {}, tag: {}, configDigest: {}",
+                manifest.repositoryName,
+                manifest.digest,
+                manifest.tag,
+                manifest.configDigest
+        );
         manifestStorage.persist(
                 manifest
+        );
+        log.info(
+                "Manifest persisted successfully"
         );
 
         // Update repository timestamp

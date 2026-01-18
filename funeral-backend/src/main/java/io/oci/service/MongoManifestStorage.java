@@ -29,14 +29,34 @@ public class MongoManifestStorage implements ManifestStorage {
     public void persist(
             Manifest manifest
     ) {
+        org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(
+                MongoManifestStorage.class
+        );
+        log.info(
+                "MongoDB persist called with: repository={}, digest={}, tag={}",
+                manifest.repositoryName,
+                manifest.digest,
+                manifest.tag
+        );
         if (manifest.id == null) {
             manifest.id = new org.bson.types.ObjectId();
+            log.info(
+                    "Generated new ObjectId: {}",
+                    manifest.id
+            );
         }
         manifest.updatedAt = LocalDateTime.now();
         if (manifest.createdAt == null) {
             manifest.createdAt = LocalDateTime.now();
         }
+        log.info(
+                "Calling persistOrUpdate()"
+        );
         manifest.persistOrUpdate();
+        log.info(
+                "persistOrUpdate completed, id: {}",
+                manifest.id
+        );
     }
 
     @Override

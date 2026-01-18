@@ -651,7 +651,9 @@ public class MirrorHelmResource {
                 configDigest,
                 configSize,
                 layerDigest,
-                chartData.length
+                chartData.length,
+                chartName,
+                version
         );
         String manifestDigest = "sha256:" + calculateSha256(
                 ociManifestJson
@@ -1097,11 +1099,24 @@ public class MirrorHelmResource {
             newManifest.digest = manifest.digest;
             newManifest.configDigest = manifest.configDigest;
             newManifest.layerDigests = manifest.layerDigests;
-            newManifest.mediaType = "application/vnd.cncf.helm.chart.v1+json";
+            newManifest.mediaType = "application/vnd.oci.image.manifest.v1+json";
+            newManifest.artifactType = "application/vnd.cncf.helm.chart.v1+json";
             newManifest.content = manifest.json;
             newManifest.contentLength = (long) manifest.json.getBytes().length;
             manifestStorage.persist(
                     newManifest
+            );
+
+            // Store the manifest JSON as a blob so it can be accessed via blobs endpoint
+            storeBlob(
+                    manifest.digest,
+                    new ByteArrayInputStream(
+                            manifest.json.getBytes(
+                                    StandardCharsets.UTF_8
+                            )
+                    ),
+                    (long) manifest.json.getBytes().length,
+                    "application/vnd.oci.image.manifest.v1+json"
             );
 
             log.info(
@@ -1619,15 +1634,35 @@ public class MirrorHelmResource {
     }
 
     /**
-     * Build OCI manifest JSON
+     * Build OCI manifest JSON with Helm annotations
      */
     private String buildOCIManifest(
             String configDigest,
             Long configSize,
             String layerDigest,
-            Integer layerSize
+            Integer layerSize,
+            String chartName,
+            String version
     ) {
-        // Build OCI manifest structure
+        // Build current timestamp
+        String timestamp = java.time.ZonedDateTime.now()
+                .format(
+                        java.time.format.DateTimeFormatter.ISO_INSTANT
+                );
+
+        // Extract chart name without organization for annotations
+        String simpleChartName = chartName;
+        if (chartName.contains(
+                "/"
+        )) {
+            simpleChartName = chartName.substring(
+                    chartName.indexOf(
+                            "/"
+                    ) + 1
+            );
+        }
+
+        // Build OCI manifest with Helm annotations
         StringBuilder manifest = new StringBuilder();
         manifest.append(
                 "{"
@@ -1637,6 +1672,9 @@ public class MirrorHelmResource {
                 )
                 .append(
                         "\"mediaType\":\"application/vnd.oci.image.manifest.v1+json\","
+                )
+                .append(
+                        "\"artifactType\":\"application/vnd.cncf.helm.chart.v1+json\","
                 )
                 .append(
                         "\"config\":{"
@@ -1658,6 +1696,9 @@ public class MirrorHelmResource {
                 )
                 .append(
                         configSize
+                )
+                .append(
+                        ""
                 )
                 .append(
                         "},"
@@ -1687,10 +1728,55 @@ public class MirrorHelmResource {
                         layerSize
                 )
                 .append(
+                        ""
+                )
+                .append(
                         "}"
                 )
                 .append(
-                        "]"
+                        "],"
+                )
+                .append(
+                        "\"annotations\":{"
+                )
+                .append(
+                        "\"org.opencontainers.image.created\":\""
+                )
+                .append(
+                        timestamp
+                )
+                .append(
+                        "\","
+                )
+                .append(
+                        "\"org.opencontainers.image.description\":\"Helm chart "
+                )
+                .append(
+                        chartName
+                )
+                .append(
+                        "\","
+                )
+                .append(
+                        "\"org.opencontainers.image.title\":\""
+                )
+                .append(
+                        simpleChartName
+                )
+                .append(
+                        "\","
+                )
+                .append(
+                        "\"org.opencontainers.image.version\":\""
+                )
+                .append(
+                        version
+                )
+                .append(
+                        "\""
+                )
+                .append(
+                        "}"
                 )
                 .append(
                         "}"
