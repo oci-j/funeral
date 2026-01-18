@@ -20,7 +20,7 @@ public class RegistryResourceHandlerTest {
     @BeforeAll
     public static void setup() {
         // Configure RestAssured to use the correct port
-        port = 8081;
+        port = 8912;
         baseURI = "http://localhost";
     }
 

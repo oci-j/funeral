@@ -22,7 +22,7 @@ public class ManifestResourceHandlerTest {
 
     @BeforeAll
     public static void setup() {
-        port = 8081;
+        port = 8912;
         baseURI = "http://localhost";
     }
 
