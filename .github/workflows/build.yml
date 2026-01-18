@@ -58,9 +58,10 @@ jobs:
 
     - name: Build Native Binary
       run: |
+        VERSION=$(cat ../VERSION 2>/dev/null || echo "unknown")
+        echo "VERSION: ${VERSION}"
         mvn -B clean package -Pnative -DskipTests
         # Read version from VERSION file and rename binary
-        VERSION=$(cat VERSION 2>/dev/null || echo "unknown")
         if [ -f "target/funeral-${VERSION}-runner" ]; then
           mv "target/funeral-${VERSION}-runner" target/funeral-runner-linux-amd64
           echo "Renamed funeral-${VERSION}-runner to funeral-runner-linux-amd64"
