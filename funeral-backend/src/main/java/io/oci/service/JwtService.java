@@ -1,23 +1,27 @@
 package io.oci.service;
 
-import java.io.InputStream;
-import java.nio.charset.StandardCharsets;
-import java.security.KeyFactory;
+import java.security.KeyPair;
+import java.security.KeyPairGenerator;
 import java.security.PrivateKey;
-import java.security.spec.PKCS8EncodedKeySpec;
-import java.time.Duration;
+import java.security.PublicKey;
 import java.util.Base64;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Set;
 
+import io.jsonwebtoken.Jwts;
 import io.oci.model.User;
-import io.smallrye.jwt.build.Jwt;
 import jakarta.annotation.PostConstruct;
 import jakarta.enterprise.context.ApplicationScoped;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+import org.jboss.logging.Logger;
 
 @ApplicationScoped
 public class JwtService {
+
+    private static final Logger LOG = Logger.getLogger(
+            JwtService.class
+    );
 
     @ConfigProperty(
             name = "oci.auth.jwt.issuer",
@@ -31,54 +35,52 @@ public class JwtService {
     )
     long expirationSeconds;
 
+    @ConfigProperty(
+            name = "oci.auth.jwt.key-size",
+            defaultValue = "2048"
+    )
+    String keySizeStr;
+
     private PrivateKey privateKey;
+
+    private PublicKey publicKey;
 
     @PostConstruct
     void init() {
         try {
-            InputStream is = Thread.currentThread()
-                    .getContextClassLoader()
-                    .getResourceAsStream(
-                            "privateKey.pem"
-                    );
-            if (is == null) {
-                throw new RuntimeException(
-                        "privateKey.pem not found on classpath"
+            // Parse key size from config
+            int keySize = Integer.parseInt(
+                    keySizeStr
+            );
+            if (keySize < 2048 || keySize > 4096) {
+                LOG.warn(
+                        "Invalid key size " + keySize + ", using default 2048"
                 );
+                keySize = 2048;
             }
-            String pemContent = new String(
-                    is.readAllBytes(),
-                    StandardCharsets.UTF_8
+
+            // Generate RSA key pair dynamically
+            LOG.info(
+                    "Generating RSA key pair with size " + keySize + " bits"
             );
-            String base64Key = pemContent.replace(
-                    "-----BEGIN PRIVATE KEY-----",
-                    ""
-            )
-                    .replace(
-                            "-----END PRIVATE KEY-----",
-                            ""
-                    )
-                    .replaceAll(
-                            "\\s",
-                            ""
-                    );
-            byte[] keyBytes = Base64.getDecoder()
-                    .decode(
-                            base64Key
-                    );
-            PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(
-                    keyBytes
-            );
-            KeyFactory keyFactory = KeyFactory.getInstance(
+            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(
                     "RSA"
             );
-            this.privateKey = keyFactory.generatePrivate(
-                    keySpec
+            keyPairGenerator.initialize(
+                    keySize
+            );
+            KeyPair keyPair = keyPairGenerator.generateKeyPair();
+
+            this.privateKey = keyPair.getPrivate();
+            this.publicKey = keyPair.getPublic();
+
+            LOG.info(
+                    "Successfully generated RSA key pair"
             );
         }
         catch (Exception e) {
             throw new RuntimeException(
-                    "Failed to load private key: " + e.getMessage(),
+                    "Failed to generate RSA key pair: " + e.getMessage(),
                     e
             );
         }
@@ -100,13 +102,15 @@ public class JwtService {
         );
 
         try {
-            return Jwt.issuer(
-                    issuer
-            )
+            return Jwts.builder()
+                    .issuer(
+                            issuer
+                    )
                     .subject(
                             user.username
                     )
-                    .groups(
+                    .claim(
+                            "groups",
                             groups
                     )
                     .claim(
@@ -117,14 +121,15 @@ public class JwtService {
                             "actions",
                             actions
                     )
-                    .expiresIn(
-                            Duration.ofSeconds(
-                                    expirationSeconds
+                    .expiration(
+                            new Date(
+                                    System.currentTimeMillis() + expirationSeconds * 1000
                             )
                     )
-                    .sign(
+                    .signWith(
                             privateKey
-                    );
+                    )
+                    .compact();
         }
         catch (Exception e) {
             Throwable cause = e.getCause() != null ? e.getCause() : e;
@@ -163,5 +168,47 @@ public class JwtService {
             }
         }
         return actions;
+    }
+
+    /**
+     * Get the public key for JWT verification
+     */
+    public PublicKey getPublicKey() {
+        return publicKey;
+    }
+
+    /**
+     * Get the private key for testing purposes
+     */
+    public PrivateKey getPrivateKey() {
+        return privateKey;
+    }
+
+    /**
+     * Export the public key in PEM format (base64 encoded)
+     */
+    public String exportPublicKey() {
+        String base64Key = Base64.getEncoder()
+                .encodeToString(
+                        publicKey.getEncoded()
+                );
+        return "-----BEGIN PUBLIC KEY-----\n" + base64Key.replaceAll(
+                "(.{64})",
+                "$1\n"
+        ) + "\n-----END PUBLIC KEY-----";
+    }
+
+    /**
+     * Export the private key in PEM format (base64 encoded)
+     */
+    public String exportPrivateKey() {
+        String base64Key = Base64.getEncoder()
+                .encodeToString(
+                        privateKey.getEncoded()
+                );
+        return "-----BEGIN PRIVATE KEY-----\n" + base64Key.replaceAll(
+                "(.{64})",
+                "$1\n"
+        ) + "\n-----END PRIVATE KEY-----";
     }
 }

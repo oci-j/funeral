@@ -2,7 +2,10 @@ package io.oci.filter;
 
 import java.util.Set;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import io.oci.model.User;
+import io.oci.service.JwtService;
 import io.oci.service.RepositoryPermissionStorage;
 import io.oci.service.UserStorage;
 import jakarta.annotation.Priority;
@@ -16,7 +19,6 @@ import jakarta.ws.rs.container.ContainerRequestFilter;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.ext.Provider;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
-import org.eclipse.microprofile.jwt.JsonWebToken;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,7 +34,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
     );
 
     @Inject
-    JsonWebToken jwt;
+    JwtService jwtService;
 
     @Inject
     @Named(
@@ -77,6 +79,33 @@ public class AuthenticationFilter implements ContainerRequestFilter {
             "DELETE"
     );
 
+    /**
+     * Manually parse and validate JWT token using JwtService's public key This is needed because Quarkus
+     * microprofile-jwt expects static PEM files
+     */
+    private Claims parseAndValidateToken(
+            String token
+    ) {
+        try {
+            return Jwts.parser()
+                    .setSigningKey(
+                            jwtService.getPublicKey()
+                    )
+                    .build()
+                    .parseClaimsJws(
+                            token
+                    )
+                    .getBody();
+        }
+        catch (Exception e) {
+            log.warn(
+                    "JWT validation failed: {}",
+                    e.getMessage()
+            );
+            return null;
+        }
+    }
+
     @Override
     public void filter(
             ContainerRequestContext requestContext
@@ -88,6 +117,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         String path = requestContext.getUriInfo().getPath();
         String method = requestContext.getMethod();
 
+        // Always allow token endpoint
         if (path.equals(
                 "v2/token"
         ) || path.equals(
@@ -126,15 +156,42 @@ public class AuthenticationFilter implements ContainerRequestFilter {
             return;
         }
 
-        String username = jwt.getSubject();
+        // Extract token from header
+        String token = authHeader.substring(
+                7
+        );
+
+        // Fall back to manual parsing
+        Claims claims = parseAndValidateToken(
+                token
+        );
+
+        String username = null;
+        if (claims != null) {
+            username = claims.getSubject();
+            log.debug(
+                    "Successfully extracted username from manual parsing: {}",
+                    username
+            );
+        }
 
         if (username == null) {
+            log.warn(
+                    "Failed to extract username from JWT token for path: {}",
+                    path
+            );
             abortWithUnauthorized(
                     requestContext,
                     path
             );
             return;
         }
+
+        log.debug(
+                "Extracted username '{}' from token for path: {}",
+                username,
+                path
+        );
 
         if (!(this.allowAnonymousPull && "anonymous".equals(
                 username
@@ -144,6 +201,11 @@ public class AuthenticationFilter implements ContainerRequestFilter {
             );
 
             if (user == null || !user.enabled) {
+                log.warn(
+                        "User '{}' not found or disabled for path: {}",
+                        username,
+                        path
+                );
                 abortWithUnauthorized(
                         requestContext,
                         path
@@ -196,7 +258,7 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         }
 
         // Additional scope check for backward compatibility
-        Object actionsClaim = jwt.getClaim(
+        Object actionsClaim = claims.get(
                 "actions"
         );
         if (actionsClaim == null && repositoryName == null) {

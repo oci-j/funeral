@@ -22,16 +22,3 @@ oci:
       password: password
       email: admin@funeral.local
       roles: ADMIN;USER;PUSH_ALL;PULL_ALL
-
-smallrye-jwt:
-  sign:
-    key:
-      location: classpath:privateKey.pem
-    algorithm: RS256
-
-mp:
-  jwt:
-    verify:
-      publickey:
-        location: classpath:publicKey.pem
-      issuer: funeral-registry
