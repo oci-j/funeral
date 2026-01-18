@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @Path(
-    "/debug"
+    "/funeral_addition/debug"
 )
 public class DebugResource {
 
