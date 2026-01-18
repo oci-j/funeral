@@ -11,6 +11,10 @@ env:
   JAVA_VERSION: '25'
   GRAALVM_VERSION: '25'
 
+# Default permissions for all jobs
+permissions:
+  contents: read
+
 jobs:
   build-jvm:
     name: Build JVM Version
@@ -177,6 +181,11 @@ jobs:
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
+    # Add permissions required for SARIF upload
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
     steps:
     - uses: actions/checkout@v4
 
@@ -189,6 +198,6 @@ jobs:
         output: 'trivy-results.sarif'
 
     - name: Upload Trivy scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v2
+      uses: github/codeql-action/upload-sarif@v3
       with:
         sarif_file: 'trivy-results.sarif'
