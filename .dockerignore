@@ -11,6 +11,7 @@ funeral-frontend/.pnpm-store/
 
 # Backend build artifacts
 funeral-backend/target/
+!funeral-backend/target/funeral-*-runner
 funeral-backend/*.log
 
 # IDE files

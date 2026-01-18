@@ -104,7 +104,7 @@ test_image() {
     sleep 15
 
     # Test health endpoint
-    if curl -f http://localhost:8911/v2/ 2>/dev/null; then
+    if curl -f http://localhost:8911/funeral_addition/config/all 2>/dev/null; then
         print_success "Container is responding correctly"
 
         # Stop and remove test container
@@ -181,6 +181,6 @@ echo "=========================================="
 print_success "Docker Image: ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
 print_success "Repository: funeral-oci-registry:latest"
 print_info "To run: docker run -d -p 8911:8911 ${DOCKER_IMAGE_NAME}:${DOCKER_IMAGE_TAG}"
-print_info "To test: curl http://localhost:8911/v2/"
+print_info "To test: curl http://localhost:8911/funeral_addition/config/all"
 echo "=========================================="
 exit 0

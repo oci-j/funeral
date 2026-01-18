@@ -5,7 +5,6 @@ echo "=========================================="
 echo "  Funeral OCI Registry Starting..."
 echo "=========================================="
 echo "Version: $(date '+%Y%m%d_%H%M%S')"
-echo "Java Version: $(java -version 2>&1 | head -n 1)"
 echo "Port: 8911"
 echo "=========================================="
 
@@ -19,11 +18,7 @@ cleanup() {
 trap cleanup SIGTERM SIGINT
 
 # Start the application
-java \
-    -Dquarkus.http.host=0.0.0.0 \
-    -Dquarkus.http.port=8911 \
-    -Djava.util.logging.manager=org.jboss.logmanager.LogManager \
-    -jar quarkus-run.jar &
+/app/funeral &
 
 child=$!
 
