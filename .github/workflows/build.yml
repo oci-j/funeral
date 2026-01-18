@@ -19,7 +19,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Set up JDK 21
+    - name: Set up JDK 25
       uses: actions/setup-java@v4
       with:
         java-version: ${{ env.JAVA_VERSION }}
@@ -53,13 +53,18 @@ jobs:
         native-image-job-reports: 'true'
 
     - name: Build Native Binary
-      working-directory: ./funeral-backend
       run: |
         mvn -B clean package -Pnative -DskipTests
-        # Rename binary for clarity
-        if [ -f target/funeral-backend-*-runner ]; then
-          mv target/funeral-backend-*-runner target/funeral-runner-linux-amd64
+        # Read version from VERSION file and rename binary
+        VERSION=$(cat VERSION 2>/dev/null || echo "unknown")
+        if [ -f "target/funeral-${VERSION}-runner" ]; then
+          mv "target/funeral-${VERSION}-runner" target/funeral-runner-linux-amd64
+          echo "Renamed funeral-${VERSION}-runner to funeral-runner-linux-amd64"
+        else
+          echo "Warning: Expected binary funeral-${VERSION}-runner not found"
+          ls -la target/
         fi
+      working-directory: ./funeral-backend
 
     - name: Display Binary Info
       working-directory: ./funeral-backend
@@ -119,6 +124,12 @@ jobs:
         cd release-files
         sha256sum * > checksums.txt
         cd ..
+        # Extract version for release notes
+        NATIVE_BINARY=$(find artifacts -name "funeral-runner-linux-amd64" | head -1)
+        if [ -f "$NATIVE_BINARY" ]; then
+          BINARY_SIZE=$(du -h "$NATIVE_BINARY" | cut -f1)
+          echo "BINARY_SIZE=$BINARY_SIZE" >> $GITHUB_ENV
+        fi
 
     - name: Create Release
       uses: softprops/action-gh-release@v1
@@ -136,11 +147,12 @@ jobs:
           ### 📦 Native Binary
           - **File:** `funeral-runner-linux-amd64`
           - **Platform:** Linux x86_64
+          - **Size:** ${{ env.BINARY_SIZE }}
           - **Features:** Zero-dependency, fast startup
 
           ### 📦 JVM Version
           - **File:** `funeral-*.jar`
-          - **Requirements:** Java 17 or higher
+          - **Requirements:** Java 25 or higher
 
           ### 🔧 Quick Start
 
