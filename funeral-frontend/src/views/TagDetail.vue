@@ -15,8 +15,8 @@
           <div class="card-header">
             <span>{{ repositoryName }}:{{ tagName }}</span>
             <div class="header-actions">
-              <el-tag type="info" size="small">
-                {{ tagInfo.mediaType?.split('/').pop() || 'Manifest' }}
+              <el-tag :type="tagTypeTag" size="small">
+                {{ tagTypeTitle }}
               </el-tag>
               <el-button type="primary" size="small" @click="showTagDetails">
                 <el-icon><Document /></el-icon>
@@ -42,17 +42,56 @@
             <el-text type="info">Media Type:</el-text>
             <el-text>{{ tagInfo.mediaType || 'Unknown' }}</el-text>
           </div>
+
+          <!-- Helm Chart specific properties -->
+          <template v-if="isHelmChart">
+            <div class="property-item">
+              <el-text type="info">Chart Type:</el-text>
+              <el-text><el-tag size="small" type="success">Helm Chart</el-tag></el-text>
+            </div>
+            <div class="property-item" v-if="manifestInfo?.annotations?.['org.opencontainers.image.version']">
+              <el-text type="info">Chart Version:</el-text>
+              <el-text>{{ manifestInfo.annotations['org.opencontainers.image.version'] }}</el-text>
+            </div>
+            <div class="property-item" v-if="manifestInfo?.annotations?.['org.opencontainers.image.description']">
+              <el-text type="info">Description:</el-text>
+              <el-text>{{ manifestInfo.annotations['org.opencontainers.image.description'] }}</el-text>
+            </div>
+          </template>
+
+          <!-- Docker Image specific properties -->
+          <template v-else-if="isDockerImage">
+            <div class="property-item">
+              <el-text type="info">Image Type:</el-text>
+              <el-text><el-tag size="small" type="info">Docker Image</el-tag></el-text>
+            </div>
+          </template>
         </div>
 
+        <!-- Helm specific pull/push commands -->
         <div v-if="tagInfo.pullCommand" class="pull-command">
-          <el-text type="info">Pull Command:</el-text>
-          <el-input :model-value="tagInfo.pullCommand" readonly class="command-input">
-            <template #append>
-              <el-button @click="copyToClipboard(tagInfo.pullCommand)">
-                <el-icon><DocumentCopy /></el-icon>
-              </el-button>
-            </template>
-          </el-input>
+          <template v-if="!isHelmChart">
+            <el-text type="info">Pull Command:</el-text>
+            <el-input :model-value="`docker pull ${tagInfo.pullCommand.split(' ').pop()}`" readonly class="command-input">
+              <template #append>
+                <el-button @click="copyToClipboard(`docker pull ${tagInfo.pullCommand.split(' ').pop()}`)">
+                  <el-icon><DocumentCopy /></el-icon>
+                </el-button>
+              </template>
+            </el-input>
+          </template>
+          <template v-else>
+            <el-text type="info">Helm Commands:</el-text>
+            <div class="helm-commands">
+              <el-input :model-value="`helm pull oci://${tagInfo.pullCommand.split(' ').pop()}`" readonly class="command-input">
+                <template #append>
+                  <el-button @click="copyToClipboard(`helm pull oci://${tagInfo.pullCommand.split(' ').pop()}`)">
+                    Pull
+                  </el-button>
+                </template>
+              </el-input>
+            </div>
+          </template>
         </div>
       </el-card>
 
@@ -278,6 +317,7 @@ const tagInfo = ref(null)
 const config = ref(null)
 const layers = ref([])
 const loading = ref(false)
+const manifestInfo = ref(null)
 
 // Dialog state
 const dialogVisible = ref(false)
@@ -295,15 +335,16 @@ defineOptions({
 const fetchTagDetails = async () => {
   loading.value = true
   try {
-    // Fetch manifest info
-    const manifestInfo = await registryApi.getManifestInfo(repositoryName.value, tagName.value)
-    tagInfo.value = {
-      ...manifestInfo,
-      pullCommand: `docker pull ${window.location.hostname}:${window.location.port || 80}/${repositoryName.value}:${tagName.value}`
-    }
-
-    // Fetch manifest to get layers
+    // Fetch manifest to get layers and determine type
     const manifest = await registryApi.getManifest(repositoryName.value, tagName.value)
+    manifestInfo.value = manifest
+
+    // Fetch manifest info
+    const manifestInfoResult = await registryApi.getManifestInfo(repositoryName.value, tagName.value)
+    tagInfo.value = {
+      ...manifestInfoResult,
+      pullCommand: `${window.location.hostname}:${window.location.port || 80}/${repositoryName.value}:${tagName.value}`
+    }
 
     // Process config separately (not part of layers anymore)
     if (manifest.config) {
@@ -393,6 +434,58 @@ const isJsonContent = computed(() => {
   return contentType.includes('application/json') ||
          contentType.includes('+json') ||
          mediaType.includes('+json')
+})
+
+// Computed properties for type detection
+const isHelmChart = computed(() => {
+  if (manifestInfo.value?.config?.mediaType) {
+    return manifestInfo.value.config.mediaType.includes('helm')
+  }
+  if (manifestInfo.value?.layers?.length > 0) {
+    return manifestInfo.value.layers.some(layer =>
+      layer.mediaType && layer.mediaType.includes('helm')
+    )
+  }
+  return tagInfo.value?.mediaType?.includes('helm') || false
+})
+
+const isDockerImage = computed(() => {
+  if (manifestInfo.value?.config?.mediaType) {
+    return manifestInfo.value.config.mediaType.includes('image') ||
+           manifestInfo.value.config.mediaType.includes('container')
+  }
+  if (manifestInfo.value?.layers?.length > 0) {
+    return manifestInfo.value.layers.some(layer =>
+      layer.mediaType && (
+        layer.mediaType.includes('image') ||
+        layer.mediaType.includes('rootfs') ||
+        layer.mediaType.includes('docker')
+      )
+    )
+  }
+  return tagInfo.value?.mediaType?.includes('image') || false
+})
+
+const tagType = computed(() => {
+  if (isHelmChart.value) return 'helm'
+  if (isDockerImage.value) return 'docker'
+  return 'unknown'
+})
+
+const tagTypeTitle = computed(() => {
+  switch (tagType.value) {
+    case 'helm': return 'Helm Chart'
+    case 'docker': return 'Docker Image'
+    default: return 'OCI Artifact'
+  }
+})
+
+const tagTypeTag = computed(() => {
+  switch (tagType.value) {
+    case 'helm': return 'success'
+    case 'docker': return 'info'
+    default: return 'warning'
+  }
 })
 
 const jsonData = computed(() => {
@@ -681,6 +774,18 @@ onMounted(async () => {
   display: flex;
   align-items: center;
   gap: 10px;
+}
+
+/* Helm Commands */
+.helm-commands {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.helm-commands .command-input {
+  width: 100%;
 }
 
 /* Docker Layer Binary Styles */
