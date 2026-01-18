@@ -33,6 +33,10 @@ jobs:
       with:
         version: 8
 
+    - name: Sync frontend versions from pom.xml
+      working-directory: ./
+      run: ./sync-frontend-from-pom.sh
+
     - name: Install frontend dependencies
       working-directory: ./funeral-frontend
       run: pnpm install
@@ -75,6 +79,10 @@ jobs:
       uses: pnpm/action-setup@v2
       with:
         version: 8
+
+    - name: Sync frontend versions from pom.xml
+      working-directory: ./
+      run: ./sync-frontend-from-pom.sh
 
     - name: Install frontend dependencies
       working-directory: ./funeral-frontend
