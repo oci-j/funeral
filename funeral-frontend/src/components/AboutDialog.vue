@@ -1,22 +1,23 @@
 <template>
   <el-dialog
-    v-model="visible"
-    width="700px"
-    :close-on-click-modal="true"
-    :lock-scroll="false"
-    align-center
-    class="about-dialog centered-dialog"
+      v-model="visible"
+      width="700px"
+      :close-on-click-modal="true"
+      :lock-scroll="false"
+      align-center
+      class="about-dialog centered-dialog"
   >
     <div class="about-content">
       <!-- Center wrapper -->
       <div class="about-content-wrapper">
         <div class="logo-section">
-          <img src="/image/funeral.jpg" alt="FUNERAL Logo" class="about-logo" />
+          <img src="/image/funeral.jpg" alt="FUNERAL Logo" class="about-logo"/>
         </div>
 
         <div class="info-section">
           <h2 class="project-name">FUNERAL</h2>
           <p class="project-description">Open Container Initiative (OCI) Registry</p>
+
           <el-descriptions :column="1" border class="centered-table">
             <el-descriptions-item label="Version">
               <el-tag type="info">{{ version }}</el-tag>
@@ -24,9 +25,9 @@
 
             <el-descriptions-item label="Sources">
               <el-link
-                type="primary"
-                href="https://github.com/oci-j/funeral.git"
-                target="_blank"
+                  type="primary"
+                  href="https://github.com/oci-j/funeral.git"
+                  target="_blank"
               >
                 https://github.com/oci-j/funeral.git
               </el-link>
@@ -41,55 +42,50 @@
             </el-descriptions-item>
 
             <el-descriptions-item label="Description">
-              A lightweight OCI (Open Container Initiative) image registry implemented in Java that follows the OCI Distribution Specification.
+              A lightweight OCI (Open Container Initiative) image registry implemented in Java that follows the OCI
+              Distribution Specification.
             </el-descriptions-item>
             <el-descriptions-item label="Sponsor">
-              <a href='https://ko-fi.com/P5P11S9YKU' target='_blank'><img height='36' style='border:0px;height:36px;' src='https://storage.ko-fi.com/cdn/kofi5.png?v=6' border='0' alt='Buy Me a Coffee at ko-fi.com' /></a>
+              <a href='https://ko-fi.com/P5P11S9YKU' target='_blank'><img height='36' style='border:0px;height:36px;'
+                                                                          src='https://storage.ko-fi.com/cdn/kofi5.png?v=6'
+                                                                          border='0'
+                                                                          alt='Buy Me a Coffee at ko-fi.com'/></a>
             </el-descriptions-item>
-          </el-descriptions>
+            <el-descriptions-item label="Runtime">
+              <!-- Runtime Info Section -->
+              <div v-if="loadingRuntime" class="runtime-loading">
+                <el-text type="info">Loading runtime info...</el-text>
+              </div>
 
-          <!-- Runtime Info Section -->
-          <div v-if="loadingRuntime" class="runtime-loading">
-            <el-text type="info">Loading runtime info...</el-text>
-          </div>
-
-          <div v-else-if="runtimeInfo" class="runtime-section">
-            <h3>Runtime Information</h3>
-            <el-descriptions :column="1" border>
-              <el-descriptions-item label="Runtime">
-                <el-tag :type="runtimeInfo.isNativeImage ? 'success' : 'info'">
-                  {{ runtimeInfo.isNativeImage ? 'Native Binary (GraalVM)' : 'Java VM' }}
-                </el-tag>
-              </el-descriptions-item>
-
-              <el-descriptions-item label="Java Version" v-if="!runtimeInfo.isNativeImage">
-                {{ runtimeInfo.javaVersion }}
-              </el-descriptions-item>
-
-              <el-descriptions-item label="OS">
-                {{ runtimeInfo.osName }} ({{ runtimeInfo.osArch }})
-              </el-descriptions-item>
-
-              <el-descriptions-item label="Process ID">
-                {{ runtimeInfo.pid }}
-              </el-descriptions-item>
-
-              <el-descriptions-item label="Download" v-if="runtimeInfo.canDownload">
+              <div v-else-if="runtimeInfo">
+                <div class="runtime-info-row">
+                  <el-tag :type="runtimeInfo.isNativeImage ? 'success' : 'info'" size="small" class="runtime-tag">
+                    {{ runtimeInfo.isNativeImage ? 'Native' : 'JVM' }}
+                  </el-tag>
+                  <span class="runtime-details">
+                    <span v-if="!runtimeInfo.isNativeImage" class="detail-item">Java {{ runtimeInfo.javaVersion }}</span>
+                    <span class="detail-item">{{ runtimeInfo.osName }} ({{ runtimeInfo.osArch }})</span>
+                    <span class="detail-item">PID:{{ runtimeInfo.pid }}</span>
+                  </span>
+                  <span v-if="runtimeInfo.canDownload" class="download-section-inline">
                 <el-button
-                  type="primary"
-                  size="small"
-                  @click="downloadBinary"
-                  :loading="loadingDownload"
+                    type="primary"
+                    size="small"
+                    @click="downloadBinary"
+                    :loading="loadingDownload"
+                    style="padding: 0 8px; height: 24px;"
                 >
-                  <el-icon><Download /></el-icon>
-                  Download Binary ({{ formatFileSize(runtimeInfo.binarySize) }})
+                  <el-icon><Download/></el-icon>
+                  {{ formatFileSize(runtimeInfo.binarySize) }}
                 </el-button>
-                <div class="download-filename">
+              </span>
+                </div>
+                <div class="runtime-note" v-if="runtimeInfo.binaryName">
                   {{ runtimeInfo.binaryName }}
                 </div>
-              </el-descriptions-item>
-            </el-descriptions>
-          </div>
+              </div>
+            </el-descriptions-item>
+          </el-descriptions>
 
           <div class="tech-stack">
             <h3>Technology Stack</h3>
@@ -109,7 +105,7 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import {ref} from 'vue'
 import packageInfo from '../../package.json'
 
 const visible = ref(false)
@@ -154,8 +150,8 @@ const downloadBinary = async () => {
     // Get filename from headers
     const contentDisposition = response.headers.get('content-disposition')
     const filename = contentDisposition
-      ? contentDisposition.split('filename="')[1]?.split('"')[0]
-      : 'funeral-binary'
+        ? contentDisposition.split('filename="')[1]?.split('"')[0]
+        : 'funeral-binary'
 
     // Create blob and download
     const blob = await response.blob()
@@ -311,7 +307,7 @@ defineExpose({
   font-weight: normal;
 }
 
-/* Runtime info styles */
+/* Runtime info styles - Compact one-line display */
 .runtime-loading {
   text-align: center;
   padding: 20px;
@@ -319,19 +315,53 @@ defineExpose({
 
 .runtime-section {
   margin-top: 20px;
+  padding-top: 20px;
+  border-top: 1px solid #e4e7ed;
 }
 
 .runtime-section h3 {
   text-align: center;
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   color: #303133;
 }
 
-.download-filename {
-  margin-top: 8px;
-  font-family: monospace;
-  font-size: 12px;
+.runtime-info-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 13px;
+  flex-wrap: wrap;
+}
+
+.runtime-tag {
+  flex-shrink: 0;
+}
+
+.runtime-details {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   color: #606266;
+}
+
+.detail-item:not(:last-child)::after {
+  content: "·";
+  margin-left: 12px;
+  color: #dcdfe6;
+}
+
+.download-section-inline {
+  display: flex;
+  align-items: center;
+}
+
+.runtime-note {
+  margin-top: 8px;
+  text-align: center;
+  font-family: monospace;
+  font-size: 11px;
+  color: #909399;
   word-break: break-all;
 }
 
@@ -339,10 +369,6 @@ defineExpose({
 @media (max-width: 768px) {
   .runtime-section h3 {
     font-size: 16px;
-  }
-
-  .download-filename {
-    font-size: 11px;
   }
 }
 
