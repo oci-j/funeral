@@ -48,6 +48,49 @@
             </el-descriptions-item>
           </el-descriptions>
 
+          <!-- Runtime Info Section -->
+          <div v-if="loadingRuntime" class="runtime-loading">
+            <el-text type="info">Loading runtime info...</el-text>
+          </div>
+
+          <div v-else-if="runtimeInfo" class="runtime-section">
+            <h3>Runtime Information</h3>
+            <el-descriptions :column="1" border>
+              <el-descriptions-item label="Runtime">
+                <el-tag :type="runtimeInfo.isNativeImage ? 'success' : 'info'">
+                  {{ runtimeInfo.isNativeImage ? 'Native Binary (GraalVM)' : 'Java VM' }}
+                </el-tag>
+              </el-descriptions-item>
+
+              <el-descriptions-item label="Java Version" v-if="!runtimeInfo.isNativeImage">
+                {{ runtimeInfo.javaVersion }}
+              </el-descriptions-item>
+
+              <el-descriptions-item label="OS">
+                {{ runtimeInfo.osName }} ({{ runtimeInfo.osArch }})
+              </el-descriptions-item>
+
+              <el-descriptions-item label="Process ID">
+                {{ runtimeInfo.pid }}
+              </el-descriptions-item>
+
+              <el-descriptions-item label="Download" v-if="runtimeInfo.canDownload">
+                <el-button
+                  type="primary"
+                  size="small"
+                  @click="downloadBinary"
+                  :loading="loadingDownload"
+                >
+                  <el-icon><Download /></el-icon>
+                  Download Binary ({{ formatFileSize(runtimeInfo.binarySize) }})
+                </el-button>
+                <div class="download-filename">
+                  {{ runtimeInfo.binaryName }}
+                </div>
+              </el-descriptions-item>
+            </el-descriptions>
+          </div>
+
           <div class="tech-stack">
             <h3>Technology Stack</h3>
             <div class="tech-tags">
@@ -71,13 +114,73 @@ import packageInfo from '../../package.json'
 
 const visible = ref(false)
 const version = packageInfo.version
+const runtimeInfo = ref(null)
+const loadingRuntime = ref(false)
+const loadingDownload = ref(false)
 
-const open = () => {
+const open = async () => {
   visible.value = true
+  await fetchRuntimeInfo()
 }
 
 const close = () => {
   visible.value = false
+}
+
+const fetchRuntimeInfo = async () => {
+  loadingRuntime.value = true
+  try {
+    const response = await fetch('/funeral_addition/config/runtime')
+    if (response.ok) {
+      runtimeInfo.value = await response.json()
+    }
+  } catch (error) {
+    console.error('Failed to fetch runtime info:', error)
+  } finally {
+    loadingRuntime.value = false
+  }
+}
+
+const downloadBinary = async () => {
+  if (!runtimeInfo.value?.canDownload) return
+
+  loadingDownload.value = true
+  try {
+    const response = await fetch('/funeral_addition/config/download/binary')
+    if (!response.ok) {
+      throw new Error('Download failed')
+    }
+
+    // Get filename from headers
+    const contentDisposition = response.headers.get('content-disposition')
+    const filename = contentDisposition
+      ? contentDisposition.split('filename="')[1]?.split('"')[0]
+      : 'funeral-binary'
+
+    // Create blob and download
+    const blob = await response.blob()
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    window.URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('Download failed:', error)
+    alert('Failed to download binary: ' + error.message)
+  } finally {
+    loadingDownload.value = false
+  }
+}
+
+const formatFileSize = (bytes) => {
+  if (!bytes) return '0 B'
+  const k = 1024
+  const sizes = ['B', 'KB', 'MB', 'GB']
+  const i = Math.floor(Math.log(bytes) / Math.log(k))
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
 }
 
 // Expose methods to parent
@@ -206,6 +309,41 @@ defineExpose({
 
 .tech-tags :deep(.el-tag) {
   font-weight: normal;
+}
+
+/* Runtime info styles */
+.runtime-loading {
+  text-align: center;
+  padding: 20px;
+}
+
+.runtime-section {
+  margin-top: 20px;
+}
+
+.runtime-section h3 {
+  text-align: center;
+  margin-bottom: 20px;
+  color: #303133;
+}
+
+.download-filename {
+  margin-top: 8px;
+  font-family: monospace;
+  font-size: 12px;
+  color: #606266;
+  word-break: break-all;
+}
+
+/* Mobile styles */
+@media (max-width: 768px) {
+  .runtime-section h3 {
+    font-size: 16px;
+  }
+
+  .download-filename {
+    font-size: 11px;
+  }
 }
 
 </style>
