@@ -18,8 +18,8 @@ importers:
         specifier: ^2.14.2
         version: 2.14.2(vue@3.5.39)
       js-untar:
-        specifier: 1.0.0
-        version: 1.0.0
+        specifier: 2.0.0
+        version: 2.0.0
       pako:
         specifier: ^3.0.1
         version: 3.0.1
@@ -1078,8 +1078,8 @@ packages:
   js-tokens@9.0.1:
     resolution: {integrity: sha512-mxa9E9ITFOt0ban3j6L5MpjwegGz6lBQmM1IJkWeBZGcMxto50+eWdjC/52xDbS2vy0k7vIMK0Fe2wfL9OQSpQ==}
 
-  js-untar@1.0.0:
-    resolution: {integrity: sha512-i75cEGQFc/l4lJAATayrTdBvDjTN8mT4s6+WHp5v1ZUXTeRuc/n++4NCM7ylYU4vIhP0OpacGTtlYM2dD3Aveg==}
+  js-untar@2.0.0:
+    resolution: {integrity: sha512-7CsDLrYQMbLxDt2zl9uKaPZSdmJMvGGQ7wo9hoB3J+z/VcO2w63bXFgHVnjF1+S9wD3zAu8FBVj7EYWjTQ3Z7g==}
 
   json-buffer@3.0.1:
     resolution: {integrity: sha512-4bV5BfR2mqfQTJm+V5tPPdf+ZpuhiIvTuAB5g8kcrXOZpTT/QwwVRWBywX1ozr6lEuPdbHxwaJlm9G6mI2sfSQ==}
@@ -2526,7 +2526,7 @@ snapshots:
 
   js-tokens@9.0.1: {}
 
-  js-untar@1.0.0: {}
+  js-untar@2.0.0: {}
 
   json-buffer@3.0.1: {}
 
