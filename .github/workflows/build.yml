@@ -92,6 +92,13 @@ jobs:
       working-directory: ./funeral-frontend
       run: pnpm run build
 
+    - name: Set up JDK 25 (for Maven cache)
+      uses: actions/setup-java@v4
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'temurin'
+        cache: 'maven'
+
     - name: Set up GraalVM
       uses: graalvm/setup-graalvm@v1
       with:
@@ -105,7 +112,12 @@ jobs:
         VERSION=$(cat ../VERSION 2>/dev/null || echo "unknown")
         echo "VERSION: ${VERSION}"
         echo "BINARY_NAME=funeral-${VERSION}-runner" >> $GITHUB_ENV
-        mvn -B clean package -Pnative -DskipTests
+        if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
+          echo "Tag build: enabling ultra-brute compression"
+          mvn -B clean package -Pnative,ultra-brute -DskipTests
+        else
+          mvn -B clean package -Pnative -DskipTests
+        fi
         if [ ! -f "target/funeral-${VERSION}-runner" ]; then
           echo "Error: Expected binary target/funeral-${VERSION}-runner not found"
           ls -la target/
