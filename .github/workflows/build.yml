@@ -24,12 +24,12 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Setup Node.js
-      uses: actions/setup-node@v6
+      uses: actions/setup-node@v4
       with:
         node-version: '24'
 
     - name: Install pnpm
-      uses: pnpm/action-setup@v6
+      uses: pnpm/action-setup@v2
       with:
         version: 8
 
@@ -40,6 +40,11 @@ jobs:
     - name: Install frontend dependencies
       working-directory: ./funeral-frontend
       run: pnpm install
+
+    - name: Lint frontend
+      continue-on-error: true
+      working-directory: ./funeral-frontend
+      run: pnpm run lint
 
     - name: Run frontend tests
       working-directory: ./funeral-frontend
@@ -99,6 +104,11 @@ jobs:
     - name: Install frontend dependencies
       working-directory: ./funeral-frontend
       run: pnpm install
+
+    - name: Lint frontend
+      continue-on-error: true
+      working-directory: ./funeral-frontend
+      run: pnpm run lint
 
     - name: Run frontend tests
       working-directory: ./funeral-frontend
