@@ -69,7 +69,7 @@
 import { ref, computed, onMounted, provide } from 'vue'
 import FilePreview from './FilePreview.vue'
 import { Box, Loading, Expand, Fold, View } from '@element-plus/icons-vue'
-import pako from 'pako'
+import { inflate } from 'pako'
 import untar from 'js-untar'
 import TreeItem from './TreeItem.vue'
 
@@ -127,7 +127,7 @@ const parseTarGz = async () => {
     let decompressed
     // First, try to decompress gzip
     try {
-      decompressed = pako.inflate(props.arrayBuffer)
+      decompressed = inflate(props.arrayBuffer)
       console.log('Decompressed size:', decompressed.byteLength, 'bytes')
     } catch (gzipErr) {
       console.warn('Gzip decompression failed, trying raw tar format:', gzipErr.message)
