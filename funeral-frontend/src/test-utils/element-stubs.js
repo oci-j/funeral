@@ -47,6 +47,7 @@ export const elementStubs = {
   },
   'el-divider': baseStub('<div class="el-divider"><slot /></div>'),
   'el-dropdown': {
+    name: 'ElDropdown',
     props: ['disabled'],
     emits: ['command'],
     inheritAttrs: true,
@@ -54,6 +55,7 @@ export const elementStubs = {
       '<div class="el-dropdown"><div class="el-dropdown-selfdefine"><slot /></div><div class="el-dropdown__popper" style="display:none"><slot name="dropdown" /></div></div>',
   },
   'el-dropdown-item': {
+    name: 'ElDropdownItem',
     props: ['command'],
     emits: ['command'],
     inheritAttrs: true,
