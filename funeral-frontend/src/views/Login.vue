@@ -36,35 +36,21 @@
         </el-form-item>
 
         <el-form-item>
-          <el-checkbox v-model="isAnonymous">
-            Anonymous Access
-          </el-checkbox>
+          <el-checkbox v-model="isAnonymous"> Anonymous Access </el-checkbox>
         </el-form-item>
 
         <el-form-item>
-          <el-button
-            type="primary"
-            :loading="loading"
-            class="login-button"
-            @click="handleLogin"
-          >
+          <el-button type="primary" :loading="loading" class="login-button" @click="handleLogin">
             {{ isAnonymous ? 'Access as Anonymous' : 'Login' }}
           </el-button>
         </el-form-item>
 
         <div v-if="errorMessage" class="error-message">
-          <el-alert
-            :title="errorMessage"
-            type="error"
-            :closable="false"
-            show-icon
-          />
+          <el-alert :title="errorMessage" type="error" :closable="false" show-icon />
         </div>
 
         <div class="login-info">
-          <el-text type="info" size="small">
-            Default credentials: admin / password
-          </el-text>
+          <el-text type="info" size="small"> Default credentials: admin / password </el-text>
         </div>
       </el-form>
     </el-card>
@@ -87,16 +73,12 @@ const isAnonymous = ref(false)
 
 const loginForm = reactive({
   username: '',
-  password: ''
+  password: '',
 })
 
 const loginRules = {
-  username: [
-    { required: true, message: 'Please input username', trigger: 'blur' }
-  ],
-  password: [
-    { required: true, message: 'Please input password', trigger: 'blur' }
-  ]
+  username: [{ required: true, message: 'Please input username', trigger: 'blur' }],
+  password: [{ required: true, message: 'Please input password', trigger: 'blur' }],
 }
 
 const handleLogin = async () => {
@@ -125,10 +107,12 @@ const handleLogin = async () => {
       const redirect = route.query.redirect || '/'
       router.push(redirect)
     } else {
-      errorMessage.value = result.error || (isAnonymous.value ? 'Anonymous access failed' : 'Login failed')
+      errorMessage.value =
+        result.error || (isAnonymous.value ? 'Anonymous access failed' : 'Login failed')
     }
   } catch (error) {
-    errorMessage.value = error.message || (isAnonymous.value ? 'Anonymous access failed' : 'Login failed')
+    errorMessage.value =
+      error.message || (isAnonymous.value ? 'Anonymous access failed' : 'Login failed')
   } finally {
     loading.value = false
   }
@@ -161,7 +145,7 @@ loginForm.password = 'password'
 
 .login-header h2 {
   margin: 0 0 10px 0;
-  color: #409EFF;
+  color: #409eff;
   font-size: 24px;
 }
 

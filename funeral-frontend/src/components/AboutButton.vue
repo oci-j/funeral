@@ -1,12 +1,7 @@
 <template>
   <div class="about-button-wrapper">
     <transition name="slide-fade">
-      <div
-        v-show="showText"
-        class="about-text"
-      >
-        About
-      </div>
+      <div v-show="showText" class="about-text">About</div>
     </transition>
     <el-button
       type="primary"
@@ -51,7 +46,7 @@ const openAbout = () => {
 .about-button {
   width: 56px;
   height: 56px;
-  background: linear-gradient(135deg, #409EFF 0%, #337ecc 100%);
+  background: linear-gradient(135deg, #409eff 0%, #337ecc 100%);
   border: none;
   box-shadow: 0 4px 16px rgba(64, 158, 255, 0.3);
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -60,7 +55,7 @@ const openAbout = () => {
 .about-button:hover {
   transform: translateY(-4px) scale(1.05);
   box-shadow: 0 8px 24px rgba(64, 158, 255, 0.4);
-  background: linear-gradient(135deg, #53a8ff 0%, #409EFF 100%);
+  background: linear-gradient(135deg, #53a8ff 0%, #409eff 100%);
 }
 
 .about-button:active {

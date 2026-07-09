@@ -9,7 +9,6 @@
     </div>
 
     <div class="tag-detail-container">
-
       <el-card v-if="tagInfo" class="tag-info-card">
         <template #header>
           <div class="card-header">
@@ -49,13 +48,21 @@
               <el-text type="info">Chart Type:</el-text>
               <el-text><el-tag size="small" type="success">Helm Chart</el-tag></el-text>
             </div>
-            <div class="property-item" v-if="manifestInfo?.annotations?.['org.opencontainers.image.version']">
+            <div
+              class="property-item"
+              v-if="manifestInfo?.annotations?.['org.opencontainers.image.version']"
+            >
               <el-text type="info">Chart Version:</el-text>
               <el-text>{{ manifestInfo.annotations['org.opencontainers.image.version'] }}</el-text>
             </div>
-            <div class="property-item" v-if="manifestInfo?.annotations?.['org.opencontainers.image.description']">
+            <div
+              class="property-item"
+              v-if="manifestInfo?.annotations?.['org.opencontainers.image.description']"
+            >
               <el-text type="info">Description:</el-text>
-              <el-text>{{ manifestInfo.annotations['org.opencontainers.image.description'] }}</el-text>
+              <el-text>{{
+                manifestInfo.annotations['org.opencontainers.image.description']
+              }}</el-text>
             </div>
           </template>
 
@@ -72,9 +79,15 @@
         <div v-if="tagInfo.pullCommand" class="pull-command">
           <template v-if="!isHelmChart">
             <el-text type="info">Pull Command:</el-text>
-            <el-input :model-value="`docker pull ${tagInfo.pullCommand.split(' ').pop()}`" readonly class="command-input">
+            <el-input
+              :model-value="`docker pull ${tagInfo.pullCommand.split(' ').pop()}`"
+              readonly
+              class="command-input"
+            >
               <template #append>
-                <el-button @click="copyToClipboard(`docker pull ${tagInfo.pullCommand.split(' ').pop()}`)">
+                <el-button
+                  @click="copyToClipboard(`docker pull ${tagInfo.pullCommand.split(' ').pop()}`)"
+                >
                   <el-icon><DocumentCopy /></el-icon>
                 </el-button>
               </template>
@@ -83,9 +96,17 @@
           <template v-else>
             <el-text type="info">Helm Commands:</el-text>
             <div class="helm-commands">
-              <el-input :model-value="`helm pull oci://${tagInfo.pullCommand.split(' ').pop()}`" readonly class="command-input">
+              <el-input
+                :model-value="`helm pull oci://${tagInfo.pullCommand.split(' ').pop()}`"
+                readonly
+                class="command-input"
+              >
                 <template #append>
-                  <el-button @click="copyToClipboard(`helm pull oci://${tagInfo.pullCommand.split(' ').pop()}`)">
+                  <el-button
+                    @click="
+                      copyToClipboard(`helm pull oci://${tagInfo.pullCommand.split(' ').pop()}`)
+                    "
+                  >
                     Pull
                   </el-button>
                 </template>
@@ -178,7 +199,15 @@
           </div>
           <div v-else-if="blobContent" class="content-viewer">
             <!-- Docker Layer Tar.GZip Format -->
-            <div v-if="blobContent.type === 'blob' && (blobContent.mediaType?.includes('rootfs.diff') || blobContent.mediaType?.includes('tar.gzip') || blobContent.mediaType?.includes('tar+gzip'))" class="layer-binary-container">
+            <div
+              v-if="
+                blobContent.type === 'blob' &&
+                (blobContent.mediaType?.includes('rootfs.diff') ||
+                  blobContent.mediaType?.includes('tar.gzip') ||
+                  blobContent.mediaType?.includes('tar+gzip'))
+              "
+              class="layer-binary-container"
+            >
               <!-- Show TarViewer for docker layers -->
               <TarViewer
                 v-if="blobContent.arrayBuffer"
@@ -191,7 +220,11 @@
                 <template #header>
                   <div class="binary-header">
                     <el-icon><Box /></el-icon>
-                    <span>Archive Content ({{ currentBlob?.digest?.substring(7, 19) || 'Unknown' }})</span>
+                    <span
+                      >Archive Content ({{
+                        currentBlob?.digest?.substring(7, 19) || 'Unknown'
+                      }})</span
+                    >
                   </div>
                 </template>
                 <div class="binary-details">
@@ -203,7 +236,9 @@
                   </div>
                   <div class="detail-item">
                     <el-text type="info">Size:</el-text>
-                    <el-text><strong>{{ formatSize(blobContent.content?.size || 0) }}</strong></el-text>
+                    <el-text
+                      ><strong>{{ formatSize(blobContent.content?.size || 0) }}</strong></el-text
+                    >
                   </div>
                   <el-alert
                     title="Failed to load ArrayBuffer"
@@ -224,7 +259,10 @@
             />
 
             <!-- JSON Content -->
-            <div v-else-if="vueJsonPrettyAvailable && isJsonContent && jsonData" class="json-pretty-container">
+            <div
+              v-else-if="vueJsonPrettyAvailable && isJsonContent && jsonData"
+              class="json-pretty-container"
+            >
               <vue-json-pretty
                 :data="jsonData"
                 :deep="3"
@@ -233,7 +271,9 @@
                 :show-double-quotes="true"
               />
             </div>
-            <pre v-else-if="isJsonContent && jsonData" class="json-viewer">{{ JSON.stringify(jsonData, null, 2) }}</pre>
+            <pre v-else-if="isJsonContent && jsonData" class="json-viewer">{{
+              JSON.stringify(jsonData, null, 2)
+            }}</pre>
 
             <!-- Plain Text Content -->
             <pre v-else class="text-viewer">{{ blobContent.content }}</pre>
@@ -263,18 +303,18 @@ import TarViewer from '../components/TarViewer.vue'
 import { registryApi } from '../api/registry'
 import { ElMessage } from 'element-plus'
 import { useAuthStore } from '../stores/auth'
-import {useProtectedPage} from "../composables/useAuthCheck.js";
+import { useProtectedPage } from '../composables/useAuthCheck.js'
 
 // Define props
 const props = defineProps({
   name: {
     type: String,
-    required: true
+    required: true,
   },
   tag: {
     type: String,
-    required: true
-  }
+    required: true,
+  },
 })
 
 // Check if vue-json-pretty is available
@@ -303,15 +343,21 @@ const repositoryName = ref(props.name)
 const tagName = ref(props.tag)
 
 // Watch for props changes
-watch(() => props.name, (newName) => {
-  repositoryName.value = newName
-  fetchTagDetails()
-})
+watch(
+  () => props.name,
+  newName => {
+    repositoryName.value = newName
+    fetchTagDetails()
+  }
+)
 
-watch(() => props.tag, (newTag) => {
-  tagName.value = newTag
-  fetchTagDetails()
-})
+watch(
+  () => props.tag,
+  newTag => {
+    tagName.value = newTag
+    fetchTagDetails()
+  }
+)
 
 const tagInfo = ref(null)
 const config = ref(null)
@@ -329,7 +375,7 @@ const currentBlob = ref(null)
 
 // Prevent attribute inheritance
 defineOptions({
-  inheritAttrs: false
+  inheritAttrs: false,
 })
 
 const fetchTagDetails = async () => {
@@ -340,10 +386,13 @@ const fetchTagDetails = async () => {
     manifestInfo.value = manifest
 
     // Fetch manifest info
-    const manifestInfoResult = await registryApi.getManifestInfo(repositoryName.value, tagName.value)
+    const manifestInfoResult = await registryApi.getManifestInfo(
+      repositoryName.value,
+      tagName.value
+    )
     tagInfo.value = {
       ...manifestInfoResult,
-      pullCommand: `${window.location.hostname}:${window.location.port || 80}/${repositoryName.value}:${tagName.value}`
+      pullCommand: `${window.location.hostname}:${window.location.port || 80}/${repositoryName.value}:${tagName.value}`,
     }
 
     // Process config separately (not part of layers anymore)
@@ -351,7 +400,7 @@ const fetchTagDetails = async () => {
       config.value = {
         digest: manifest.config.digest,
         size: manifest.config.size,
-        mediaType: manifest.config.mediaType || 'application/vnd.oci.image.config.v1+json'
+        mediaType: manifest.config.mediaType || 'application/vnd.oci.image.config.v1+json',
       }
     }
 
@@ -363,7 +412,7 @@ const fetchTagDetails = async () => {
       const layersFromManifest = manifest.layers.map(layer => ({
         digest: layer.digest,
         size: layer.size,
-        mediaType: layer.mediaType
+        mediaType: layer.mediaType,
       }))
       layerList.push(...layersFromManifest)
     }
@@ -377,7 +426,7 @@ const fetchTagDetails = async () => {
   }
 }
 
-const formatSize = (size) => {
+const formatSize = size => {
   if (size === 'Unknown' || size === null || size === undefined) return 'Unknown'
   if (size < 1024) return `${size} B`
   if (size < 1024 * 1024) return `${(size / 1024).toFixed(2)} KB`
@@ -385,7 +434,7 @@ const formatSize = (size) => {
   return `${(size / (1024 * 1024 * 1024)).toFixed(2)} GB`
 }
 
-const showBlobContent = async (blob) => {
+const showBlobContent = async blob => {
   currentBlob.value = blob
   dialogTitle.value = `Content: ${blob.digest.substring(0, 16)}...`
   dialogVisible.value = true
@@ -394,7 +443,11 @@ const showBlobContent = async (blob) => {
   blobContent.value = null
 
   try {
-    const result = await registryApi.getBlobContent(repositoryName.value, blob.digest, blob.mediaType || '')
+    const result = await registryApi.getBlobContent(
+      repositoryName.value,
+      blob.digest,
+      blob.mediaType || ''
+    )
     blobContent.value = result
   } catch (error) {
     dialogError.value = `Failed to fetch blob content: ${error.message}`
@@ -417,7 +470,7 @@ const showTagDetails = async () => {
     blobContent.value = {
       type: 'text',
       content: JSON.stringify(manifest, null, 2),
-      contentType: 'application/json'
+      contentType: 'application/json',
     }
   } catch (error) {
     dialogError.value = `Failed to fetch manifest: ${error.message}`
@@ -431,9 +484,11 @@ const isJsonContent = computed(() => {
   if (!blobContent.value || blobContent.value.type !== 'text') return false
   const contentType = blobContent.value.contentType.toLowerCase()
   const mediaType = (blobContent.value.mediaType || '').toLowerCase()
-  return contentType.includes('application/json') ||
-         contentType.includes('+json') ||
-         mediaType.includes('+json')
+  return (
+    contentType.includes('application/json') ||
+    contentType.includes('+json') ||
+    mediaType.includes('+json')
+  )
 })
 
 // Computed properties for type detection
@@ -442,8 +497,8 @@ const isHelmChart = computed(() => {
     return manifestInfo.value.config.mediaType.includes('helm')
   }
   if (manifestInfo.value?.layers?.length > 0) {
-    return manifestInfo.value.layers.some(layer =>
-      layer.mediaType && layer.mediaType.includes('helm')
+    return manifestInfo.value.layers.some(
+      layer => layer.mediaType && layer.mediaType.includes('helm')
     )
   }
   return tagInfo.value?.mediaType?.includes('helm') || false
@@ -451,16 +506,18 @@ const isHelmChart = computed(() => {
 
 const isDockerImage = computed(() => {
   if (manifestInfo.value?.config?.mediaType) {
-    return manifestInfo.value.config.mediaType.includes('image') ||
-           manifestInfo.value.config.mediaType.includes('container')
+    return (
+      manifestInfo.value.config.mediaType.includes('image') ||
+      manifestInfo.value.config.mediaType.includes('container')
+    )
   }
   if (manifestInfo.value?.layers?.length > 0) {
-    return manifestInfo.value.layers.some(layer =>
-      layer.mediaType && (
-        layer.mediaType.includes('image') ||
-        layer.mediaType.includes('rootfs') ||
-        layer.mediaType.includes('docker')
-      )
+    return manifestInfo.value.layers.some(
+      layer =>
+        layer.mediaType &&
+        (layer.mediaType.includes('image') ||
+          layer.mediaType.includes('rootfs') ||
+          layer.mediaType.includes('docker'))
     )
   }
   return tagInfo.value?.mediaType?.includes('image') || false
@@ -474,17 +531,23 @@ const tagType = computed(() => {
 
 const tagTypeTitle = computed(() => {
   switch (tagType.value) {
-    case 'helm': return 'Helm Chart'
-    case 'docker': return 'Docker Image'
-    default: return 'OCI Artifact'
+    case 'helm':
+      return 'Helm Chart'
+    case 'docker':
+      return 'Docker Image'
+    default:
+      return 'OCI Artifact'
   }
 })
 
 const tagTypeTag = computed(() => {
   switch (tagType.value) {
-    case 'helm': return 'success'
-    case 'docker': return 'info'
-    default: return 'warning'
+    case 'helm':
+      return 'success'
+    case 'docker':
+      return 'info'
+    default:
+      return 'warning'
   }
 })
 
@@ -497,7 +560,7 @@ const jsonData = computed(() => {
   }
 })
 
-const copyToClipboard = async (text) => {
+const copyToClipboard = async text => {
   try {
     await navigator.clipboard.writeText(text)
     ElMessage.success('Copied to clipboard')
@@ -518,7 +581,6 @@ onMounted(async () => {
   const { initPage } = useProtectedPage(router, fetchTagDetails)
   await initPage()
 })
-
 </script>
 
 <style scoped>
@@ -536,7 +598,7 @@ onMounted(async () => {
 .page-header h1 {
   margin: 0;
   font-size: 24px;
-  color: #409EFF;
+  color: #409eff;
 }
 
 .tag-info-card {
@@ -854,5 +916,4 @@ onMounted(async () => {
 .layer-info {
   margin-top: 16px;
 }
-
 </style>

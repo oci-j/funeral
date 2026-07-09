@@ -80,12 +80,7 @@
       >
         Copy Content
       </el-button>
-      <el-button
-        type="primary"
-        @click="downloadFile"
-      >
-        Download File
-      </el-button>
+      <el-button type="primary" @click="downloadFile"> Download File </el-button>
     </template>
   </el-dialog>
 </template>
@@ -98,20 +93,20 @@ import { ElMessage } from 'element-plus'
 const props = defineProps({
   visible: {
     type: Boolean,
-    default: false
+    default: false,
   },
   fileName: {
     type: String,
-    default: ''
+    default: '',
   },
   fileContent: {
     type: [String, ArrayBuffer],
-    default: ''
+    default: '',
   },
   fileSize: {
     type: Number,
-    default: 0
-  }
+    default: 0,
+  },
 })
 
 const emit = defineEmits(['update:visible'])
@@ -120,8 +115,8 @@ const loading = ref(false)
 const error = ref('')
 const contentType = ref('text') // Default to text for binary content
 const vueJsonPrettyAvailable = ref(false)
-const previewContent = ref('')  // For text content
-const fileHashes = ref(null)  // For MD5 and SHA256
+const previewContent = ref('') // For text content
+const fileHashes = ref(null) // For MD5 and SHA256
 
 // Get file content as string for display
 const fileContentText = computed(() => {
@@ -161,7 +156,7 @@ const fileContentText = computed(() => {
 
 const dialogVisible = computed({
   get: () => props.visible,
-  set: (val) => emit('update:visible', val)
+  set: val => emit('update:visible', val),
 })
 
 const fileExtension = computed(() => {
@@ -191,7 +186,23 @@ const imageSrc = computed(() => {
 
 const detectContentType = async () => {
   // Check file extension first
-  const textExtensions = ['txt', 'md', 'yaml', 'yml', 'xml', 'sh', 'py', 'js', 'css', 'html', 'conf', 'ini', 'toml', 'log', 'csv']
+  const textExtensions = [
+    'txt',
+    'md',
+    'yaml',
+    'yml',
+    'xml',
+    'sh',
+    'py',
+    'js',
+    'css',
+    'html',
+    'conf',
+    'ini',
+    'toml',
+    'log',
+    'csv',
+  ]
   const jsonExtensions = ['json']
   const imageExtensions = ['png', 'jpg', 'jpeg', 'gif', 'bmp', 'svg', 'ico']
 
@@ -224,7 +235,8 @@ const detectContentType = async () => {
           totalChecked++
 
           // Check for control characters (0-31) that are not common in text
-          if (byte < 32 && byte !== 9 && byte !== 10 && byte !== 13) { // Not tab, newline, or carriage return
+          if (byte < 32 && byte !== 9 && byte !== 10 && byte !== 13) {
+            // Not tab, newline, or carriage return
             isText = false
             break
           }
@@ -236,7 +248,7 @@ const detectContentType = async () => {
         }
 
         // Adjust the threshold - allow up to 50% high bytes for UTF-8 content
-        if (isText && (highBytes / totalChecked) < 0.5) {
+        if (isText && highBytes / totalChecked < 0.5) {
           contentType.value = 'text'
           // Use non-fatal decoder to show content even if there are some invalid UTF-8 sequences
           const nonFatalDecoder = new TextDecoder('utf-8', { fatal: false })
@@ -270,30 +282,32 @@ const detectContentType = async () => {
 }
 
 // Calculate MD5 using crypto-js
-const calculateMD5 = (buffer) => {
-  return new Promise((resolve) => {
+const calculateMD5 = buffer => {
+  return new Promise(resolve => {
     try {
-      import('crypto-js').then(CryptoJS => {
-        let wordArray
-        if (buffer instanceof ArrayBuffer) {
-          const bytes = new Uint8Array(buffer)
-          const len = bytes.length
-          const words = []
-          for (let i = 0; i < len; i++) {
-            words[i >>> 2] |= (bytes[i] & 0xff) << (24 - (i % 4) * 8)
+      import('crypto-js')
+        .then(CryptoJS => {
+          let wordArray
+          if (buffer instanceof ArrayBuffer) {
+            const bytes = new Uint8Array(buffer)
+            const len = bytes.length
+            const words = []
+            for (let i = 0; i < len; i++) {
+              words[i >>> 2] |= (bytes[i] & 0xff) << (24 - (i % 4) * 8)
+            }
+            wordArray = new CryptoJS.lib.WordArray.init(words, len)
+          } else {
+            // For string content
+            resolve(CryptoJS.MD5(buffer).toString())
+            return
           }
-          wordArray = new CryptoJS.lib.WordArray.init(words, len)
-        } else {
-          // For string content
-          resolve(CryptoJS.MD5(buffer).toString())
-          return
-        }
 
-        resolve(CryptoJS.MD5(wordArray).toString())
-      }).catch((err) => {
-        console.warn('Failed to import crypto-js:', err)
-        resolve('N/A')
-      })
+          resolve(CryptoJS.MD5(wordArray).toString())
+        })
+        .catch(err => {
+          console.warn('Failed to import crypto-js:', err)
+          resolve('N/A')
+        })
     } catch (err) {
       console.warn('MD5 calculation failed:', err)
       resolve('N/A')
@@ -302,30 +316,32 @@ const calculateMD5 = (buffer) => {
 }
 
 // Calculate SHA256 using crypto-js
-const calculateSHA256 = (buffer) => {
-  return new Promise((resolve) => {
+const calculateSHA256 = buffer => {
+  return new Promise(resolve => {
     try {
-      import('crypto-js').then(CryptoJS => {
-        let wordArray
-        if (buffer instanceof ArrayBuffer) {
-          const bytes = new Uint8Array(buffer)
-          const len = bytes.length
-          const words = []
-          for (let i = 0; i < len; i++) {
-            words[i >>> 2] |= (bytes[i] & 0xff) << (24 - (i % 4) * 8)
+      import('crypto-js')
+        .then(CryptoJS => {
+          let wordArray
+          if (buffer instanceof ArrayBuffer) {
+            const bytes = new Uint8Array(buffer)
+            const len = bytes.length
+            const words = []
+            for (let i = 0; i < len; i++) {
+              words[i >>> 2] |= (bytes[i] & 0xff) << (24 - (i % 4) * 8)
+            }
+            wordArray = new CryptoJS.lib.WordArray.init(words, len)
+          } else {
+            // For string content
+            resolve(CryptoJS.SHA256(buffer).toString())
+            return
           }
-          wordArray = new CryptoJS.lib.WordArray.init(words, len)
-        } else {
-          // For string content
-          resolve(CryptoJS.SHA256(buffer).toString())
-          return
-        }
 
-        resolve(CryptoJS.SHA256(wordArray).toString())
-      }).catch((err) => {
-        console.warn('Failed to import crypto-js:', err)
-        resolve('N/A')
-      })
+          resolve(CryptoJS.SHA256(wordArray).toString())
+        })
+        .catch(err => {
+          console.warn('Failed to import crypto-js:', err)
+          resolve('N/A')
+        })
     } catch (err) {
       console.warn('SHA256 calculation failed:', err)
       resolve('N/A')
@@ -348,10 +364,7 @@ const calculateFileHashes = async () => {
     }
 
     // Calculate both hashes using crypto-js
-    const [md5, sha256] = await Promise.all([
-      calculateMD5(buffer),
-      calculateSHA256(buffer)
-    ])
+    const [md5, sha256] = await Promise.all([calculateMD5(buffer), calculateSHA256(buffer)])
 
     return { md5, sha256 }
   } catch (err) {
@@ -414,9 +427,10 @@ const copyToClipboard = async () => {
 }
 
 const downloadFile = () => {
-  const blob = props.fileContent instanceof ArrayBuffer
-    ? new Blob([props.fileContent])
-    : new Blob([props.fileContent])
+  const blob =
+    props.fileContent instanceof ArrayBuffer
+      ? new Blob([props.fileContent])
+      : new Blob([props.fileContent])
 
   const url = URL.createObjectURL(blob)
   const a = document.createElement('a')
@@ -429,13 +443,16 @@ const downloadFile = () => {
 }
 
 // Watch for dialog opening
-watch(() => props.visible, (newVal) => {
-  if (newVal) {
-    nextTick(() => {
-      loadPreview()
-    })
+watch(
+  () => props.visible,
+  newVal => {
+    if (newVal) {
+      nextTick(() => {
+        loadPreview()
+      })
+    }
   }
-})
+)
 </script>
 
 <style scoped>

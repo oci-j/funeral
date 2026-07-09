@@ -1,17 +1,17 @@
 <template>
   <el-dialog
-      v-model="visible"
-      width="700px"
-      :close-on-click-modal="true"
-      :lock-scroll="false"
-      align-center
-      class="about-dialog centered-dialog"
+    v-model="visible"
+    width="700px"
+    :close-on-click-modal="true"
+    :lock-scroll="false"
+    align-center
+    class="about-dialog centered-dialog"
   >
     <div class="about-content">
       <!-- Center wrapper -->
       <div class="about-content-wrapper">
         <div class="logo-section">
-          <img src="/image/funeral.jpg" alt="FUNERAL Logo" class="about-logo"/>
+          <img src="/image/funeral.jpg" alt="FUNERAL Logo" class="about-logo" />
         </div>
 
         <div class="info-section">
@@ -24,11 +24,7 @@
             </el-descriptions-item>
 
             <el-descriptions-item label="Sources">
-              <el-link
-                  type="primary"
-                  href="https://github.com/oci-j/funeral.git"
-                  target="_blank"
-              >
+              <el-link type="primary" href="https://github.com/oci-j/funeral.git" target="_blank">
                 https://github.com/oci-j/funeral.git
               </el-link>
             </el-descriptions-item>
@@ -37,19 +33,21 @@
               <el-tag type="warning">Apache 2.0</el-tag>
             </el-descriptions-item>
 
-            <el-descriptions-item label="Author">
-              XenoAmess
-            </el-descriptions-item>
+            <el-descriptions-item label="Author"> XenoAmess </el-descriptions-item>
 
             <el-descriptions-item label="Description">
-              A lightweight OCI (Open Container Initiative) image registry implemented in Java that follows the OCI
-              Distribution Specification.
+              A lightweight OCI (Open Container Initiative) image registry implemented in Java that
+              follows the OCI Distribution Specification.
             </el-descriptions-item>
             <el-descriptions-item label="Sponsor">
-              <a href='https://ko-fi.com/P5P11S9YKU' target='_blank'><img height='36' style='border:0px;height:36px;'
-                                                                          src='https://storage.ko-fi.com/cdn/kofi5.png?v=6'
-                                                                          border='0'
-                                                                          alt='Buy Me a Coffee at ko-fi.com'/></a>
+              <a href="https://ko-fi.com/P5P11S9YKU" target="_blank"
+                ><img
+                  height="36"
+                  style="border: 0px; height: 36px"
+                  src="https://storage.ko-fi.com/cdn/kofi5.png?v=6"
+                  border="0"
+                  alt="Buy Me a Coffee at ko-fi.com"
+              /></a>
             </el-descriptions-item>
             <el-descriptions-item label="Runtime">
               <!-- Runtime Info Section -->
@@ -59,26 +57,34 @@
 
               <div v-else-if="runtimeInfo">
                 <div class="runtime-info-row">
-                  <el-tag :type="runtimeInfo.isNativeImage ? 'success' : 'info'" size="small" class="runtime-tag">
+                  <el-tag
+                    :type="runtimeInfo.isNativeImage ? 'success' : 'info'"
+                    size="small"
+                    class="runtime-tag"
+                  >
                     {{ runtimeInfo.isNativeImage ? 'Native' : 'JVM' }}
                   </el-tag>
                   <span class="runtime-details">
-                    <span v-if="!runtimeInfo.isNativeImage" class="detail-item">Java {{ runtimeInfo.javaVersion }}</span>
-                    <span class="detail-item">{{ runtimeInfo.osName }} ({{ runtimeInfo.osArch }})</span>
+                    <span v-if="!runtimeInfo.isNativeImage" class="detail-item"
+                      >Java {{ runtimeInfo.javaVersion }}</span
+                    >
+                    <span class="detail-item"
+                      >{{ runtimeInfo.osName }} ({{ runtimeInfo.osArch }})</span
+                    >
                     <span class="detail-item">PID:{{ runtimeInfo.pid }}</span>
                   </span>
                   <span v-if="runtimeInfo.canDownload" class="download-section-inline">
-                <el-button
-                    type="primary"
-                    size="small"
-                    @click="downloadBinary"
-                    :loading="loadingDownload"
-                    style="padding: 0 8px; height: 24px;"
-                >
-                  <el-icon><Download/></el-icon>
-                  {{ formatFileSize(runtimeInfo.binarySize) }}
-                </el-button>
-              </span>
+                    <el-button
+                      type="primary"
+                      size="small"
+                      @click="downloadBinary"
+                      :loading="loadingDownload"
+                      style="padding: 0 8px; height: 24px"
+                    >
+                      <el-icon><Download /></el-icon>
+                      {{ formatFileSize(runtimeInfo.binarySize) }}
+                    </el-button>
+                  </span>
                 </div>
                 <div class="runtime-note" v-if="runtimeInfo.binaryName">
                   {{ runtimeInfo.binaryName }}
@@ -105,7 +111,7 @@
 </template>
 
 <script setup>
-import {ref} from 'vue'
+import { ref } from 'vue'
 import packageInfo from '../../package.json'
 
 const visible = ref(false)
@@ -150,8 +156,8 @@ const downloadBinary = async () => {
     // Get filename from headers
     const contentDisposition = response.headers.get('content-disposition')
     const filename = contentDisposition
-        ? contentDisposition.split('filename="')[1]?.split('"')[0]
-        : 'funeral-binary'
+      ? contentDisposition.split('filename="')[1]?.split('"')[0]
+      : 'funeral-binary'
 
     // Create blob and download
     const blob = await response.blob()
@@ -171,7 +177,7 @@ const downloadBinary = async () => {
   }
 }
 
-const formatFileSize = (bytes) => {
+const formatFileSize = bytes => {
   if (!bytes) return '0 B'
   const k = 1024
   const sizes = ['B', 'KB', 'MB', 'GB']
@@ -182,7 +188,7 @@ const formatFileSize = (bytes) => {
 // Expose methods to parent
 defineExpose({
   open,
-  close
+  close,
 })
 </script>
 
@@ -346,7 +352,7 @@ defineExpose({
 }
 
 .detail-item:not(:last-child)::after {
-  content: "·";
+  content: '·';
   margin-left: 12px;
   color: #dcdfe6;
 }
@@ -371,5 +377,4 @@ defineExpose({
     font-size: 16px;
   }
 }
-
 </style>

@@ -4,12 +4,8 @@
       <el-icon><Box /></el-icon>
       <span>Tar Archive Content</span>
       <div class="header-stats">
-        <el-tag type="info" size="small">
-          {{ folderCount }} folders
-        </el-tag>
-        <el-tag type="success" size="small">
-          {{ fileCount }} files
-        </el-tag>
+        <el-tag type="info" size="small"> {{ folderCount }} folders </el-tag>
+        <el-tag type="success" size="small"> {{ fileCount }} files </el-tag>
         <el-tag type="warning" size="small">
           {{ formatSize(totalSize) }}
         </el-tag>
@@ -49,12 +45,7 @@
         </div>
 
         <div class="tree-view">
-          <TreeItem
-            v-for="node in treeData"
-            :key="node.path"
-            :node="node"
-            :level="0"
-          />
+          <TreeItem v-for="node in treeData" :key="node.path" :node="node" :level="0" />
         </div>
       </div>
 
@@ -85,12 +76,12 @@ import TreeItem from './TreeItem.vue'
 const props = defineProps({
   arrayBuffer: {
     type: ArrayBuffer,
-    required: true
+    required: true,
   },
   mediaType: {
     type: String,
-    default: ''
-  }
+    default: '',
+  },
 })
 
 const loading = ref(true)
@@ -105,7 +96,7 @@ const previewVisible = ref(false)
 const previewFile = ref({
   name: '',
   content: null,
-  size: 0
+  size: 0,
 })
 
 // Provide state to child components
@@ -117,12 +108,12 @@ provide('formatSize', formatSize)
 provide('getFileType', getFileType)
 
 // Provide preview function
-provide('previewFile', (file) => {
+provide('previewFile', file => {
   if (file.type === 'file' && file.content) {
     previewFile.value = {
       name: file.path || file.name,
       content: file.content,
-      size: file.size
+      size: file.size,
     }
     previewVisible.value = true
   }
@@ -145,14 +136,16 @@ const parseTarGz = async () => {
     }
 
     // Then parse tar using js-untar
-    const arrayBuffer = decompressed.buffer.slice(decompressed.byteOffset, decompressed.byteOffset + decompressed.byteLength)
+    const arrayBuffer = decompressed.buffer.slice(
+      decompressed.byteOffset,
+      decompressed.byteOffset + decompressed.byteLength
+    )
 
     try {
       // js-untar returns a promise with progress callback
-      const result = await untar(arrayBuffer)
-        .progress(file => {
-          console.log('Extracting file:', file.name)
-        })
+      const result = await untar(arrayBuffer).progress(file => {
+        console.log('Extracting file:', file.name)
+      })
 
       if (!result || result.length === 0) {
         throw new Error('No files found in tar archive or archive is empty')
@@ -167,7 +160,7 @@ const parseTarGz = async () => {
         uid: entry.uid || 0,
         gid: entry.gid || 0,
         linkname: entry.linkname || null,
-        content: entry.buffer || null // Store file content for preview
+        content: entry.buffer || null, // Store file content for preview
       }))
 
       console.log('Tar parsing completed, found', parsedFiles.length, 'files')
@@ -181,7 +174,6 @@ const parseTarGz = async () => {
       error.value = `Failed to parse tar archive: ${tarErr.message}`
       loading.value = false
     }
-
   } catch (err) {
     console.error('Failed to parse layer:', err)
     error.value = err.message
@@ -189,7 +181,7 @@ const parseTarGz = async () => {
   }
 }
 
-const getEntryType = (type) => {
+const getEntryType = type => {
   if (!type) return 'file'
   // js-untar uses numeric type codes as strings
   switch (type) {
@@ -223,24 +215,24 @@ function getFileType(file) {
   // Try to determine file type from extension
   const ext = file.path.split('.').pop().toLowerCase()
   const typeMap = {
-    'sh': 'Shell Script',
-    'py': 'Python',
-    'js': 'JavaScript',
-    'json': 'JSON',
-    'yaml': 'YAML',
-    'yml': 'YAML',
-    'xml': 'XML',
-    'txt': 'Text',
-    'md': 'Markdown',
-    'conf': 'Config',
-    'ini': 'Config',
-    'toml': 'Config',
-    'html': 'HTML',
-    'css': 'CSS',
-    'bin': 'Binary',
-    'so': 'Shared Lib',
-    'dll': 'Dynamic Lib',
-    'exe': 'Executable'
+    sh: 'Shell Script',
+    py: 'Python',
+    js: 'JavaScript',
+    json: 'JSON',
+    yaml: 'YAML',
+    yml: 'YAML',
+    xml: 'XML',
+    txt: 'Text',
+    md: 'Markdown',
+    conf: 'Config',
+    ini: 'Config',
+    toml: 'Config',
+    html: 'HTML',
+    css: 'CSS',
+    bin: 'Binary',
+    so: 'Shared Lib',
+    dll: 'Dynamic Lib',
+    exe: 'Executable',
   }
   return typeMap[ext] || 'File'
 }
@@ -274,7 +266,7 @@ function buildTree(files) {
           path: path,
           type: 'directory',
           size: 0,
-          children: []
+          children: [],
         }
         pathMap.set(path, dirNode)
         parent.children.push(dirNode)
@@ -295,7 +287,7 @@ function buildTree(files) {
           ...file,
           name: fileName,
           path: filePath,
-          children: undefined
+          children: undefined,
         }
         pathMap.set(filePath, fileNode)
         parent.children.push(fileNode)
@@ -306,7 +298,7 @@ function buildTree(files) {
   })
 
   // Sort children in each node (directories first, then files alphabetically)
-  const sortNodeChildren = (node) => {
+  const sortNodeChildren = node => {
     if (node.children && node.children.length > 0) {
       node.children.sort((a, b) => {
         if (a.type === 'directory' && b.type !== 'directory') return -1
@@ -332,7 +324,8 @@ const toggleEmptyFolders = () => {
 
 // Computed properties
 const fileCount = computed(() => {
-  return files.value.filter(f => f.type === 'file' || f.type === 'symlink' || f.type === 'hardlink').length
+  return files.value.filter(f => f.type === 'file' || f.type === 'symlink' || f.type === 'hardlink')
+    .length
 })
 
 const folderCount = computed(() => {

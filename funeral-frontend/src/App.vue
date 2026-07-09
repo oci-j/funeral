@@ -11,31 +11,48 @@
         <el-header>
           <div class="header-content">
             <div class="logo-section">
-              <el-button class="menu-toggle show-mobile-inline" :icon="Menu" @click="toggleMobileMenu" circle style="border: none; background: rgba(255,255,255,0.2); color: white; margin-right: 12px"/>
+              <el-button
+                class="menu-toggle show-mobile-inline"
+                :icon="Menu"
+                @click="toggleMobileMenu"
+                circle
+                style="
+                  border: none;
+                  background: rgba(255, 255, 255, 0.2);
+                  color: white;
+                  margin-right: 12px;
+                "
+              />
               <img src="/image/funeral.jpg" alt="FUNERAL Logo" class="logo-image" />
               <h2 class="hide-xs">FUNERAL - OCI Registry</h2>
-              <h2 class="show-mobile" style="display: none;">FUNERAL</h2>
+              <h2 class="show-mobile" style="display: none">FUNERAL</h2>
               <el-button
                 type="info"
                 :icon="InfoFilled"
                 circle
                 @click="$refs.aboutDialog.open()"
                 title="About FUNERAL"
-                style="margin-left: 0;"
+                style="margin-left: 0"
                 class="hide-xs"
               />
             </div>
             <div class="header-actions">
               <!-- Auth status tag -->
               <div v-if="authStore.isAuthenticated" class="user-menu">
-                <el-dropdown @command="handleUserCommand" :disabled = "!authStore.authEnabled">
+                <el-dropdown @command="handleUserCommand" :disabled="!authStore.authEnabled">
                   <span class="user-dropdown">
                     <el-icon>
                       <el-icon v-if="authStore.checkingConfig"><Loading /></el-icon>
-                      <el-icon v-else><User v-if="authStore.authEnabled" /><Unlock v-else /></el-icon>
+                      <el-icon v-else
+                        ><User v-if="authStore.authEnabled" /><Unlock v-else
+                      /></el-icon>
                     </el-icon>
-                    <span class="hide-xs">{{ authStore.authEnabled ? authStore.user?.username : 'auth disabled' }}</span>
-                    <el-icon class="el-icon--right" v-if= "authStore.authEnabled"><arrow-down /></el-icon>
+                    <span class="hide-xs">{{
+                      authStore.authEnabled ? authStore.user?.username : 'auth disabled'
+                    }}</span>
+                    <el-icon class="el-icon--right" v-if="authStore.authEnabled"
+                      ><arrow-down
+                    /></el-icon>
                   </span>
                   <template #dropdown>
                     <el-dropdown-menu>
@@ -121,7 +138,7 @@ import {
   Loading,
   ArrowDown,
   InfoFilled,
-  Menu
+  Menu,
 } from '@element-plus/icons-vue'
 import { useAuthStore } from './stores/auth'
 import { useRouter } from 'vue-router'
@@ -144,7 +161,7 @@ const authStatusType = computed(() => {
   return authStore.authEnabled ? 'danger' : 'success'
 })
 
-const handleUserCommand = (command) => {
+const handleUserCommand = command => {
   if (command === 'logout') {
     authStore.logout()
     ElMessage.success('Logged out successfully')
@@ -152,7 +169,7 @@ const handleUserCommand = (command) => {
   }
 }
 
-const handleMenuSelect = (index) => {
+const handleMenuSelect = index => {
   if (index === 'about') {
     aboutDialog.value?.open()
   }
@@ -173,15 +190,15 @@ const toggleMobileMenu = () => {
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
+  font-family:
+    -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell',
+    'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 .el-header {
-  background-color: #409EFF;
+  background-color: #409eff;
   color: white;
   line-height: 60px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -351,5 +368,4 @@ body {
     font-size: 16px;
   }
 }
-
 </style>

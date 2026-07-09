@@ -27,12 +27,10 @@
           multiple
         >
           <el-icon class="el-icon--upload"><upload-filled /></el-icon>
-          <div class="el-upload__text">
-            Drop Docker tar file here or <em>click to upload</em>
-          </div>
+          <div class="el-upload__text">Drop Docker tar file here or <em>click to upload</em></div>
           <template #tip>
             <div class="el-upload__tip">
-              Supports: .tar, .tar.gz, .tgz, .tar.zst, and .zip (containing tar files)<br/>
+              Supports: .tar, .tar.gz, .tgz, .tar.zst, and .zip (containing tar files)<br />
               Use <code>docker save image:tag -o image.tar</code> to create tar file
             </div>
           </template>
@@ -76,7 +74,10 @@
             </el-descriptions>
 
             <!-- Individual file results -->
-            <div v-if="uploadResult.batchInfo.results && uploadResult.batchInfo.results.length > 0" class="file-results">
+            <div
+              v-if="uploadResult.batchInfo.results && uploadResult.batchInfo.results.length > 0"
+              class="file-results"
+            >
               <h4>📁 Individual File Results:</h4>
               <el-table :data="uploadResult.batchInfo.results" border stripe style="width: 100%">
                 <el-table-column label="#" width="60">
@@ -163,11 +164,7 @@
           <h3>Step 1: Tag your image</h3>
           <div class="step-content">
             <el-text type="info">Use the following command to tag your Docker image:</el-text>
-            <el-input
-              v-model="tagCommand"
-              readonly
-              class="command-input"
-            >
+            <el-input v-model="tagCommand" readonly class="command-input">
               <template #append>
                 <el-button @click="copyToClipboard(tagCommand)">
                   <el-icon><DocumentCopy /></el-icon>
@@ -181,11 +178,7 @@
           <h3>Step 2: Push to registry</h3>
           <div class="step-content">
             <el-text type="info">Then push the tagged image to this registry:</el-text>
-            <el-input
-              v-model="pushCommand"
-              readonly
-              class="command-input"
-            >
+            <el-input v-model="pushCommand" readonly class="command-input">
               <template #append>
                 <el-button @click="copyToClipboard(pushCommand)">
                   <el-icon><DocumentCopy /></el-icon>
@@ -199,11 +192,7 @@
           <h3>Step 3: Authenticate (Optional)</h3>
           <div class="step-content">
             <el-text type="info">If authentication is required, login first:</el-text>
-            <el-input
-              v-model="loginCommand"
-              readonly
-              class="command-input"
-            >
+            <el-input v-model="loginCommand" readonly class="command-input">
               <template #append>
                 <el-button @click="copyToClipboard(loginCommand)">
                   <el-icon><DocumentCopy /></el-icon>
@@ -269,12 +258,13 @@ const loginCommand = computed(() => {
 })
 
 // Tar file upload handlers
-const handleBeforeUpload = (file) => {
-  const isSupported = file.name.endsWith('.tar') ||
-                     file.name.endsWith('.tar.gz') ||
-                     file.name.endsWith('.tgz') ||
-                     file.name.endsWith('.tar.zst') ||
-                     file.name.endsWith('.zip')
+const handleBeforeUpload = file => {
+  const isSupported =
+    file.name.endsWith('.tar') ||
+    file.name.endsWith('.tar.gz') ||
+    file.name.endsWith('.tgz') ||
+    file.name.endsWith('.tar.zst') ||
+    file.name.endsWith('.zip')
   if (!isSupported) {
     ElMessage.error('Only .tar, .tar.gz, .tgz, .tar.zst, and .zip files are supported')
     return false
@@ -297,7 +287,7 @@ const uploadTarFiles = async () => {
 
   try {
     const formData = new FormData()
-    fileList.value.forEach((file) => {
+    fileList.value.forEach(file => {
       formData.append('files', file.raw)
     })
 
@@ -316,7 +306,7 @@ const uploadTarFiles = async () => {
       method: 'POST',
       headers,
       body: formData,
-      credentials: 'include' // Include cookies for authentication
+      credentials: 'include', // Include cookies for authentication
     })
 
     if (response.status === 401) {
@@ -342,8 +332,8 @@ const uploadTarFiles = async () => {
           totalFiles: result.totalFiles,
           successfulUploads: result.successfulUploads,
           failedUploads: result.failedUploads,
-          results: result.results
-        }
+          results: result.results,
+        },
       }
 
       if (result.failedUploads > 0) {
@@ -354,7 +344,7 @@ const uploadTarFiles = async () => {
       // Single file response (backward compatibility)
       uploadResult.value = {
         success: true,
-        ...result
+        ...result,
       }
     }
 
@@ -362,12 +352,11 @@ const uploadTarFiles = async () => {
     fileList.value = []
 
     ElMessage.success(`Successfully uploaded ${result.successfulUploads || 1} files!`)
-
   } catch (error) {
     console.error('Upload error:', error)
     uploadResult.value = {
       success: false,
-      error: error.message
+      error: error.message,
     }
     ElMessage.error(error.message || 'Upload failed')
   } finally {
@@ -376,7 +365,7 @@ const uploadTarFiles = async () => {
 }
 
 // Copy to clipboard
-const copyToClipboard = async (text) => {
+const copyToClipboard = async text => {
   try {
     await navigator.clipboard.writeText(text)
     ElMessage.success('Copied to clipboard')
@@ -469,7 +458,7 @@ const copyToClipboard = async (text) => {
 
 .step h3 {
   margin-bottom: 10px;
-  color: #409EFF;
+  color: #409eff;
 }
 
 .step-content {
@@ -533,7 +522,7 @@ const copyToClipboard = async (text) => {
 
 .step h3 {
   margin-bottom: 10px;
-  color: #409EFF;
+  color: #409eff;
 }
 
 .step-content {

@@ -65,7 +65,7 @@ describe('AboutButton', () => {
           'el-icon': {
             template: '<span class="el-icon"><slot /></span>',
           },
-          'transition': {
+          transition: {
             template: '<div><slot /></div>',
           },
         },

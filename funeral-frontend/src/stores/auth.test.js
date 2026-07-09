@@ -9,7 +9,7 @@ vi.mock('../api/registry', () => ({
   },
 }))
 
-const createValidToken = (exp) => {
+const createValidToken = exp => {
   const payload = { sub: 'admin', groups: ['ADMIN'], exp }
   const base64 = btoa(JSON.stringify(payload))
   return `header.${base64}.signature`
@@ -18,10 +18,16 @@ const createValidToken = (exp) => {
 function createMockStorage() {
   let store = {}
   return {
-    getItem: vi.fn((key) => (key in store ? store[key] : null)),
-    setItem: vi.fn((key, value) => { store[key] = value }),
-    removeItem: vi.fn((key) => { delete store[key] }),
-    clear: vi.fn(() => { store = {} }),
+    getItem: vi.fn(key => (key in store ? store[key] : null)),
+    setItem: vi.fn((key, value) => {
+      store[key] = value
+    }),
+    removeItem: vi.fn(key => {
+      delete store[key]
+    }),
+    clear: vi.fn(() => {
+      store = {}
+    }),
     _store: store,
   }
 }

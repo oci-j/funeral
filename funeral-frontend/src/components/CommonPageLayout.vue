@@ -49,13 +49,7 @@
 
   <!-- About Button - Fixed at bottom left -->
   <div class="about-button-container" v-if="showAboutButton">
-    <el-button
-      type="info"
-      plain
-      circle
-      @click="openAbout"
-      title="About FUNERAL"
-    >
+    <el-button type="info" plain circle @click="openAbout" title="About FUNERAL">
       <el-icon><InfoFilled /></el-icon>
     </el-button>
   </div>
@@ -72,68 +66,68 @@ const props = defineProps({
   // Page header
   title: {
     type: String,
-    default: ''
+    default: '',
   },
   showHeader: {
     type: Boolean,
-    default: true
+    default: true,
   },
   showActions: {
     type: Boolean,
-    default: true
+    default: true,
   },
 
   // Card settings
   cardTitle: {
     type: String,
-    default: ''
+    default: '',
   },
   cardBodyStyle: {
     type: Object,
     default: () => ({
-      padding: '20px'
-    })
+      padding: '20px',
+    }),
   },
 
   // Loading state
   loading: {
     type: Boolean,
-    default: false
+    default: false,
   },
   loadingText: {
     type: String,
-    default: 'Loading...'
+    default: 'Loading...',
   },
 
   // Empty state
   empty: {
     type: Boolean,
-    default: false
+    default: false,
   },
   emptyText: {
     type: String,
-    default: 'No data found'
+    default: 'No data found',
   },
   emptyImageSize: {
     type: Number,
-    default: 200
+    default: 200,
   },
   items: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
 
   // Footer
   showFooter: {
     type: Boolean,
-    default: false
+    default: false,
   },
 
   // About button
   showAboutButton: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 })
 
 const aboutDialogRef = ref(null)
@@ -159,7 +153,7 @@ const openAbout = () => {
 .page-header h1 {
   margin: 0;
   font-size: 24px;
-  color: #409EFF;
+  color: #409eff;
 }
 
 .header-actions {

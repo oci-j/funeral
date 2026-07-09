@@ -6,7 +6,7 @@ import { ElMessage } from 'element-plus'
  * @param {Function} router - Vue Router instance
  * @returns {Promise<boolean>} - Returns true if authenticated, false otherwise
  */
-export const useAuthCheck = (router) => {
+export const useAuthCheck = router => {
   const authStore = useAuthStore()
 
   const checkAuth = async () => {

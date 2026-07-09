@@ -3,7 +3,7 @@
     <div
       class="tree-row"
       :class="{ 'is-directory': node.type === 'directory', 'is-file': node.type === 'file' }"
-      :style="{ paddingLeft: (level * 20 + 16) + 'px' }"
+      :style="{ paddingLeft: level * 20 + 16 + 'px' }"
       @click="handleClick"
     >
       <div class="row-content">
@@ -56,12 +56,12 @@ import { Folder, Document, Files, Plus, Minus } from '@element-plus/icons-vue'
 const props = defineProps({
   node: {
     type: Object,
-    required: true
+    required: true,
   },
   level: {
     type: Number,
-    default: 0
-  }
+    default: 0,
+  },
 })
 
 const formatSize = inject('formatSize')
@@ -73,7 +73,7 @@ const previewFile = inject('previewFile')
 const expanded = ref(props.node.type === 'directory')
 
 // Watch for allExpanded changes
-watch(allExpanded, (newVal) => {
+watch(allExpanded, newVal => {
   if (props.node.type === 'directory') {
     expanded.value = newVal
   }
@@ -82,7 +82,9 @@ watch(allExpanded, (newVal) => {
 // Check if folder has non-directory children (files)
 const hasFiles = computed(() => {
   if (props.node.type !== 'directory' || !props.node.children) return false
-  return props.node.children.some(child => child.type === 'file' || child.type === 'symlink' || child.type === 'hardlink')
+  return props.node.children.some(
+    child => child.type === 'file' || child.type === 'symlink' || child.type === 'hardlink'
+  )
 })
 
 // Check if folder should be visible (hide empty folders when appropriate)
@@ -208,7 +210,7 @@ const handleClick = () => {
   transition: max-height 0.3s ease-out;
 }
 
-.tree-children[style*="display: none"] {
+.tree-children[style*='display: none'] {
   max-height: 0;
 }
 </style>

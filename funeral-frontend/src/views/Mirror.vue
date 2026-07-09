@@ -36,20 +36,14 @@
         </el-form-item>
 
         <el-form-item label="Target Repository" prop="targetRepository">
-          <el-input
-            v-model="form.targetRepository"
-            placeholder="nginx"
-            clearable
-          />
-          <div class="form-tip">Repository name in this registry (defaults to source repo name)</div>
+          <el-input v-model="form.targetRepository" placeholder="nginx" clearable />
+          <div class="form-tip">
+            Repository name in this registry (defaults to source repo name)
+          </div>
         </el-form-item>
 
         <el-form-item label="Target Tag" prop="targetTag">
-          <el-input
-            v-model="form.targetTag"
-            placeholder="latest"
-            clearable
-          />
+          <el-input v-model="form.targetTag" placeholder="latest" clearable />
           <div class="form-tip">Tag for the mirrored image (defaults to source tag)</div>
         </el-form-item>
 
@@ -72,11 +66,7 @@
         />
 
         <el-form-item label="Username">
-          <el-input
-            v-model="form.username"
-            placeholder="registry username"
-            clearable
-          />
+          <el-input v-model="form.username" placeholder="registry username" clearable />
         </el-form-item>
 
         <el-form-item label="Password">
@@ -90,10 +80,7 @@
         </el-form-item>
 
         <el-form-item label="Insecure">
-          <el-switch
-            v-model="form.insecure"
-            active-text="Allow insecure HTTPS"
-          />
+          <el-switch v-model="form.insecure" active-text="Allow insecure HTTPS" />
           <div class="form-tip">Only enable for self-signed certificates</div>
         </el-form-item>
       </el-form>
@@ -109,12 +96,7 @@
           <el-icon><Download /></el-icon>
           Start Mirroring
         </el-button>
-        <el-button
-          @click="resetForm"
-          :disabled="mirroring"
-        >
-          Reset
-        </el-button>
+        <el-button @click="resetForm" :disabled="mirroring"> Reset </el-button>
       </div>
     </el-card>
 
@@ -134,7 +116,9 @@
                   <el-tag type="info">{{ result.sourceImage }}</el-tag>
                 </el-descriptions-item>
                 <el-descriptions-item label="Target">
-                  <el-tag type="success">{{ result.targetRepository }}:{{ result.targetTag }}</el-tag>
+                  <el-tag type="success"
+                    >{{ result.targetRepository }}:{{ result.targetTag }}</el-tag
+                  >
                 </el-descriptions-item>
                 <el-descriptions-item label="Manifest Digest">
                   <el-text tag="code" size="small">{{ result.manifestDigest }}</el-text>
@@ -145,15 +129,8 @@
               </el-descriptions>
 
               <div class="result-actions">
-                <el-button
-                  type="primary"
-                  @click="goToRepository"
-                >
-                  View Repository
-                </el-button>
-                <el-button
-                  @click="copyPullCommand"
-                >
+                <el-button type="primary" @click="goToRepository"> View Repository </el-button>
+                <el-button @click="copyPullCommand">
                   <el-icon><DocumentCopy /></el-icon>
                   Copy Pull Command
                 </el-button>
@@ -166,12 +143,7 @@
       <div v-else class="result-error">
         <el-result icon="error" title="Mirror Failed">
           <template #subTitle>
-            <el-alert
-              :title="result.error"
-              type="error"
-              :closable="false"
-              show-icon
-            />
+            <el-alert :title="result.error" type="error" :closable="false" show-icon />
           </template>
         </el-result>
       </div>
@@ -241,13 +213,13 @@ const form = reactive({
   protocol: 'https', // Default to HTTPS
   username: '',
   password: '',
-  insecure: false
+  insecure: false,
 })
 
 const rules = {
   sourceImage: [
-    { required: true, message: 'Please enter source image reference', trigger: 'blur' }
-  ]
+    { required: true, message: 'Please enter source image reference', trigger: 'blur' },
+  ],
 }
 
 const startMirroring = async () => {
@@ -296,7 +268,7 @@ const startMirroring = async () => {
     // Get auth headers
     const authHeader = authStore.getAuthHeader()
     const headers = {
-      'Content-Type': 'application/x-www-form-urlencoded'
+      'Content-Type': 'application/x-www-form-urlencoded',
     }
 
     if (authHeader) {
@@ -307,7 +279,7 @@ const startMirroring = async () => {
       method: 'POST',
       headers,
       body: formData,
-      credentials: 'include'
+      credentials: 'include',
     })
 
     if (response.status === 401) {
@@ -324,7 +296,7 @@ const startMirroring = async () => {
     const data = await response.json()
     result.value = {
       success: true,
-      ...data
+      ...data,
     }
 
     ElMessage.success(`Successfully mirrored ${data.sourceImage}!`)
@@ -332,7 +304,7 @@ const startMirroring = async () => {
     console.error('Mirror error:', error)
     result.value = {
       success: false,
-      error: error.message || 'Mirror failed'
+      error: error.message || 'Mirror failed',
     }
     ElMessage.error(error.message || 'Mirror failed')
   } finally {

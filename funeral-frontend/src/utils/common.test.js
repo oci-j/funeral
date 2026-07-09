@@ -1,5 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { formatDate, formatFileSize, copyToClipboard, encodeRepoName, decodeRepoName, debounce } from './common'
+import {
+  formatDate,
+  formatFileSize,
+  copyToClipboard,
+  encodeRepoName,
+  decodeRepoName,
+  debounce,
+} from './common'
 
 vi.mock('element-plus', () => ({
   ElMessage: {
