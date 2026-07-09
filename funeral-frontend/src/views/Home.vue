@@ -16,18 +16,10 @@
 
     <!-- Desktop view - Table -->
     <div class="hide-md">
-      <el-table
-        v-loading="loading"
-        :data="repositories"
-        style="width: 100%"
-        border
-      >
+      <el-table v-loading="loading" :data="repositories" style="width: 100%" border>
         <el-table-column prop="name" label="Name" width="300">
           <template #default="scope">
-            <el-link
-              type="primary"
-              @click="viewRepository(scope.row.name)"
-            >
+            <el-link type="primary" @click="viewRepository(scope.row.name)">
               {{ scope.row.name }}
             </el-link>
           </template>
@@ -41,11 +33,7 @@
         </el-table-column>
         <el-table-column label="Actions" width="120">
           <template #default="scope">
-            <el-button
-              type="danger"
-              size="small"
-              @click="handleDeleteRepository(scope.row.name)"
-            >
+            <el-button type="danger" size="small" @click="handleDeleteRepository(scope.row.name)">
               <el-icon><Delete /></el-icon>
               Delete
             </el-button>
@@ -55,7 +43,7 @@
     </div>
 
     <!-- Mobile view - Cards -->
-    <div class="show-md" style="display: none;">
+    <div class="show-md" style="display: none">
       <div class="repository-cards">
         <el-card
           v-for="repo in repositories"
@@ -65,16 +53,10 @@
         >
           <div class="repository-card-content">
             <div class="repository-header">
-              <el-link
-                type="primary"
-                class="repository-name"
-                @click="viewRepository(repo.name)"
-              >
+              <el-link type="primary" class="repository-name" @click="viewRepository(repo.name)">
                 {{ repo.name }}
               </el-link>
-              <el-tag size="small" type="info">
-                {{ repo.tagCount || 0 }} tags
-              </el-tag>
+              <el-tag size="small" type="info"> {{ repo.tagCount || 0 }} tags </el-tag>
             </div>
             <div class="repository-info">
               <div class="info-item">
@@ -83,11 +65,7 @@
               </div>
             </div>
             <div class="repository-actions">
-              <el-button
-                type="danger"
-                size="small"
-                @click="handleDeleteRepository(repo.name)"
-              >
+              <el-button type="danger" size="small" @click="handleDeleteRepository(repo.name)">
                 <el-icon><Delete /></el-icon>
                 Delete
               </el-button>
@@ -131,24 +109,20 @@ const refreshRepositories = () => {
   fetchRepositories()
 }
 
-const viewRepository = (name) => {
+const viewRepository = name => {
   // Encode the repository name to handle slashes and special characters
   const encodedName = encodeURIComponent(name)
   router.push(`/repository/${encodedName}`)
 }
 
-const handleDeleteRepository = async (name) => {
+const handleDeleteRepository = async name => {
   try {
-    await ElMessageBox.confirm(
-      `Are you sure you want to delete repository "${name}"?`,
-      'Warning',
-      {
-        confirmButtonText: 'Delete',
-        cancelButtonText: 'Cancel',
-        type: 'warning',
-        confirmButtonClass: 'el-button--danger'
-      }
-    )
+    await ElMessageBox.confirm(`Are you sure you want to delete repository "${name}"?`, 'Warning', {
+      confirmButtonText: 'Delete',
+      cancelButtonText: 'Cancel',
+      type: 'warning',
+      confirmButtonClass: 'el-button--danger',
+    })
 
     loading.value = true
     await registryApi.deleteRepository(name)

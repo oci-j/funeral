@@ -21,11 +21,7 @@
             <el-text type="info" size="small">
               {{ formatSize(tag.size) }}
             </el-text>
-            <el-button
-              type="primary"
-              size="small"
-              @click="goToTagDetail(tag.name)"
-            >
+            <el-button type="primary" size="small" @click="goToTagDetail(tag.name)">
               <el-icon><Document /></el-icon>
               Details
             </el-button>
@@ -51,12 +47,10 @@
           <el-text class="digest-text">{{ tag.digest }}</el-text>
         </div>
         <div class="pull-command">
-          <el-text type="info">{{ isHelmChart(tag.name) ? 'Helm Command:' : 'Pull Command:' }}</el-text>
-          <el-input
-            :model-value="getPullCommand(tag)"
-            readonly
-            class="command-input"
-          >
+          <el-text type="info">{{
+            isHelmChart(tag.name) ? 'Helm Command:' : 'Pull Command:'
+          }}</el-text>
+          <el-input :model-value="getPullCommand(tag)" readonly class="command-input">
             <template #append>
               <el-button @click="copyToClipboard(getPullCommand(tag))">
                 <el-icon><DocumentCopy /></el-icon>
@@ -76,7 +70,7 @@ import { ref, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { Back, DocumentCopy, Delete, Document } from '@element-plus/icons-vue'
 import { registryApi } from '../api/registry'
-import { ElMessage, ElMessageBox } from "element-plus";
+import { ElMessage, ElMessageBox } from 'element-plus'
 import { useProtectedPage } from '../composables/useAuthCheck'
 
 const route = useRoute()
@@ -96,7 +90,7 @@ const fetchRepositoryTags = async () => {
     if (data.tags) {
       // Fetch detailed info for each tag
       const tagDetails = await Promise.allSettled(
-        data.tags.map(async (tag) => {
+        data.tags.map(async tag => {
           try {
             // Fetch both manifest info and full manifest for type detection
             const manifestInfo = await registryApi.getManifestInfo(repositoryName.value, tag)
@@ -108,7 +102,7 @@ const fetchRepositoryTags = async () => {
               name: tag,
               digest: manifestInfo.digest || 'Unknown',
               size: manifestInfo.contentLength || 'Unknown',
-              created: manifestInfo.createdAt || 'Unknown'
+              created: manifestInfo.createdAt || 'Unknown',
             }
           } catch (error) {
             // Fallback to basic info if manifest fetch fails
@@ -116,7 +110,7 @@ const fetchRepositoryTags = async () => {
               name: tag,
               digest: 'Unknown',
               size: 'Unknown',
-              created: 'Unknown'
+              created: 'Unknown',
             }
           }
         })
@@ -136,14 +130,14 @@ const fetchRepositoryTags = async () => {
   }
 }
 
-const getPullCommand = (tag) => {
+const getPullCommand = tag => {
   if (isHelmChart(tag.name)) {
     return `helm pull oci://${window.location.hostname}:${window.location.port || 80}/${repositoryName.value} --version ${tag.name}`
   }
   return `docker pull ${window.location.hostname}:${window.location.port || 80}/${repositoryName.value}:${tag.name}`
 }
 
-const isHelmChart = (tagName) => {
+const isHelmChart = tagName => {
   const manifest = tagManifests.value[tagName]
   if (!manifest) return false
 
@@ -152,9 +146,7 @@ const isHelmChart = (tagName) => {
 
   // Check layers media types
   if (manifest.layers?.length > 0) {
-    return manifest.layers.some(layer =>
-      layer.mediaType && layer.mediaType.includes('helm')
-    )
+    return manifest.layers.some(layer => layer.mediaType && layer.mediaType.includes('helm'))
   }
 
   // Check top-level media type
@@ -166,61 +158,69 @@ const isHelmChart = (tagName) => {
   return false
 }
 
-const isDockerImage = (tagName) => {
+const isDockerImage = tagName => {
   const manifest = tagManifests.value[tagName]
   if (!manifest) return false
 
   // Check config media type
-  if (manifest.config?.mediaType?.includes('image') ||
-      manifest.config?.mediaType?.includes('container')) return true
+  if (
+    manifest.config?.mediaType?.includes('image') ||
+    manifest.config?.mediaType?.includes('container')
+  )
+    return true
 
   // Check layers media types
   if (manifest.layers?.length > 0) {
-    return manifest.layers.some(layer =>
-      layer.mediaType && (
-        layer.mediaType.includes('image') ||
-        layer.mediaType.includes('rootfs') ||
-        layer.mediaType.includes('docker')
-      )
+    return manifest.layers.some(
+      layer =>
+        layer.mediaType &&
+        (layer.mediaType.includes('image') ||
+          layer.mediaType.includes('rootfs') ||
+          layer.mediaType.includes('docker'))
     )
   }
 
   // Check top-level media type
-  if (manifest.mediaType?.includes('image') ||
-      manifest.mediaType?.includes('docker')) return true
+  if (manifest.mediaType?.includes('image') || manifest.mediaType?.includes('docker')) return true
 
   // Check artifact type
-  if (manifest.artifactType?.includes('image') ||
-      manifest.artifactType?.includes('docker')) return true
+  if (manifest.artifactType?.includes('image') || manifest.artifactType?.includes('docker'))
+    return true
 
   return false
 }
 
-const getTagType = (tagName) => {
+const getTagType = tagName => {
   if (isHelmChart(tagName)) return 'helm'
   if (isDockerImage(tagName)) return 'docker'
   return 'unknown'
 }
 
-const getTagTypeTitle = (tagName) => {
+const getTagTypeTitle = tagName => {
   const type = getTagType(tagName)
   switch (type) {
-    case 'helm': return 'Helm Chart'
-    case 'docker': return 'Docker Image'
-    default: return 'OCI Artifact'
+    case 'helm':
+      return 'Helm Chart'
+    case 'docker':
+      return 'Docker Image'
+    default:
+      return 'OCI Artifact'
   }
 }
 
-const getTagTypeTag = (tagName) => {
+const getTagTypeTag = tagName => {
   const type = getTagType(tagName)
   switch (type) {
-    case 'helm': return 'success'
-    case 'docker': return 'info'
-    default: return 'warning'
+    case 'helm':
+      return 'success'
+    case 'docker':
+      return 'info'
+    default:
+      return 'warning'
   }
 }
 
-const copyToClipboard = async (text) => {
+const copyToClipboard = async text => {
   try {
     await navigator.clipboard.writeText(text)
     ElMessage.success('Copied to clipboard')
@@ -229,7 +229,7 @@ const copyToClipboard = async (text) => {
   }
 }
 
-const formatSize = (size) => {
+const formatSize = size => {
   if (size === 'Unknown') return size
   if (size < 1024) return `${size} B`
   if (size < 1024 * 1024) return `${(size / 1024).toFixed(2)} KB`
@@ -237,17 +237,13 @@ const formatSize = (size) => {
   return `${(size / (1024 * 1024 * 1024)).toFixed(2)} GB`
 }
 
-const handleDeleteTag = async (tagName) => {
+const handleDeleteTag = async tagName => {
   try {
-    await ElMessageBox.confirm(
-      `Are you sure you want to delete tag "${tagName}"?`,
-      'Delete Tag',
-      {
-        confirmButtonText: 'Delete',
-        cancelButtonText: 'Cancel',
-        type: 'warning'
-      }
-    )
+    await ElMessageBox.confirm(`Are you sure you want to delete tag "${tagName}"?`, 'Delete Tag', {
+      confirmButtonText: 'Delete',
+      cancelButtonText: 'Cancel',
+      type: 'warning',
+    })
 
     deletingTag.value = tagName
     await registryApi.deleteTag(repositoryName.value, tagName)
@@ -265,10 +261,10 @@ const handleDeleteTag = async (tagName) => {
   }
 }
 
-const goToTagDetail = (tagName) => {
+const goToTagDetail = tagName => {
   router.push({
     name: 'TagDetail',
-    params: { name: repositoryName.value, tag: tagName }
+    params: { name: repositoryName.value, tag: tagName },
   })
 }
 
@@ -298,7 +294,7 @@ onMounted(() => {
 .page-header h1 {
   margin: 0;
   font-size: 24px;
-  color: #409EFF;
+  color: #409eff;
   word-break: break-all;
 }
 

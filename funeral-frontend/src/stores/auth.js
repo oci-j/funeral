@@ -14,7 +14,9 @@ export const useAuthStore = defineStore('auth', () => {
     return authEnabled.value ? !!token.value : true
   })
   // When auth is disabled, treat all users as admin
-  const isAdmin = computed(() => authEnabled.value ? (user.value?.roles?.includes('ADMIN') || false) : false)
+  const isAdmin = computed(() =>
+    authEnabled.value ? user.value?.roles?.includes('ADMIN') || false : false
+  )
 
   const checkAuthConfig = async () => {
     // If already checked or currently checking, return immediately
@@ -30,7 +32,7 @@ export const useAuthStore = defineStore('auth', () => {
       }
       const config = await response.json()
       authEnabled.value = config.enabled
-      console.log("Auth config fetched:", config)
+      console.log('Auth config fetched:', config)
     } catch (error) {
       console.error('Failed to check auth config, defaulting to enabled:', error)
       authEnabled.value = true // Default to secure mode
@@ -48,7 +50,7 @@ export const useAuthStore = defineStore('auth', () => {
       const payload = JSON.parse(atob(token.value.split('.')[1]))
       user.value = {
         username: payload.sub,
-        roles: Array.isArray(payload.groups) ? payload.groups : []
+        roles: Array.isArray(payload.groups) ? payload.groups : [],
       }
 
       // Save to localStorage
@@ -70,7 +72,7 @@ export const useAuthStore = defineStore('auth', () => {
       // Anonymous user info
       user.value = {
         username: 'anonymous',
-        roles: []
+        roles: [],
       }
 
       // Save to localStorage
@@ -120,6 +122,6 @@ export const useAuthStore = defineStore('auth', () => {
     loginAnonymous,
     logout,
     getAuthHeader,
-    checkAuthConfig
+    checkAuthConfig,
   }
 })

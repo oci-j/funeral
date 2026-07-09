@@ -126,7 +126,7 @@ describe('registryApi', () => {
       expect.objectContaining({
         method: 'POST',
         headers: { Authorization: 'Basic dXNlcjpwYXNz' },
-      }),
+      })
     )
   })
 
@@ -152,7 +152,7 @@ describe('registryApi', () => {
       expect.objectContaining({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-      }),
+      })
     )
   })
 
@@ -179,7 +179,7 @@ describe('registryApi', () => {
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({ username: 'newuser', password: 'pass' }),
-      }),
+      })
     )
   })
 

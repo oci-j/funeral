@@ -6,57 +6,57 @@ const routes = [
     path: '/',
     name: 'Home',
     component: () => import('../views/Home.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   {
     path: '/repository/:name',
     name: 'Repository',
     component: () => import('../views/Repository.vue'),
     props: true,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   {
     path: '/repository/:name/tag/:tag',
     name: 'TagDetail',
     component: () => import('../views/TagDetail.vue'),
     props: true,
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   {
     path: '/upload',
     name: 'Upload',
     component: () => import('../views/Upload.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   {
     path: '/mirror',
     name: 'Mirror',
     component: () => import('../views/Mirror.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   {
     path: '/mirror-helm',
     name: 'MirrorHelm',
     component: () => import('../views/MirrorHelm.vue'),
-    meta: { requiresAuth: true }
+    meta: { requiresAuth: true },
   },
   {
     path: '/login',
     name: 'Login',
     component: () => import('../views/Login.vue'),
-    meta: { requiresAuth: false }
+    meta: { requiresAuth: false },
   },
   {
     path: '/admin',
     name: 'Admin',
     component: () => import('../views/Admin.vue'),
-    meta: { requiresAuth: true, requiresAdmin: true }
-  }
+    meta: { requiresAuth: true, requiresAdmin: true },
+  },
 ]
 
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
 })
 
 router.beforeEach(async (to, from, next) => {
@@ -83,7 +83,7 @@ router.beforeEach(async (to, from, next) => {
   if (to.meta.requiresAuth && authStore.authEnabled && !authStore.isAuthenticated) {
     next({
       path: '/login',
-      query: { redirect: to.fullPath }
+      query: { redirect: to.fullPath },
     })
     return
   }

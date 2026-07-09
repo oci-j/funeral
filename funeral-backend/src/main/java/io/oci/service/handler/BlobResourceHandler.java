@@ -198,18 +198,15 @@ public class BlobResourceHandler {
         )) {
             try {
                 long blobSize = storageService.getBlobSize(
-                        digest
+                        mount
                 );
                 if (blobSize > 0) {
-                    String responseLocationRepository = StringUtils.isNotBlank(
-                            from
-                    ) ? from : repositoryName;
                     return Response.status(
                             201
                     )
                             .header(
                                     "Location",
-                                    "/v2/" + responseLocationRepository + "/blobs/" + digest
+                                    "/v2/" + repositoryName + "/blobs/" + mount
                             )
                             .header(
                                     "OCI-Chunk-Min-Length",
@@ -328,7 +325,9 @@ public class BlobResourceHandler {
                 blob.contentLength = storageService.getBlobSize(
                         actualDigest
                 );
-                blob.persistOrUpdate();
+                blobStorage.persist(
+                        blob
+                );
             }
 
             String location = "/v2/" + repositoryName + "/blobs/" + actualDigest;

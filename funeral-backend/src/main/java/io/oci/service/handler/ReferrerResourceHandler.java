@@ -54,10 +54,22 @@ public class ReferrerResourceHandler {
                     .build();
         }
 
-        List<Manifest> referrerManifests = manifestStorage.findBySubjectDigest(
-                repositoryName,
-                digest
-        );
+        List<Manifest> referrerManifests;
+        boolean filterApplied = false;
+        if (artifactType != null && !artifactType.isBlank()) {
+            referrerManifests = manifestStorage.findBySubjectDigestAndArtifactType(
+                    repositoryName,
+                    digest,
+                    artifactType
+            );
+            filterApplied = true;
+        }
+        else {
+            referrerManifests = manifestStorage.findBySubjectDigest(
+                    repositoryName,
+                    digest
+            );
+        }
 
         List<ArtifactDescriptor> descriptors = referrerManifests.stream()
                 .map(
@@ -73,7 +85,7 @@ public class ReferrerResourceHandler {
                         Collectors.toList()
                 );
 
-        return Response.ok(
+        Response.ResponseBuilder responseBuilder = Response.ok(
                 new ReferrersResponse(
                         descriptors
                 )
@@ -81,7 +93,13 @@ public class ReferrerResourceHandler {
                 .header(
                         "Content-Type",
                         "application/vnd.oci.image.index.v1+json"
-                )
-                .build();
+                );
+        if (filterApplied) {
+            responseBuilder.header(
+                    "OCI-Filters-Applied",
+                    "artifactType"
+            );
+        }
+        return responseBuilder.build();
     }
 }

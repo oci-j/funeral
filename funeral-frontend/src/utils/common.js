@@ -9,7 +9,7 @@ import { ElMessage } from 'element-plus'
  * @param {string|Date} dateString - Date string or Date object
  * @returns {string} - Formatted date string
  */
-export const formatDate = (dateString) => {
+export const formatDate = dateString => {
   if (!dateString) return 'Unknown'
   try {
     const date = new Date(dateString)
@@ -24,7 +24,7 @@ export const formatDate = (dateString) => {
  * @param {number} bytes - File size in bytes
  * @returns {string} - Formatted size string
  */
-export const formatFileSize = (bytes) => {
+export const formatFileSize = bytes => {
   if (bytes === 0) return '0 B'
 
   const sizes = ['B', 'KB', 'MB', 'GB', 'TB']
@@ -39,7 +39,7 @@ export const formatFileSize = (bytes) => {
  * @param {string} text - Text to copy
  * @returns {Promise<void>}
  */
-export const copyToClipboard = async (text) => {
+export const copyToClipboard = async text => {
   try {
     await navigator.clipboard.writeText(text)
     ElMessage.success('Copied to clipboard')
@@ -53,7 +53,7 @@ export const copyToClipboard = async (text) => {
  * @param {string} name - Repository name
  * @returns {string} - Encoded repository name
  */
-export const encodeRepoName = (name) => {
+export const encodeRepoName = name => {
   return encodeURIComponent(name)
 }
 
@@ -62,7 +62,7 @@ export const encodeRepoName = (name) => {
  * @param {string} encodedName - Encoded repository name
  * @returns {string} - Decoded repository name
  */
-export const decodeRepoName = (encodedName) => {
+export const decodeRepoName = encodedName => {
   return decodeURIComponent(encodedName)
 }
 

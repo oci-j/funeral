@@ -1,0 +1,162 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { mount, flushPromises } from '@vue/test-utils'
+import MirrorHelm from './MirrorHelm.vue'
+import { elementStubs, iconStubs, loadingDirective } from '../test-utils/element-stubs'
+
+const mockRouter = {
+  push: vi.fn(),
+}
+
+const mockAuthStore = {
+  getAuthHeader: vi.fn(() => 'Bearer token'),
+  logout: vi.fn(),
+}
+
+vi.mock('vue-router', () => ({
+  useRouter: () => mockRouter,
+}))
+
+vi.mock('../stores/auth', () => ({
+  useAuthStore: () => mockAuthStore,
+}))
+
+vi.mock('element-plus', () => ({
+  ElMessage: { success: vi.fn(), error: vi.fn(), warning: vi.fn() },
+}))
+
+beforeEach(() => {
+  vi.clearAllMocks()
+  vi.stubGlobal('fetch', vi.fn())
+  vi.stubGlobal('location', { hostname: 'localhost', port: '8911' })
+  vi.stubGlobal('navigator', {
+    clipboard: { writeText: vi.fn() },
+  })
+})
+
+afterEach(() => {
+  vi.unstubAllGlobals()
+})
+
+const createWrapper = () =>
+  mount(MirrorHelm, {
+    global: {
+      stubs: { ...elementStubs, ...iconStubs },
+      directives: { loading: loadingDirective },
+    },
+  })
+
+const successResponse = {
+  source: 'oci-registry',
+  chart: 'nginx',
+  version: '1.0.0',
+  targetChart: 'nginx',
+  targetVersion: '1.0.0',
+  format: 'oci',
+  digest: 'sha256:helm',
+}
+
+describe('MirrorHelm', () => {
+  it('renders helm mirror form', () => {
+    const wrapper = createWrapper()
+    expect(wrapper.find('.mirror-helm-form').exists()).toBe(true)
+  })
+
+  it('switches format and clears source repo', async () => {
+    const wrapper = createWrapper()
+    wrapper.vm.form.sourceRepo = 'registry.example.com'
+
+    await wrapper.find('.el-select').setValue('chartmuseum')
+    await flushPromises()
+
+    expect(wrapper.vm.form.format).toBe('chartmuseum')
+    expect(wrapper.vm.form.sourceRepo).toBe('')
+  })
+
+  it('starts helm mirroring and shows result on success', async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => successResponse,
+    })
+    const { ElMessage } = await import('element-plus')
+
+    const wrapper = createWrapper()
+    wrapper.vm.form.sourceRepo = 'registry.example.com'
+    wrapper.vm.form.chartName = 'nginx'
+    wrapper.vm.form.version = '1.0.0'
+    await flushPromises()
+
+    await wrapper.find('.mirror-helm-actions .el-button').trigger('click')
+    await flushPromises()
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/funeral_addition/mirror/helm/pull',
+      expect.objectContaining({ method: 'POST' })
+    )
+    expect(wrapper.find('.result-card').exists()).toBe(true)
+    expect(ElMessage.success).toHaveBeenCalledWith('Successfully mirrored nginx!')
+  })
+
+  it('shows error result on failure', async () => {
+    global.fetch.mockResolvedValue({
+      ok: false,
+      statusText: 'Bad Request',
+      json: async () => ({ errors: [{ message: 'chart not found' }] }),
+    })
+    const { ElMessage } = await import('element-plus')
+
+    const wrapper = createWrapper()
+    wrapper.vm.form.sourceRepo = 'registry.example.com'
+    wrapper.vm.form.chartName = 'nginx'
+    await flushPromises()
+
+    await wrapper.find('.mirror-helm-actions .el-button').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('.result-error').exists()).toBe(true)
+    expect(ElMessage.error).toHaveBeenCalled()
+  })
+
+  it('logs out on 401 response', async () => {
+    global.fetch.mockResolvedValue({
+      status: 401,
+      ok: false,
+      statusText: 'Unauthorized',
+    })
+
+    const wrapper = createWrapper()
+    wrapper.vm.form.sourceRepo = 'registry.example.com'
+    wrapper.vm.form.chartName = 'nginx'
+    await flushPromises()
+
+    await wrapper.find('.mirror-helm-actions .el-button').trigger('click')
+    await flushPromises()
+
+    expect(mockAuthStore.logout).toHaveBeenCalled()
+  })
+
+  it('copies helm install command to clipboard', async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => successResponse,
+    })
+    const { ElMessage } = await import('element-plus')
+
+    const wrapper = createWrapper()
+    wrapper.vm.form.sourceRepo = 'registry.example.com'
+    wrapper.vm.form.chartName = 'nginx'
+    await flushPromises()
+
+    await wrapper.find('.mirror-helm-actions .el-button').trigger('click')
+    await flushPromises()
+
+    const copyBtn = wrapper
+      .findAll('.result-actions .el-button')
+      .find(btn => btn.text().includes('Copy'))
+    expect(copyBtn).toBeDefined()
+    await copyBtn.trigger('click')
+    await flushPromises()
+
+    expect(navigator.clipboard.writeText).toHaveBeenCalled()
+    expect(ElMessage.success).toHaveBeenCalledWith('Helm command copied to clipboard')
+  })
+})

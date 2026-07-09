@@ -20,7 +20,7 @@ export const useRegistryStore = defineStore('registry', () => {
     }
   }
 
-  const fetchRepository = async (name) => {
+  const fetchRepository = async name => {
     loading.value = true
     try {
       const response = await fetch(`/v2/${name}/tags/list`)
@@ -35,10 +35,10 @@ export const useRegistryStore = defineStore('registry', () => {
     }
   }
 
-  const deleteRepository = async (name) => {
+  const deleteRepository = async name => {
     try {
       const response = await fetch(`/v2/${name}/`, {
-        method: 'DELETE'
+        method: 'DELETE',
       })
       if (response.ok) {
         await fetchRepositories()
@@ -55,6 +55,6 @@ export const useRegistryStore = defineStore('registry', () => {
     loading,
     fetchRepositories,
     fetchRepository,
-    deleteRepository
+    deleteRepository,
   }
 })

@@ -43,7 +43,12 @@
                 <el-button size="small" @click="managePermissions(row)">
                   <el-icon><Key /></el-icon>
                 </el-button>
-                <el-button size="small" type="danger" @click="deleteUser(row)" :disabled="row.username === 'admin'">
+                <el-button
+                  size="small"
+                  type="danger"
+                  @click="deleteUser(row)"
+                  :disabled="row.username === 'admin'"
+                >
                   <el-icon><Delete /></el-icon>
                 </el-button>
               </el-button-group>
@@ -112,7 +117,9 @@
         <el-table-column label="Permissions" width="150">
           <template #default="{ row }">
             <el-tag v-if="row.canPull" type="success" size="small">Pull</el-tag>
-            <el-tag v-if="row.canPush" type="primary" size="small" style="margin-left: 5px">Push</el-tag>
+            <el-tag v-if="row.canPush" type="primary" size="small" style="margin-left: 5px"
+              >Push</el-tag
+            >
           </template>
         </el-table-column>
         <el-table-column label="Actions" width="100">
@@ -152,27 +159,25 @@ const userForm = reactive({
   email: '',
   password: '',
   roles: ['USER'],
-  enabled: true
+  enabled: true,
 })
 
 const newPermission = reactive({
   repository: '',
   canPull: true,
-  canPush: false
+  canPush: false,
 })
 
 const userRules = {
   username: [
     { required: true, message: 'Please input username', trigger: 'blur' },
-    { min: 3, message: 'Username must be at least 3 characters', trigger: 'blur' }
+    { min: 3, message: 'Username must be at least 3 characters', trigger: 'blur' },
   ],
-  email: [
-    { type: 'email', message: 'Please input correct email address', trigger: 'blur' }
-  ],
+  email: [{ type: 'email', message: 'Please input correct email address', trigger: 'blur' }],
   password: [
     { required: true, message: 'Please input password', trigger: 'blur' },
-    { min: 6, message: 'Password must be at least 6 characters', trigger: 'blur' }
-  ]
+    { min: 6, message: 'Password must be at least 6 characters', trigger: 'blur' },
+  ],
 }
 
 const fetchUsers = async () => {
@@ -186,14 +191,14 @@ const fetchUsers = async () => {
   }
 }
 
-const editUser = (user) => {
+const editUser = user => {
   editingUser.value = user
   Object.assign(userForm, {
     username: user.username,
     email: user.email || '',
     password: '',
     roles: user.roles || ['USER'],
-    enabled: user.enabled !== false
+    enabled: user.enabled !== false,
   })
   showCreateDialog.value = true
 }
@@ -211,7 +216,7 @@ const saveUser = async () => {
       email: userForm.email,
       password: userForm.password,
       roles: userForm.roles,
-      enabled: userForm.enabled
+      enabled: userForm.enabled,
     }
 
     if (editingUser.value) {
@@ -232,7 +237,7 @@ const saveUser = async () => {
   }
 }
 
-const deleteUser = async (user) => {
+const deleteUser = async user => {
   try {
     await ElMessageBox.confirm(
       `Are you sure you want to delete user "${user.username}"?`,
@@ -240,7 +245,7 @@ const deleteUser = async (user) => {
       {
         confirmButtonText: 'Delete',
         cancelButtonText: 'Cancel',
-        type: 'warning'
+        type: 'warning',
       }
     )
 
@@ -254,13 +259,13 @@ const deleteUser = async (user) => {
   }
 }
 
-const managePermissions = async (user) => {
+const managePermissions = async user => {
   currentUser.value = user
   showPermissionDialog.value = true
   await fetchPermissions(user.username)
 }
 
-const fetchPermissions = async (username) => {
+const fetchPermissions = async username => {
   try {
     permissions.value = await registryApi.getUserPermissions(username)
   } catch (error) {
@@ -277,7 +282,7 @@ const addPermission = async () => {
   try {
     await registryApi.setUserPermission(currentUser.value.username, newPermission.repository, {
       canPull: newPermission.canPull,
-      canPush: newPermission.canPush
+      canPush: newPermission.canPush,
     })
 
     ElMessage.success('Permission added successfully')
@@ -290,7 +295,7 @@ const addPermission = async () => {
   }
 }
 
-const deletePermission = async (permission) => {
+const deletePermission = async permission => {
   try {
     await ElMessageBox.confirm(
       `Are you sure you want to remove permission for repository "${permission.repositoryName}"?`,
@@ -298,7 +303,7 @@ const deletePermission = async (permission) => {
       {
         confirmButtonText: 'Delete',
         cancelButtonText: 'Cancel',
-        type: 'warning'
+        type: 'warning',
       }
     )
 
@@ -312,7 +317,7 @@ const deletePermission = async (permission) => {
   }
 }
 
-const formatDate = (dateString) => {
+const formatDate = dateString => {
   if (!dateString) return ''
   return new Date(dateString).toLocaleString()
 }
@@ -351,7 +356,7 @@ onMounted(async () => {
 
 .card-header h2 {
   margin: 0;
-  color: #409EFF;
+  color: #409eff;
 }
 
 .permission-controls {

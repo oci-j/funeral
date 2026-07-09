@@ -24,16 +24,24 @@
           <el-select v-model="form.format" style="width: 100%" @change="onFormatChange">
             <el-option label="OCI Registry" value="oci">
               <template #default>
-                <div style="display: flex; align-items: center;">
-                  <img src="/oci-icon.png" alt="OCI" style="width: 16px; height: 16px; margin-right: 8px;" />
+                <div style="display: flex; align-items: center">
+                  <img
+                    src="/oci-icon.png"
+                    alt="OCI"
+                    style="width: 16px; height: 16px; margin-right: 8px"
+                  />
                   OCI Registry (Recommended)
                 </div>
               </template>
             </el-option>
             <el-option label="ChartMuseum" value="chartmuseum">
               <template #default>
-                <div style="display: flex; align-items: center;">
-                  <img src="/helm-icon.png" alt="Helm" style="width: 16px; height: 16px; margin-right: 8px;" />
+                <div style="display: flex; align-items: center">
+                  <img
+                    src="/helm-icon.png"
+                    alt="Helm"
+                    style="width: 16px; height: 16px; margin-right: 8px"
+                  />
                   ChartMuseum (Traditional)
                 </div>
               </template>
@@ -46,11 +54,7 @@
         </el-form-item>
 
         <el-form-item label="Source Repository" prop="sourceRepo">
-          <el-input
-            v-model="form.sourceRepo"
-            :placeholder="sourceRepoPlaceholder"
-            clearable
-          >
+          <el-input v-model="form.sourceRepo" :placeholder="sourceRepoPlaceholder" clearable>
             <template #append>
               <el-tooltip :content="sourceRepoTooltip" placement="top">
                 <el-icon><QuestionFilled /></el-icon>
@@ -61,11 +65,7 @@
         </el-form-item>
 
         <el-form-item label="Chart Name" prop="chartName">
-          <el-input
-            v-model="form.chartName"
-            placeholder="nginx"
-            clearable
-          >
+          <el-input v-model="form.chartName" placeholder="nginx" clearable>
             <template #append>
               <el-tooltip content="e.g., nginx, mysql, prometheus">
                 <el-icon><QuestionFilled /></el-icon>
@@ -76,11 +76,7 @@
         </el-form-item>
 
         <el-form-item label="Chart Version" prop="version">
-          <el-input
-            v-model="form.version"
-            placeholder="latest"
-            clearable
-          >
+          <el-input v-model="form.version" placeholder="latest" clearable>
             <template #append>
               <el-tooltip content="Chart version or 'latest'">
                 <el-icon><QuestionFilled /></el-icon>
@@ -106,11 +102,7 @@
         </el-form-item>
 
         <el-form-item label="Target Version" prop="targetVersion">
-          <el-input
-            v-model="form.targetVersion"
-            :placeholder="form.version || 'latest'"
-            clearable
-          >
+          <el-input v-model="form.targetVersion" :placeholder="form.version || 'latest'" clearable>
             <template #append>
               <el-tooltip content="Version to use in this registry">
                 <el-icon><QuestionFilled /></el-icon>
@@ -131,11 +123,7 @@
         />
 
         <el-form-item label="Username">
-          <el-input
-            v-model="form.username"
-            placeholder="repository username"
-            clearable
-          />
+          <el-input v-model="form.username" placeholder="repository username" clearable />
         </el-form-item>
 
         <el-form-item label="Password">
@@ -160,12 +148,7 @@
           <el-icon><Download /></el-icon>
           Start Mirroring
         </el-button>
-        <el-button
-          @click="resetForm"
-          :disabled="mirroring"
-        >
-          Reset
-        </el-button>
+        <el-button @click="resetForm" :disabled="mirroring"> Reset </el-button>
       </div>
     </el-card>
 
@@ -188,7 +171,9 @@
                   <el-tag type="success">{{ result.chart }}:{{ result.version }}</el-tag>
                 </el-descriptions-item>
                 <el-descriptions-item label="Target">
-                  <el-tag type="success">{{ result.targetChart }}:{{ result.targetVersion }}</el-tag>
+                  <el-tag type="success"
+                    >{{ result.targetChart }}:{{ result.targetVersion }}</el-tag
+                  >
                 </el-descriptions-item>
                 <el-descriptions-item label="Format">
                   <el-tag type="info">{{ result.format === 'oci' ? 'OCI' : 'ChartMuseum' }}</el-tag>
@@ -199,15 +184,8 @@
               </el-descriptions>
 
               <div class="result-actions">
-                <el-button
-                  type="primary"
-                  @click="goToRepository"
-                >
-                  View Repository
-                </el-button>
-                <el-button
-                  @click="copyPullCommand"
-                >
+                <el-button type="primary" @click="goToRepository"> View Repository </el-button>
+                <el-button @click="copyPullCommand">
                   <el-icon><DocumentCopy /></el-icon>
                   Copy Helm Install Command
                 </el-button>
@@ -220,12 +198,7 @@
       <div v-else class="result-error">
         <el-result icon="error" title="Mirror Failed">
           <template #subTitle>
-            <el-alert
-              :title="result.error"
-              type="error"
-              :closable="false"
-              show-icon
-            />
+            <el-alert :title="result.error" type="error" :closable="false" show-icon />
           </template>
         </el-result>
       </div>
@@ -261,7 +234,7 @@
             type="info"
             :closable="false"
             show-icon
-            style="margin-top: 10px;"
+            style="margin-top: 10px"
           />
         </el-tab-pane>
 
@@ -287,12 +260,12 @@
             type="info"
             :closable="false"
             show-icon
-            style="margin-top: 10px;"
+            style="margin-top: 10px"
           />
         </el-tab-pane>
       </el-tabs>
 
-      <el-collapse style="margin-top: 20px;">
+      <el-collapse style="margin-top: 20px">
         <el-collapse-item title="📖 How it works" name="1">
           <div class="help-content">
             <p>1. Choose the repository format (OCI or ChartMuseum)</p>
@@ -351,19 +324,13 @@ const form = reactive({
   targetRepository: '',
   targetVersion: '',
   username: '',
-  password: ''
+  password: '',
 })
 
 const rules = {
-  sourceRepo: [
-    { required: true, message: 'Please enter source repository', trigger: 'blur' }
-  ],
-  chartName: [
-    { required: true, message: 'Please enter chart name', trigger: 'blur' }
-  ],
-  format: [
-    { required: true, message: 'Please select repository format', trigger: 'change' }
-  ]
+  sourceRepo: [{ required: true, message: 'Please enter source repository', trigger: 'blur' }],
+  chartName: [{ required: true, message: 'Please enter chart name', trigger: 'blur' }],
+  format: [{ required: true, message: 'Please select repository format', trigger: 'change' }],
 }
 
 const sourceRepoPlaceholder = computed(() => {
@@ -433,7 +400,7 @@ const startMirroring = async () => {
     // Get auth headers
     const authHeader = authStore.getAuthHeader()
     const headers = {
-      'Content-Type': 'application/x-www-form-urlencoded'
+      'Content-Type': 'application/x-www-form-urlencoded',
     }
 
     if (authHeader) {
@@ -444,7 +411,7 @@ const startMirroring = async () => {
       method: 'POST',
       headers,
       body: formData,
-      credentials: 'include'
+      credentials: 'include',
     })
 
     if (response.status === 401) {
@@ -461,7 +428,7 @@ const startMirroring = async () => {
     const data = await response.json()
     result.value = {
       success: true,
-      ...data
+      ...data,
     }
 
     ElMessage.success(`Successfully mirrored ${data.chart || form.chartName}!`)
@@ -469,7 +436,7 @@ const startMirroring = async () => {
     console.error('Mirror error:', error)
     result.value = {
       success: false,
-      error: error.message || 'Mirror failed'
+      error: error.message || 'Mirror failed',
     }
     ElMessage.error(error.message || 'Mirror failed')
   } finally {

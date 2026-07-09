@@ -5,7 +5,7 @@ const API_BASE = ''
 const getAuthHeaders = () => {
   const authStore = useAuthStore()
   const headers = {
-    'Content-Type': 'application/json'
+    'Content-Type': 'application/json',
   }
 
   const authHeader = authStore.getAuthHeader()
@@ -20,7 +20,7 @@ export const registryApi = {
   async getRepositories() {
     try {
       const response = await fetch(`${API_BASE}/v2/repositories`, {
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
       })
 
       // Handle authentication error
@@ -43,7 +43,7 @@ export const registryApi = {
   async getRepositoryTags(repositoryName) {
     try {
       const response = await fetch(`${API_BASE}/v2/${repositoryName}/tags/list`, {
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
       })
 
       if (response.status === 401) {
@@ -65,7 +65,7 @@ export const registryApi = {
   async getManifestInfo(repositoryName, tag) {
     try {
       const response = await fetch(`${API_BASE}/v2/${repositoryName}/manifests/${tag}/info`, {
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
       })
 
       if (response.status === 401) {
@@ -90,7 +90,7 @@ export const registryApi = {
     try {
       const response = await fetch(`${API_BASE}/v2/${repositoryName}/`, {
         method: 'DELETE',
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
       })
 
       if (response.status === 401) {
@@ -113,7 +113,7 @@ export const registryApi = {
     try {
       const response = await fetch(`${API_BASE}/v2/${repositoryName}/blobs/${digest}`, {
         method: 'HEAD',
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
       })
       return response.ok
     } catch (error) {
@@ -126,7 +126,7 @@ export const registryApi = {
     try {
       const response = await fetch(`${API_BASE}/v2/${repositoryName}/manifests/${tag}`, {
         method: 'DELETE',
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
       })
 
       if (response.status === 401) {
@@ -148,12 +148,15 @@ export const registryApi = {
   async login(username, password) {
     try {
       const credentials = btoa(`${username}:${password}`)
-      const response = await fetch(`${API_BASE}/v2/token?service=funeral-registry&scope=repository:*:pull,push`, {
-        method: 'POST',
-        headers: {
-          'Authorization': `Basic ${credentials}`
+      const response = await fetch(
+        `${API_BASE}/v2/token?service=funeral-registry&scope=repository:*:pull,push`,
+        {
+          method: 'POST',
+          headers: {
+            Authorization: `Basic ${credentials}`,
+          },
         }
-      })
+      )
 
       if (!response.ok) {
         throw new Error('Invalid credentials')
@@ -169,12 +172,15 @@ export const registryApi = {
   async loginAnonymous() {
     try {
       // Call token endpoint without authentication headers for anonymous access
-      const response = await fetch(`${API_BASE}/v2/token?service=funeral-registry&scope=repository:*:pull`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
+      const response = await fetch(
+        `${API_BASE}/v2/token?service=funeral-registry&scope=repository:*:pull`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
         }
-      })
+      )
 
       if (!response.ok) {
         throw new Error('Anonymous access not supported')
@@ -191,7 +197,7 @@ export const registryApi = {
   async getUsers() {
     try {
       const response = await fetch(`${API_BASE}/funeral_addition/admin/users`, {
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
       })
 
       if (response.status === 401) {
@@ -215,7 +221,7 @@ export const registryApi = {
       const response = await fetch(`${API_BASE}/funeral_addition/admin/users`, {
         method: 'POST',
         headers: getAuthHeaders(),
-        body: JSON.stringify(userData)
+        body: JSON.stringify(userData),
       })
 
       if (response.status === 401) {
@@ -239,7 +245,7 @@ export const registryApi = {
       const response = await fetch(`${API_BASE}/funeral_addition/admin/users/${username}`, {
         method: 'PUT',
         headers: getAuthHeaders(),
-        body: JSON.stringify(userData)
+        body: JSON.stringify(userData),
       })
 
       if (response.status === 401) {
@@ -262,7 +268,7 @@ export const registryApi = {
     try {
       const response = await fetch(`${API_BASE}/funeral_addition/admin/users/${username}`, {
         method: 'DELETE',
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
       })
 
       if (response.status === 401) {
@@ -284,7 +290,7 @@ export const registryApi = {
   async getUserPermissions(username) {
     try {
       const response = await fetch(`${API_BASE}/funeral_addition/admin/permissions/${username}`, {
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
       })
 
       if (response.status === 401) {
@@ -305,11 +311,14 @@ export const registryApi = {
 
   async setUserPermission(username, repository, permissionData) {
     try {
-      const response = await fetch(`${API_BASE}/funeral_addition/admin/permissions/${username}/${repository}`, {
-        method: 'POST',
-        headers: getAuthHeaders(),
-        body: JSON.stringify(permissionData)
-      })
+      const response = await fetch(
+        `${API_BASE}/funeral_addition/admin/permissions/${username}/${repository}`,
+        {
+          method: 'POST',
+          headers: getAuthHeaders(),
+          body: JSON.stringify(permissionData),
+        }
+      )
 
       if (response.status === 401) {
         const authStore = useAuthStore()
@@ -329,10 +338,13 @@ export const registryApi = {
 
   async deleteUserPermission(username, repository) {
     try {
-      const response = await fetch(`${API_BASE}/funeral_addition/admin/permissions/${username}/${repository}`, {
-        method: 'DELETE',
-        headers: getAuthHeaders()
-      })
+      const response = await fetch(
+        `${API_BASE}/funeral_addition/admin/permissions/${username}/${repository}`,
+        {
+          method: 'DELETE',
+          headers: getAuthHeaders(),
+        }
+      )
 
       if (response.status === 401) {
         const authStore = useAuthStore()
@@ -353,7 +365,7 @@ export const registryApi = {
   async getManifest(repositoryName, reference) {
     try {
       const response = await fetch(`${API_BASE}/v2/${repositoryName}/manifests/${reference}`, {
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
       })
 
       if (response.status === 401) {
@@ -377,7 +389,7 @@ export const registryApi = {
   async getBlobContent(repositoryName, digest, expectedMediaType = '') {
     try {
       const response = await fetch(`${API_BASE}/v2/${repositoryName}/blobs/${digest}`, {
-        headers: getAuthHeaders()
+        headers: getAuthHeaders(),
       })
 
       if (response.status === 401) {
@@ -397,26 +409,37 @@ export const registryApi = {
       const lowerExpectedMediaType = expectedMediaType.toLowerCase()
 
       // Check if it's JSON based on content-type or expected media type
-      const isJson = lowerContentType.includes('application/json') ||
-                     lowerContentType.includes('text/') ||
-                     lowerContentType.includes('+json') ||
-                     lowerExpectedMediaType.includes('+json')
+      const isJson =
+        lowerContentType.includes('application/json') ||
+        lowerContentType.includes('text/') ||
+        lowerContentType.includes('+json') ||
+        lowerExpectedMediaType.includes('+json')
 
       if (isJson) {
         const text = await response.text()
-        console.log(`Blob content type: ${contentType}, media type: ${expectedMediaType}, size: ${text.length} characters`)
+        console.log(
+          `Blob content type: ${contentType}, media type: ${expectedMediaType}, size: ${text.length} characters`
+        )
         return { type: 'text', content: text, contentType, mediaType: expectedMediaType }
       } else {
         // For binary content, return both blob and arrayBuffer
         // Blob for display purposes, arrayBuffer for parsing
         const blob = await response.blob()
         const arrayBuffer = await blob.arrayBuffer()
-        console.log(`Blob content type: ${contentType}, media type: ${expectedMediaType}, size: ${blob.size} bytes (binary)`)
-        return { type: 'blob', content: blob, arrayBuffer, contentType, mediaType: expectedMediaType }
+        console.log(
+          `Blob content type: ${contentType}, media type: ${expectedMediaType}, size: ${blob.size} bytes (binary)`
+        )
+        return {
+          type: 'blob',
+          content: blob,
+          arrayBuffer,
+          contentType,
+          mediaType: expectedMediaType,
+        }
       }
     } catch (error) {
       console.error('Error fetching blob content:', error)
       throw error
     }
-  }
+  },
 }
