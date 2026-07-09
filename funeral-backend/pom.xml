@@ -27,7 +27,6 @@
             --add-opens=java.base/java.lang.invoke=ALL-UNNAMED
         </quarkus.native.additional-build-args>
         <quarkus.native.container-build>false</quarkus.native.container-build>
-        <quarkus.native.compression.level>10</quarkus.native.compression.level>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -220,8 +219,10 @@
             </build>
         </profile>
         <profile>
-            <id>ultra-brute</id>
+            <id>release-compression</id>
             <properties>
+                <quarkus.native.compression.enabled>true</quarkus.native.compression.enabled>
+                <quarkus.native.compression.level>10</quarkus.native.compression.level>
                 <quarkus.native.compression.additional-args>--ultra-brute,-v</quarkus.native.compression.additional-args>
             </properties>
         </profile>

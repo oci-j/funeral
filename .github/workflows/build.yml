@@ -113,8 +113,8 @@ jobs:
         echo "VERSION: ${VERSION}"
         echo "BINARY_NAME=funeral-${VERSION}-runner" >> $GITHUB_ENV
         if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
-          echo "Tag build: enabling ultra-brute compression"
-          mvn -B clean package -Pnative,ultra-brute -DskipTests
+          echo "Tag build: enabling release compression (level 10 + ultra-brute)"
+          mvn -B clean package -Pnative,release-compression -DskipTests
         else
           mvn -B clean package -Pnative -DskipTests
         fi
