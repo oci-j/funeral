@@ -12,7 +12,6 @@ import java.util.List;
 
 import io.minio.BucketExistsArgs;
 import io.minio.ComposeObjectArgs;
-import io.minio.ComposeSource;
 import io.minio.GetObjectArgs;
 import io.minio.MakeBucketArgs;
 import io.minio.MinioClient;
@@ -20,14 +19,12 @@ import io.minio.ObjectWriteResponse;
 import io.minio.PutObjectArgs;
 import io.minio.RemoveObjectArgs;
 import io.minio.SetBucketLifecycleArgs;
+import io.minio.SourceObject;
 import io.minio.StatObjectArgs;
 import io.minio.StatObjectResponse;
 import io.minio.errors.ErrorResponseException;
-import io.minio.messages.Expiration;
+import io.minio.messages.Filter;
 import io.minio.messages.LifecycleConfiguration;
-import io.minio.messages.LifecycleRule;
-import io.minio.messages.ResponseDate;
-import io.minio.messages.RuleFilter;
 import io.minio.messages.Status;
 import io.oci.exception.WithResponseException;
 import jakarta.enterprise.context.ApplicationScoped;
@@ -104,8 +101,8 @@ public class S3StorageService extends AbstractStorageService {
                             )
                             .stream(
                                     inputStream,
-                                    -1,
-                                    1024 * 1024 * 8
+                                    -1L,
+                                    1024L * 1024 * 8
                             )
                             .contentType(
                                     "application/octet-stream"
@@ -153,11 +150,11 @@ public class S3StorageService extends AbstractStorageService {
                     "/"
             );
 
-            List<ComposeSource> sources = new ArrayList<>();
+            List<SourceObject> sources = new ArrayList<>();
             for (int i = 0; i < maxIndex; i++) {
                 String objectKey = "chunk/" + uploadUuid + "/" + i;
                 sources.add(
-                        ComposeSource.builder()
+                        SourceObject.builder()
                                 .bucket(
                                         tempBucketName
                                 )
@@ -309,7 +306,7 @@ public class S3StorageService extends AbstractStorageService {
                                 .stream(
                                         fis,
                                         size,
-                                        -1
+                                        -1L
                                 )
                                 .contentType(
                                         "application/octet-stream"
@@ -492,15 +489,16 @@ public class S3StorageService extends AbstractStorageService {
                             .config(
                                     new LifecycleConfiguration(
                                             List.of(
-                                                    new LifecycleRule(
+                                                    new LifecycleConfiguration.Rule(
                                                             Status.ENABLED,
                                                             null,
-                                                            new Expiration(
-                                                                    (ResponseDate) null,
+                                                            new LifecycleConfiguration.Expiration(
+                                                                    (java.time.ZonedDateTime) null,
                                                                     1,
+                                                                    null,
                                                                     null
                                                             ),
-                                                            new RuleFilter(
+                                                            new Filter(
                                                                     "chunk/"
                                                             ),
                                                             null,
