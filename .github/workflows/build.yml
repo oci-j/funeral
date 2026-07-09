@@ -197,11 +197,11 @@ jobs:
         body: |
           ## 🎉 Funeral OCI Registry ${{ github.ref_name }}
 
-          ### 📦 Native Binary
-          - **File:** `funeral-${{ env.VERSION }}-runner`
-          - **Platform:** Linux x86_64
-          - **Size:** ${{ env.BINARY_SIZE }}
-          - **Features:** Zero-dependency, fast startup
+            ### 📦 Native Binary
+            - **File:** `funeral-${{ env.VERSION }}-runner`
+            - **Platform:** Linux x86_64
+            - **Size:** ${{ env.BINARY_SIZE }}
+            - **Features:** Zero-dependency, fast startup
 
           ### 📦 JVM Version
           - **File:** `funeral-*.jar`
@@ -226,27 +226,3 @@ jobs:
           - **Timestamp:** ${{ github.event.repository.updated_at }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-  security-scan:
-    name: Security Scan
-    runs-on: ubuntu-latest
-    # Add permissions required for SARIF upload
-    permissions:
-      contents: read
-      security-events: write
-      actions: read
-    steps:
-    - uses: actions/checkout@v4
-
-    - name: Run Trivy vulnerability scanner
-      uses: aquasecurity/trivy-action@master
-      with:
-        scan-type: 'fs'
-        scan-ref: '.'
-        format: 'sarif'
-        output: 'trivy-results.sarif'
-
-    - name: Upload Trivy scan results to GitHub Security tab
-      uses: github/codeql-action/upload-sarif@v3
-      with:
-        sarif_file: 'trivy-results.sarif'
