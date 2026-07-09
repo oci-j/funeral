@@ -41,6 +41,18 @@ jobs:
       working-directory: ./funeral-frontend
       run: pnpm install
 
+    - name: Run frontend tests
+      working-directory: ./funeral-frontend
+      run: pnpm run test:coverage
+
+    - name: Upload coverage report
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: frontend-coverage-${{ github.sha }}
+        path: funeral-frontend/coverage/
+        retention-days: 7
+
     - name: Build frontend
       working-directory: ./funeral-frontend
       run: pnpm run build
@@ -87,6 +99,18 @@ jobs:
     - name: Install frontend dependencies
       working-directory: ./funeral-frontend
       run: pnpm install
+
+    - name: Run frontend tests
+      working-directory: ./funeral-frontend
+      run: pnpm run test:coverage
+
+    - name: Upload coverage report
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: frontend-coverage-${{ github.sha }}
+        path: funeral-frontend/coverage/
+        retention-days: 7
 
     - name: Build frontend
       working-directory: ./funeral-frontend

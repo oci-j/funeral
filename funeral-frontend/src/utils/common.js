@@ -1,3 +1,5 @@
+import { ElMessage } from 'element-plus'
+
 /**
  * Common utility functions for date formatting
  */
