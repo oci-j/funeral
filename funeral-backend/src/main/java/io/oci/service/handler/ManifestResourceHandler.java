@@ -465,27 +465,40 @@ public class ManifestResourceHandler {
                     Map.class
             );
 
-            // Extract artifactType
-            if (parsed.get(
-                    "artifactType"
-            ) != null) {
-                manifest.artifactType = parsed.get(
+            // Extract config map for reuse
+            Object config = parsed.get(
+                    "config"
+            );
+            Map<?, ?> configMap = null;
+            if (config instanceof Map) {
+                configMap = (Map<?, ?>) config;
+            }
+
+            // Extract artifactType, falling back to config.mediaType
+            if (manifest.artifactType == null) {
+                Object artifactType = parsed.get(
                         "artifactType"
-                ).toString();
+                );
+                if (artifactType != null) {
+                    manifest.artifactType = artifactType.toString();
+                }
+                else if (configMap != null) {
+                    Object configMediaType = configMap.get(
+                            "mediaType"
+                    );
+                    if (configMediaType != null) {
+                        manifest.artifactType = configMediaType.toString();
+                    }
+                }
             }
 
             // Extract config digest
-            if (manifest.configDigest == null) {
-                Object config = parsed.get(
-                        "config"
+            if (manifest.configDigest == null && configMap != null) {
+                Object digest = configMap.get(
+                        "digest"
                 );
-                if (config instanceof Map) {
-                    Object digest = ((Map<?, ?>) config).get(
-                            "digest"
-                    );
-                    if (digest != null) {
-                        manifest.configDigest = digest.toString();
-                    }
+                if (digest != null) {
+                    manifest.configDigest = digest.toString();
                 }
             }
 

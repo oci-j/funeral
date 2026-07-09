@@ -87,7 +87,7 @@ Backend configuration in `funeral-backend/src/main/resources/application.yml`:
 
 ## OCI Compliance Status
 
-Current conformance: 74/79 tests passing from OCI Distribution Spec test suite. Focus areas:
+Current conformance: 75/75 runnable specs passing (4 skipped) from OCI Distribution Spec test suite. Focus areas:
 1. **Pull API** - Highest priority (must work)
 2. **Push API** - Secondary priority
 3. **Content Discovery** - Tag listing
