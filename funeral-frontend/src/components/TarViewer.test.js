@@ -2,11 +2,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
 import TarViewer from './TarViewer.vue'
 import { elementStubs, iconStubs } from '../test-utils/element-stubs'
-import pako from 'pako'
+import { inflate } from 'pako'
 import untar from 'js-untar'
 
 vi.mock('pako', () => ({
-  default: { inflate: vi.fn() },
+  inflate: vi.fn(),
 }))
 
 vi.mock('js-untar', () => ({
@@ -35,7 +35,7 @@ const fileEntry = (name, content = new ArrayBuffer(4)) => ({
 
 beforeEach(() => {
   vi.clearAllMocks()
-  pako.inflate.mockImplementation(buf => new Uint8Array(buf))
+  inflate.mockImplementation(buf => new Uint8Array(buf))
 })
 
 afterEach(() => {})
@@ -130,7 +130,7 @@ describe('TarViewer', () => {
   })
 
   it('parses plain tar archives when gzip decompression fails', async () => {
-    pako.inflate.mockImplementation(() => {
+    inflate.mockImplementation(() => {
       throw new Error('not gzip')
     })
     untar.mockImplementation(() => {
