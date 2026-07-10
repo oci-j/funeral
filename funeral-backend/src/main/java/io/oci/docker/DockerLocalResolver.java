@@ -1,6 +1,8 @@
 package io.oci.docker;
 
+import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
 
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -17,15 +19,33 @@ public class DockerLocalResolver {
     @Inject
     Overlay2FileResolver overlay2FileResolver;
 
+    private final Map<String, ResolvedManifest> manifestCache = new ConcurrentHashMap<>();
+
     public Optional<ResolvedManifest> resolveManifest(
             String repositoryName,
             String reference
     ) {
+        if (reference != null && reference.startsWith(
+                "sha256:"
+        )) {
+            ResolvedManifest cached = manifestCache.get(
+                    reference
+            );
+            if (cached != null) {
+                return Optional.of(
+                        cached
+                );
+            }
+        }
+
         Optional<ResolvedManifest> api = apiImageResolver.resolveManifest(
                 repositoryName,
                 reference
         );
         if (api.isPresent()) {
+            cache(
+                    api.get()
+            );
             return api;
         }
         Optional<ResolvedManifest> containerd = containerdFileResolver.resolveManifest(
@@ -33,12 +53,21 @@ public class DockerLocalResolver {
                 repositoryName
         );
         if (containerd.isPresent()) {
+            cache(
+                    containerd.get()
+            );
             return containerd;
         }
-        return overlay2FileResolver.resolveManifest(
+        Optional<ResolvedManifest> overlay2 = overlay2FileResolver.resolveManifest(
                 repositoryName,
                 reference
         );
+        if (overlay2.isPresent()) {
+            cache(
+                    overlay2.get()
+            );
+        }
+        return overlay2;
     }
 
     public Optional<ResolvedBlob> resolveBlob(
@@ -62,5 +91,16 @@ public class DockerLocalResolver {
                 digest,
                 repositoryName
         );
+    }
+
+    private void cache(
+            ResolvedManifest manifest
+    ) {
+        if (manifest != null && manifest.digest != null) {
+            manifestCache.put(
+                    manifest.digest,
+                    manifest
+            );
+        }
     }
 }
