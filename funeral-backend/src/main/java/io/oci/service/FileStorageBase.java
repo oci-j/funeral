@@ -26,6 +26,17 @@ public class FileStorageBase {
     private final ObjectMapper objectMapper;
 
     public FileStorageBase() {
+        this(
+                null
+        );
+    }
+
+    public FileStorageBase(
+            String storagePath
+    ) {
+        if (storagePath != null) {
+            this.storagePath = storagePath;
+        }
         this.objectMapper = new ObjectMapper();
         // Configure ObjectMapper to handle ObjectId properly
         this.objectMapper.registerModule(

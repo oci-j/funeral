@@ -49,13 +49,11 @@ public class Manifest extends PanacheMongoEntity {
     )
     public ObjectId repositoryId;
 
-    @JsonIgnore
     @BsonProperty(
         "repository_name"
     )
     public String repositoryName;
 
-    @JsonIgnore
     public String digest;
 
     @BsonProperty(

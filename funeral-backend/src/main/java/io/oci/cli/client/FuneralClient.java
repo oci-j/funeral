@@ -33,6 +33,8 @@ public class FuneralClient {
 
     private final String baseUrl;
 
+    private final String hostOverride;
+
     private final Credentials credentials;
 
     private final ObjectMapper mapper = new ObjectMapper();
@@ -43,9 +45,22 @@ public class FuneralClient {
             String registry,
             Credentials credentials
     ) {
+        this(
+                registry,
+                null,
+                credentials
+        );
+    }
+
+    public FuneralClient(
+            String registry,
+            String hostOverride,
+            Credentials credentials
+    ) {
         this.baseUrl = baseUrl(
                 registry
         );
+        this.hostOverride = hostOverride;
         this.credentials = credentials;
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(
@@ -80,17 +95,18 @@ public class FuneralClient {
                         )
                 );
         String url = baseUrl + "/v2/token?service=" + DEFAULT_SERVICE;
-        HttpRequest request = HttpRequest.newBuilder(
+        HttpRequest.Builder builder = HttpRequest.newBuilder(
                 URI.create(
                         url
                 )
-        )
-                .header(
-                        "Authorization",
-                        "Basic " + auth
-                )
-                .GET()
-                .build();
+        );
+        addHost(
+                builder
+        );
+        HttpRequest request = builder.header(
+                "Authorization",
+                "Basic " + auth
+        ).GET().build();
         HttpResponse<String> response = httpClient.send(
                 request,
                 HttpResponse.BodyHandlers.ofString()
@@ -220,10 +236,26 @@ public class FuneralClient {
     )
             throws IOException,
             InterruptedException {
+        HttpResponse<byte[]> response = getManifestResponse(
+                name,
+                reference
+        );
+        return response.body();
+    }
+
+    public HttpResponse<byte[]> getManifestResponse(
+            String name,
+            String reference
+    )
+            throws IOException,
+            InterruptedException {
         HttpRequest.Builder builder = HttpRequest.newBuilder(
                 URI.create(
                         baseUrl + "/v2/" + name + "/manifests/" + reference
                 )
+        );
+        addHost(
+                builder
         );
         addAuth(
                 builder
@@ -242,7 +274,7 @@ public class FuneralClient {
         ensureSuccessBytes(
                 response
         );
-        return response.body();
+        return response;
     }
 
     public void putManifest(
@@ -319,6 +351,9 @@ public class FuneralClient {
                         baseUrl + path
                 )
         );
+        addHost(
+                builder
+        );
         addAuth(
                 builder
         );
@@ -385,6 +420,9 @@ public class FuneralClient {
                         baseUrl + path
                 )
         );
+        addHost(
+                builder
+        );
         addAuth(
                 builder
         );
@@ -407,6 +445,17 @@ public class FuneralClient {
                 request,
                 HttpResponse.BodyHandlers.ofString()
         );
+    }
+
+    private void addHost(
+            HttpRequest.Builder builder
+    ) {
+        if (hostOverride != null && !hostOverride.isBlank()) {
+            builder.header(
+                    "Host",
+                    hostOverride
+            );
+        }
     }
 
     private void addAuth(

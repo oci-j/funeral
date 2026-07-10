@@ -27,19 +27,17 @@
 
 ```bash
 funeral import docker.xenoamess.com/a/b/c:1.1.1 \
-  --from-registry http://1.1.1.1 \
-  [--protocol docker|oci] \
-  [--to ./path]
+  --server http://1.1.1.1 \
+  --to docker
 ```
 
 ### 2.2 `export` — 从本地导出到多个远程 registry
 
 ```bash
 funeral export docker.xenoamess.com/a/b/c:1.1.1 \
-  --to-registry http://1.1.1.1,http://2.2.2.2,http://3.3.3.3 \
-  [--protocol docker|oci] \
-  [--from ./path] \
-  [--continue-on-error]
+  --to docker.xenoamess.com/a/b/c:1.1.1 \
+  --to docker.xenoamess2.com/a/b/c:1.1.1 \
+  --server https://1.1.1.1:443
 ```
 
 ### 2.3 参数说明
@@ -47,12 +45,12 @@ funeral export docker.xenoamess.com/a/b/c:1.1.1 \
 | 参数 | 作用 |
 |------|------|
 | `<image-ref>` | 标准 OCI image reference |
-| `--from-registry <url>` | `import` 源 registry |
-| `--to-registry <urls>` | `export` 目标 registry，逗号分隔多 IP |
-| `--protocol docker\|oci` | 本地端协议：Docker daemon 或 OCI layout |
-| `--to <path>` | `import` 目标路径 |
-| `--from <path>` | `export` 源路径 |
-| `--continue-on-error` | 多目标 push 时部分失败继续 |
+| `--to <local\|docker\|oci>` | `import` 输出目标类型（默认 `local`） |
+| `--from <local\|docker\|oci>` | `export` 源类型（默认 `local`） |
+| `--server <url>` | 强制指定远端 funeral server URL（覆盖 alias） |
+| `--oci-dir <path>` | OCI layout 目录 |
+| `--storage <path>` | 本地文件存储路径（默认 `/tmp/funeral-storage`） |
+| `--use-docker` | `export` 强制使用 `docker push` |
 
 ---
 
@@ -299,10 +297,21 @@ CLI 读取配置方式：
 
 ## 7. 执行记录
 
-本计划执行过程中按阶段提交，预计 commit 顺序：
+本计划已执行完成，主要变更如下：
 
-1. `feat(cli): standard OCI image reference parsing`
-2. `feat(cli): add local storage adapter and docker CLI adapter`
-3. `feat(cli): replace push/pull with import/export`
-4. `test(cli): add tests for import/export`
-5. `ci: update CLI docs`
+- 重写 `ImageReference` 为标准 OCI 解析（docker.io 默认、`library/` 前缀）。
+- 新增 `LocalServerProbe`、`LocalStorageAdapter`、`DockerCliAdapter`、`DockerTarConverter`、`ImagePackager`。
+- 修复 `DockerTarConverter.ociLayoutToTar` 未将 layer 路径写入 `manifest.json Layers` 数组的问题。
+- 增强 `FuneralClient`：支持 `hostOverride` 并设置 `Host` 头；`CliHelper` 支持 image reference 与 alias 解析。
+- 新增 `RegistryAlias` 配置与 `RegistryResolver` alias 解析。
+- 实现 `import` / `export` 命令。
+- 更新 `LoginCommand`：按 image reference 域名存储凭证。
+- 新增 `LocalStorageAdapterTest`、`ImagePackagerTest`、`DockerTarConverterTest`。
+
+实际命令格式见第 2 节，实现细节见代码。
+
+提交记录：
+
+1. `feat(cli): standard OCI image reference parsing and import/export adapters`
+2. `feat(cli): implement import and export commands with multi-target support`
+3. `test(cli): add tests for local storage, image packaging, and tar conversion`

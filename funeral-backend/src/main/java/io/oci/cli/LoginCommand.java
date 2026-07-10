@@ -49,8 +49,25 @@ public class LoginCommand implements Callable<Integer> {
     @Override
     public Integer call() throws Exception {
         ConfigManager configManager = new ConfigManager();
-        String resolvedRegistry = RegistryResolver.resolve(
-                registry,
+        CliConfig config = configManager.load();
+        String targetDomain = registry;
+        if (targetDomain == null || targetDomain.isEmpty()) {
+            if (config.defaultRegistry != null && !config.defaultRegistry.isEmpty()) {
+                targetDomain = config.defaultRegistry;
+            }
+            else {
+                throw new RuntimeException(
+                        "Registry not specified and no default registry configured"
+                );
+            }
+        }
+
+        String resolvedUrl = RegistryResolver.resolve(
+                targetDomain,
+                configManager
+        );
+        String authDomain = RegistryResolver.resolveAuthDomain(
+                targetDomain,
                 configManager
         );
 
@@ -93,12 +110,13 @@ public class LoginCommand implements Callable<Integer> {
         }
 
         Credentials credentials = new Credentials();
-        credentials.registry = resolvedRegistry;
+        credentials.registry = authDomain;
         credentials.username = username;
         credentials.password = password;
 
         FuneralClient client = new FuneralClient(
-                resolvedRegistry,
+                resolvedUrl,
+                authDomain,
                 credentials
         );
         String token = client.getToken();
@@ -112,20 +130,19 @@ public class LoginCommand implements Callable<Integer> {
                 configManager
         );
         store.save(
-                resolvedRegistry,
+                authDomain,
                 credentials
         );
 
-        CliConfig config = configManager.load();
         if (config.defaultRegistry == null) {
-            config.defaultRegistry = resolvedRegistry;
+            config.defaultRegistry = authDomain;
             configManager.save(
                     config
             );
         }
 
         System.out.println(
-                "Login succeeded for " + resolvedRegistry
+                "Login succeeded for " + authDomain
         );
         return 0;
     }

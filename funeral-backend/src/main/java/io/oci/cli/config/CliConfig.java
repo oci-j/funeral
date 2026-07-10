@@ -11,4 +11,6 @@ public class CliConfig {
     public String defaultRegistry;
 
     public Map<String, RegistryAuth> auths = new HashMap<>();
+
+    public Map<String, RegistryAlias> aliases = new HashMap<>();
 }
