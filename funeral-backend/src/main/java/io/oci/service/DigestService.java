@@ -1,5 +1,7 @@
 package io.oci.service;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
@@ -42,6 +44,37 @@ public class DigestService {
             );
             return "sha256:" + bytesToHex(
                     hash
+            );
+        }
+        catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(
+                    "SHA-256 not available",
+                    e
+            );
+        }
+    }
+
+    public String calculateDigest(
+            InputStream content
+    )
+            throws IOException {
+        try {
+            MessageDigest digest = MessageDigest.getInstance(
+                    "SHA-256"
+            );
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = content.read(
+                    buffer
+            )) != -1) {
+                digest.update(
+                        buffer,
+                        0,
+                        bytesRead
+                );
+            }
+            return "sha256:" + bytesToHex(
+                    digest.digest()
             );
         }
         catch (NoSuchAlgorithmException e) {

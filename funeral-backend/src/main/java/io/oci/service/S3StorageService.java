@@ -151,7 +151,7 @@ public class S3StorageService extends AbstractStorageService {
             );
 
             List<SourceObject> sources = new ArrayList<>();
-            for (int i = 0; i < maxIndex; i++) {
+            for (int i = 0; i <= maxIndex; i++) {
                 String objectKey = "chunk/" + uploadUuid + "/" + i;
                 sources.add(
                         SourceObject.builder()
@@ -177,6 +177,25 @@ public class S3StorageService extends AbstractStorageService {
                             )
                             .build()
             );
+
+            // Clean up temporary chunk objects
+            for (int i = 0; i <= maxIndex; i++) {
+                String objectKey = "chunk/" + uploadUuid + "/" + i;
+                try {
+                    minioClient.removeObject(
+                            RemoveObjectArgs.builder()
+                                    .bucket(
+                                            tempBucketName
+                                    )
+                                    .object(
+                                            objectKey
+                                    )
+                                    .build()
+                    );
+                }
+                catch (Exception ignored) {
+                }
+            }
         }
         catch (Exception e) {
             throw new IOException(

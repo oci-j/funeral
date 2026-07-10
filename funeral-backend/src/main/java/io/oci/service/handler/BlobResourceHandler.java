@@ -24,6 +24,7 @@ import io.oci.model.Blob;
 import io.oci.model.Repository;
 import io.oci.service.AbstractStorageService;
 import io.oci.service.BlobStorage;
+import io.oci.service.DigestService;
 import io.oci.service.RepositoryStorage;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -60,6 +61,9 @@ public class BlobResourceHandler {
         "storage"
     )
     AbstractStorageService storageService;
+
+    @Inject
+    DigestService digestService;
 
     @Inject
     DockerLocalResolver dockerLocalResolver;
@@ -626,25 +630,58 @@ public class BlobResourceHandler {
                     digest
             );
 
-            // TODO actualDigest actual
-            String actualDigest = digest;
+            try (
+                    InputStream blobStream = storageService.getBlobStream(
+                            digest
+                    )) {
+                if (blobStream == null) {
+                    throw new IOException(
+                            "Merged blob not found: " + digest
+                    );
+                }
+                String actualDigest = digestService.calculateDigest(
+                        blobStream
+                );
+                if (!actualDigest.equals(
+                        digest
+                )) {
+                    storageService.deleteBlob(
+                            digest
+                    );
+                    return Response.status(
+                            400
+                    )
+                            .entity(
+                                    new ErrorResponse(
+                                            List.of(
+                                                    new ErrorResponse.Error(
+                                                            "DIGEST_INVALID",
+                                                            "provided digest did not match uploaded content",
+                                                            digest
+                                                    )
+                                            )
+                                    )
+                            )
+                            .build();
+                }
+            }
 
             // Store blob metadata
             Blob existingBlob = blobStorage.findByDigest(
-                    actualDigest
+                    digest
             );
             if (existingBlob == null) {
                 Blob blob = new Blob();
-                blob.digest = actualDigest;
+                blob.digest = digest;
                 blob.contentLength = storageService.getBlobSize(
-                        actualDigest
+                        digest
                 );
                 blobStorage.persist(
                         blob
                 );
             }
 
-            String location = "/v2/" + repositoryName + "/blobs/" + actualDigest;
+            String location = "/v2/" + repositoryName + "/blobs/" + digest;
             return Response.status(
                     201
             )
@@ -654,7 +691,7 @@ public class BlobResourceHandler {
                     )
                     .header(
                             "Docker-Content-Digest",
-                            actualDigest
+                            digest
                     )
                     .header(
                             "OCI-Chunk-Min-Length",
