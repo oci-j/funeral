@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import io.oci.annotation.CommentDELETE;
 import io.oci.annotation.CommentGET;
@@ -14,6 +15,8 @@ import io.oci.annotation.CommentHeaderParam;
 import io.oci.annotation.CommentPUT;
 import io.oci.annotation.CommentPath;
 import io.oci.annotation.CommentPathParam;
+import io.oci.docker.DockerLocalResolver;
+import io.oci.docker.ResolvedManifest;
 import io.oci.dto.ErrorResponse;
 import io.oci.dto.ManifestInfo;
 import io.oci.model.Manifest;
@@ -53,6 +56,9 @@ public class ManifestResourceHandler {
     )
     ManifestStorage manifestStorage;
 
+    @Inject
+    DockerLocalResolver dockerLocalResolver;
+
     @CommentHEAD
     @CommentPath(
         "/{reference}"
@@ -67,6 +73,61 @@ public class ManifestResourceHandler {
             )
             String reference
     ) {
+        Manifest manifest;
+        if (reference.startsWith(
+                "sha256:"
+        )) {
+            manifest = manifestStorage.findByRepositoryAndDigest(
+                    repositoryName,
+                    reference
+            );
+        }
+        else {
+            manifest = manifestStorage.findByRepositoryAndTag(
+                    repositoryName,
+                    reference
+            );
+        }
+
+        if (manifest != null) {
+            return Response.ok()
+                    .header(
+                            "Content-Type",
+                            manifest.mediaType
+                    )
+                    .header(
+                            "Docker-Content-Digest",
+                            manifest.digest
+                    )
+                    .header(
+                            "Content-Length",
+                            manifest.contentLength
+                    )
+                    .build();
+        }
+
+        Optional<ResolvedManifest> fallback = dockerLocalResolver.resolveManifest(
+                repositoryName,
+                reference
+        );
+        if (fallback.isPresent()) {
+            ResolvedManifest resolved = fallback.get();
+            return Response.ok()
+                    .header(
+                            "Content-Type",
+                            resolved.mediaType
+                    )
+                    .header(
+                            "Docker-Content-Digest",
+                            resolved.digest
+                    )
+                    .header(
+                            "Content-Length",
+                            resolved.bytes.length
+                    )
+                    .build();
+        }
+
         var repo = repositoryStorage.findByName(
                 repositoryName
         );
@@ -91,52 +152,19 @@ public class ManifestResourceHandler {
                     .build();
         }
 
-        Manifest manifest;
-        if (reference.startsWith(
-                "sha256:"
-        )) {
-            manifest = manifestStorage.findByRepositoryAndDigest(
-                    repositoryName,
-                    reference
-            );
-        }
-        else {
-            manifest = manifestStorage.findByRepositoryAndTag(
-                    repositoryName,
-                    reference
-            );
-        }
-
-        if (manifest == null) {
-            return Response.status(
-                    404
-            )
-                    .entity(
-                            new ErrorResponse(
-                                    List.of(
-                                            new ErrorResponse.Error(
-                                                    "MANIFEST_UNKNOWN",
-                                                    "manifest unknown",
-                                                    reference
-                                            )
-                                    )
-                            )
-                    )
-                    .build();
-        }
-
-        return Response.ok()
-                .header(
-                        "Content-Type",
-                        manifest.mediaType
-                )
-                .header(
-                        "Docker-Content-Digest",
-                        manifest.digest
-                )
-                .header(
-                        "Content-Length",
-                        manifest.contentLength
+        return Response.status(
+                404
+        )
+                .entity(
+                        new ErrorResponse(
+                                List.of(
+                                        new ErrorResponse.Error(
+                                                "MANIFEST_UNKNOWN",
+                                                "manifest unknown",
+                                                reference
+                                        )
+                                )
+                        )
                 )
                 .build();
     }
@@ -155,6 +183,64 @@ public class ManifestResourceHandler {
             )
             String reference
     ) {
+        Manifest manifest;
+        if (reference.startsWith(
+                "sha256:"
+        )) {
+            manifest = manifestStorage.findByRepositoryAndDigest(
+                    repositoryName,
+                    reference
+            );
+        }
+        else {
+            manifest = manifestStorage.findByRepositoryAndTag(
+                    repositoryName,
+                    reference
+            );
+        }
+
+        if (manifest != null) {
+            return Response.ok(
+                    manifest.content
+            )
+                    .header(
+                            "Content-Type",
+                            manifest.mediaType
+                    )
+                    .header(
+                            "Docker-Content-Digest",
+                            manifest.digest
+                    )
+                    .header(
+                            "Content-Length",
+                            manifest.contentLength
+                    )
+                    .build();
+        }
+
+        Optional<ResolvedManifest> fallback = dockerLocalResolver.resolveManifest(
+                repositoryName,
+                reference
+        );
+        if (fallback.isPresent()) {
+            ResolvedManifest resolved = fallback.get();
+            return Response.ok(
+                    resolved.bytes
+            )
+                    .header(
+                            "Content-Type",
+                            resolved.mediaType
+                    )
+                    .header(
+                            "Docker-Content-Digest",
+                            resolved.digest
+                    )
+                    .header(
+                            "Content-Length",
+                            resolved.bytes.length
+                    )
+                    .build();
+        }
 
         var repo = repositoryStorage.findByName(
                 repositoryName
@@ -180,54 +266,19 @@ public class ManifestResourceHandler {
                     .build();
         }
 
-        Manifest manifest;
-        if (reference.startsWith(
-                "sha256:"
-        )) {
-            manifest = manifestStorage.findByRepositoryAndDigest(
-                    repositoryName,
-                    reference
-            );
-        }
-        else {
-            manifest = manifestStorage.findByRepositoryAndTag(
-                    repositoryName,
-                    reference
-            );
-        }
-
-        if (manifest == null) {
-            return Response.status(
-                    404
-            )
-                    .entity(
-                            new ErrorResponse(
-                                    List.of(
-                                            new ErrorResponse.Error(
-                                                    "MANIFEST_UNKNOWN",
-                                                    "manifest unknown",
-                                                    reference
-                                            )
-                                    )
-                            )
-                    )
-                    .build();
-        }
-
-        return Response.ok(
-                manifest.content
+        return Response.status(
+                404
         )
-                .header(
-                        "Content-Type",
-                        manifest.mediaType
-                )
-                .header(
-                        "Docker-Content-Digest",
-                        manifest.digest
-                )
-                .header(
-                        "Content-Length",
-                        manifest.contentLength
+                .entity(
+                        new ErrorResponse(
+                                List.of(
+                                        new ErrorResponse.Error(
+                                                "MANIFEST_UNKNOWN",
+                                                "manifest unknown",
+                                                reference
+                                        )
+                                )
+                        )
                 )
                 .build();
     }

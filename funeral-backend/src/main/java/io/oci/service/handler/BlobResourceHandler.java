@@ -3,6 +3,7 @@ package io.oci.service.handler;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 import io.oci.annotation.CommentDELETE;
@@ -15,6 +16,8 @@ import io.oci.annotation.CommentPUT;
 import io.oci.annotation.CommentPath;
 import io.oci.annotation.CommentPathParam;
 import io.oci.annotation.CommentQueryParam;
+import io.oci.docker.DockerLocalResolver;
+import io.oci.docker.ResolvedBlob;
 import io.oci.dto.ErrorResponse;
 import io.oci.exception.WithResponseException;
 import io.oci.model.Blob;
@@ -58,6 +61,9 @@ public class BlobResourceHandler {
     )
     AbstractStorageService storageService;
 
+    @Inject
+    DockerLocalResolver dockerLocalResolver;
+
     @CommentHEAD
     @CommentPath(
         "/{digest}"
@@ -88,6 +94,24 @@ public class BlobResourceHandler {
                     .build();
         }
         catch (Exception e) {
+            Optional<ResolvedBlob> fallback = dockerLocalResolver.resolveBlob(
+                    digest,
+                    repositoryName
+            );
+            if (fallback.isPresent()) {
+                ResolvedBlob resolved = fallback.get();
+                return Response.ok()
+                        .header(
+                                "Content-Length",
+                                resolved.size
+                        )
+                        .header(
+                                "Docker-Content-Digest",
+                                digest
+                        )
+                        .build();
+            }
+
             return Response.status(
                     404
             )
@@ -125,40 +149,60 @@ public class BlobResourceHandler {
             InputStream blobStream = storageService.getBlobStream(
                     digest
             );
-            if (blobStream == null) {
-                return Response.status(
-                        404
+            if (blobStream != null) {
+                long size = storageService.getBlobSize(
+                        digest
+                );
+                return Response.ok(
+                        blobStream
                 )
-                        .entity(
-                                new ErrorResponse(
-                                        List.of(
-                                                new ErrorResponse.Error(
-                                                        "BLOB_UNKNOWN",
-                                                        "blob unknown to registry",
-                                                        digest
-                                                )
-                                        )
-                                ).toJson()
+                        .header(
+                                "Content-Length",
+                                size
                         )
-                        .type(
-                                "application/json"
+                        .header(
+                                "Docker-Content-Digest",
+                                digest
                         )
                         .build();
             }
 
-            long size = storageService.getBlobSize(
-                    digest
+            Optional<ResolvedBlob> fallback = dockerLocalResolver.resolveBlob(
+                    digest,
+                    repositoryName
             );
-            return Response.ok(
-                    blobStream
+            if (fallback.isPresent()) {
+                ResolvedBlob resolved = fallback.get();
+                return Response.ok(
+                        resolved.stream
+                )
+                        .header(
+                                "Content-Length",
+                                resolved.size
+                        )
+                        .header(
+                                "Docker-Content-Digest",
+                                digest
+                        )
+                        .build();
+            }
+
+            return Response.status(
+                    404
             )
-                    .header(
-                            "Content-Length",
-                            size
+                    .entity(
+                            new ErrorResponse(
+                                    List.of(
+                                            new ErrorResponse.Error(
+                                                    "BLOB_UNKNOWN",
+                                                    "blob unknown to registry",
+                                                    digest
+                                            )
+                                    )
+                            ).toJson()
                     )
-                    .header(
-                            "Docker-Content-Digest",
-                            digest
+                    .type(
+                            "application/json"
                     )
                     .build();
 

@@ -18,7 +18,7 @@ cleanup() {
 trap cleanup SIGTERM SIGINT
 
 # Start the application
-/app/funeral &
+/app/funeral serve &
 
 child=$!
 

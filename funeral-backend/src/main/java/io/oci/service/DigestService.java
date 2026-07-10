@@ -30,6 +30,28 @@ public class DigestService {
         }
     }
 
+    public String calculateDigest(
+            byte[] content
+    ) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance(
+                    "SHA-256"
+            );
+            byte[] hash = digest.digest(
+                    content
+            );
+            return "sha256:" + bytesToHex(
+                    hash
+            );
+        }
+        catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(
+                    "SHA-256 not available",
+                    e
+            );
+        }
+    }
+
     private String bytesToHex(
             byte[] bytes
     ) {

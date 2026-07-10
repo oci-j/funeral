@@ -10,7 +10,7 @@ ENV AUTH_ENABLED="false"
 WORKDIR /opt/funeral
 
 # Copy backend JAR from builder stage
-COPY funeral-*-runner /app/funeral
+COPY funeral /app/funeral
 
 # Copy entrypoint script
 COPY docker-entrypoint.sh /opt/funeral/docker-entrypoint.sh

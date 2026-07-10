@@ -27,6 +27,14 @@ oci:
     no-mongo: ${NO_MONGO:true}
     no-minio: ${NO_MINIO:true}
     local-storage-path: ${LOCAL_STORAGE_PATH:/tmp/funeral-storage}
+  docker-local:
+    enabled: ${DOCKER_LOCAL_ENABLED:false}
+    socket: ${DOCKER_LOCAL_SOCKET:/var/run/docker.sock}
+    api-version: ${DOCKER_LOCAL_API_VERSION:1.44}
+    timeout: ${DOCKER_LOCAL_TIMEOUT:30s}
+    containerd-root: ${DOCKER_LOCAL_CONTAINERD_ROOT:/var/lib/containerd}
+    docker-root: ${DOCKER_LOCAL_DOCKER_ROOT:/var/lib/docker}
+    fallback-to-direct-read: ${DOCKER_LOCAL_FALLBACK_TO_DIRECT_READ:true}
   auth:
     # true if we enable auth system.
     enabled: ${AUTH_ENABLED:true}

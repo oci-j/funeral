@@ -77,7 +77,7 @@ jobs:
       uses: actions/upload-artifact@v7
       with:
         name: funeral-jvm-${{ github.sha }}
-        path: funeral-backend/target/funeral-*.jar
+        path: funeral-backend/target/funeral.jar
         retention-days: 7
 
   build-native:
@@ -145,15 +145,15 @@ jobs:
       run: |
         VERSION=$(cat ../VERSION 2>/dev/null || echo "unknown")
         echo "VERSION: ${VERSION}"
-        echo "BINARY_NAME=funeral-${VERSION}-runner" >> $GITHUB_ENV
+        echo "BINARY_NAME=funeral" >> $GITHUB_ENV
         if [[ "${{ github.ref }}" == refs/tags/v* ]]; then
           echo "Tag build: enabling release compression (level 10 + ultra-brute)"
           mvn -B clean package -Pnative,release-compression -DskipTests
         else
           mvn -B clean package -Pnative -DskipTests
         fi
-        if [ ! -f "target/funeral-${VERSION}-runner" ]; then
-          echo "Error: Expected binary target/funeral-${VERSION}-runner not found"
+        if [ ! -f "target/funeral" ]; then
+          echo "Error: Expected binary target/funeral not found"
           ls -la target/
           exit 1
         fi
@@ -213,18 +213,25 @@ jobs:
         VERSION=$(cat VERSION 2>/dev/null || echo "unknown")
         echo "VERSION=${VERSION}" >> $GITHUB_ENV
         # Copy native binary with versioned name
-        NATIVE_BINARY=$(find artifacts -name "funeral-${VERSION}-runner" | head -1)
+        NATIVE_BINARY=$(find artifacts -name "funeral" | head -1)
         if [ -f "$NATIVE_BINARY" ]; then
-          cp "$NATIVE_BINARY" "release-files/funeral-${VERSION}-runner"
+          cp "$NATIVE_BINARY" "release-files/funeral-${VERSION}"
           BINARY_SIZE=$(du -h "$NATIVE_BINARY" | cut -f1)
           echo "BINARY_SIZE=$BINARY_SIZE" >> $GITHUB_ENV
         else
-          echo "Error: Native binary funeral-${VERSION}-runner not found in artifacts"
+          echo "Error: Native binary funeral not found in artifacts"
           find artifacts -type f -name "*funeral*" | head -20
           exit 1
         fi
         # Copy JVM JAR
-        find artifacts -name "funeral-*.jar" -not -name "*sources*" -not -name "*javadoc*" -exec cp {} release-files/ \;
+        JVM_JAR=$(find artifacts -name "funeral.jar" | head -1)
+        if [ -f "$JVM_JAR" ]; then
+          cp "$JVM_JAR" "release-files/funeral-${VERSION}.jar"
+        else
+          echo "Error: JVM JAR funeral.jar not found in artifacts"
+          find artifacts -type f -name "*funeral*" | head -20
+          exit 1
+        fi
         # Create checksums
         cd release-files
         sha256sum * > checksums.txt
@@ -237,33 +244,40 @@ jobs:
         draft: false
         prerelease: false
         files: |
-          release-files/funeral-${{ env.VERSION }}-runner
-          release-files/funeral-*.jar
+          release-files/funeral-${{ env.VERSION }}
+          release-files/funeral-${{ env.VERSION }}.jar
           release-files/checksums.txt
         body: |
           ## 🎉 Funeral OCI Registry ${{ github.ref_name }}
 
             ### 📦 Native Binary
-            - **File:** `funeral-${{ env.VERSION }}-runner`
+            - **File:** `funeral-${{ env.VERSION }}`
             - **Platform:** Linux x86_64
             - **Size:** ${{ env.BINARY_SIZE }}
             - **Features:** Zero-dependency, fast startup
 
           ### 📦 JVM Version
-          - **File:** `funeral-*.jar`
+          - **File:** `funeral-${{ env.VERSION }}.jar`
           - **Requirements:** Java 25 or higher
 
           ### 🔧 Quick Start
 
           #### Using Native Binary
           ```bash
-          chmod +x funeral-runner-linux-amd64
-          ./funeral-runner-linux-amd64
+          chmod +x funeral-${{ env.VERSION }}
+          ./funeral-${{ env.VERSION }} serve
           ```
 
           #### Using JVM Version
           ```bash
-          java -jar funeral-*.jar
+          java -jar funeral-${{ env.VERSION }}.jar serve
+          ```
+
+          #### CLI Commands
+          ```bash
+          ./funeral-${{ env.VERSION }} --help
+          ./funeral-${{ env.VERSION }} login 192.168.8.9:8911 -u admin -p password
+          ./funeral-${{ env.VERSION }} repo list
           ```
 
           ### 🏗️ Build Details

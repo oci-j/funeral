@@ -3,6 +3,9 @@ package io.oci.dto;
 import java.time.LocalDateTime;
 import java.util.List;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
+@RegisterForReflection
 public class UserResponse {
 
     public String username;

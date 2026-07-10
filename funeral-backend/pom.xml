@@ -24,9 +24,11 @@
             -H:+RemoveUnusedSymbols,\
             -march=compatibility,\
             --add-opens=java.base/java.lang=ALL-UNNAMED,\
-            --add-opens=java.base/java.lang.invoke=ALL-UNNAMED
+            --add-opens=java.base/java.lang.invoke=ALL-UNNAMED,\
+            --initialize-at-run-time=com.github.dockerjava.transport.NamedPipeSocket\$Kernel32
         </quarkus.native.additional-build-args>
         <quarkus.native.container-build>false</quarkus.native.container-build>
+        <quarkus.package.type>uber-jar</quarkus.package.type>
     </properties>
     <dependencyManagement>
         <dependencies>
@@ -87,6 +89,47 @@
             <groupId>at.favre.lib</groupId>
             <artifactId>bcrypt</artifactId>
             <version>0.10.2</version>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-picocli</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli-codegen</artifactId>
+            <version>4.7.7</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.github.javakeyring</groupId>
+            <artifactId>java-keyring</artifactId>
+            <version>1.0.4</version>
+        </dependency>
+        <!-- Docker local image store support -->
+        <dependency>
+            <groupId>com.github.docker-java</groupId>
+            <artifactId>docker-java-core</artifactId>
+            <version>3.7.1</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-databind</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>com.fasterxml.jackson.core</groupId>
+                    <artifactId>jackson-annotations</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.github.docker-java</groupId>
+            <artifactId>docker-java-transport-zerodep</artifactId>
+            <version>3.7.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.brotli</groupId>
+            <artifactId>dec</artifactId>
+            <version>0.1.2</version>
         </dependency>
         <!-- Apache Commons Compress for tar parsing -->
         <dependency>
@@ -177,6 +220,26 @@
                             <goal>generate-code</goal>
                             <goal>generate-code-tests</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>3.1.0</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <copy file="${project.build.directory}/funeral-${project.version}-runner.jar" tofile="${project.build.directory}/funeral.jar" overwrite="true" failonerror="false"/>
+                                <copy file="${project.build.directory}/funeral-${project.version}-runner" tofile="${project.build.directory}/funeral" overwrite="true" failonerror="false"/>
+                                <chmod file="${project.build.directory}/funeral" perm="+x"/>
+                            </target>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>

@@ -2,6 +2,9 @@ package io.oci.dto;
 
 import java.util.List;
 
+import io.quarkus.runtime.annotations.RegisterForReflection;
+
+@RegisterForReflection
 public class UserRequest {
 
     public String username;
