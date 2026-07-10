@@ -41,6 +41,9 @@ build/
 
 site/
 
+### bbolt-java fixture generator
+.bbolt-fixture/
+
 ###### gitignore only part start
 repository
 

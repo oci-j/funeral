@@ -1,6 +1,5 @@
 package io.oci.docker;
 
-import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,7 +26,7 @@ class ContainerdFileResolverTest {
     private DigestService digestService;
 
     @BeforeEach
-    void setUp() {
+    void setUp() throws Exception {
         resolver = new ContainerdFileResolver();
         digestService = new DigestService();
         resolver.digestService = digestService;
@@ -35,14 +34,21 @@ class ContainerdFileResolverTest {
         resolver.containerdRoot = tempDir.resolve(
                 "containerd"
         );
-        resolver.dockerRoot = tempDir.resolve(
-                "docker"
-        );
+        resolver.dockerRoot = copyFixtureToDockerRoot();
         resolver.imageIdFinder = new MetadataDbImageIdFinder();
+
+        Files.createDirectories(
+                resolver.containerdRoot.resolve(
+                        "io.containerd.content.v1.content/blobs"
+                )
+        );
     }
 
     @Test
     void notAvailableWhenDirectoryMissing() {
+        resolver.containerdRoot = tempDir.resolve(
+                "missing"
+        );
         assertFalse(
                 resolver.isAvailable()
         );
@@ -56,16 +62,8 @@ class ContainerdFileResolverTest {
         String digest = digestService.calculateDigest(
                 content
         );
-        Path blobPath = resolver.containerdRoot.resolve(
-                "io.containerd.content.v1.content/blobs/sha256/" + digest.substring(
-                        7
-                )
-        );
-        Files.createDirectories(
-                blobPath.getParent()
-        );
-        Files.write(
-                blobPath,
+        Path blobPath = writeBlob(
+                digest,
                 content
         );
 
@@ -80,8 +78,6 @@ class ContainerdFileResolverTest {
                 resolved.get().size
         );
         try (java.io.InputStream is = resolved.get().stream) {
-            byte[] read = new ByteArrayOutputStream().toByteArray();
-            // readAllBytes is cleaner here
             byte[] actual = is.readAllBytes();
             assertArrayEquals(
                     content,
@@ -99,16 +95,8 @@ class ContainerdFileResolverTest {
         String digest = digestService.calculateDigest(
                 content
         );
-        Path blobPath = resolver.containerdRoot.resolve(
-                "io.containerd.content.v1.content/blobs/sha256/" + digest.substring(
-                        7
-                )
-        );
-        Files.createDirectories(
-                blobPath.getParent()
-        );
-        Files.write(
-                blobPath,
+        writeBlob(
+                digest,
                 content
         );
 
@@ -134,9 +122,37 @@ class ContainerdFileResolverTest {
     }
 
     @Test
-    void resolveManifestByTagIgnored() throws Exception {
-        resolver.containerdRoot = tempDir.resolve(
-                "containerd"
+    void resolveManifestByTag() throws Exception {
+        String manifestJson = "{\"schemaVersion\":2,\"mediaType\":\"application/vnd.oci.image.index.v1+json\",\"manifests\":[]}";
+        byte[] content = manifestJson.getBytes(
+                StandardCharsets.UTF_8
+        );
+        writeBlob(
+                "sha256:abc123",
+                content
+        );
+
+        Optional<ResolvedManifest> resolved = resolver.resolveManifest(
+                "3.20",
+                "alpine"
+        );
+        assertTrue(
+                resolved.isPresent()
+        );
+        assertEquals(
+                "application/vnd.oci.image.index.v1+json",
+                resolved.get().mediaType
+        );
+        assertArrayEquals(
+                content,
+                resolved.get().bytes
+        );
+    }
+
+    @Test
+    void resolveManifestByTagWithoutMetadataReturnsEmpty() throws Exception {
+        resolver.dockerRoot = tempDir.resolve(
+                "docker-no-metadata"
         );
         Files.createDirectories(
                 resolver.containerdRoot.resolve(
@@ -167,5 +183,64 @@ class ContainerdFileResolverTest {
         assertFalse(
                 resolved.isPresent()
         );
+    }
+
+    private Path writeBlob(
+            String digest,
+            byte[] content
+    )
+            throws Exception {
+        int colon = digest.indexOf(
+                ':'
+        );
+        String algorithm = digest.substring(
+                0,
+                colon
+        );
+        String hex = digest.substring(
+                colon + 1
+        );
+        Path blobPath = resolver.containerdRoot.resolve(
+                "io.containerd.content.v1.content/blobs"
+        )
+                .resolve(
+                        algorithm
+                )
+                .resolve(
+                        hex
+                );
+        Files.createDirectories(
+                blobPath.getParent()
+        );
+        Files.write(
+                blobPath,
+                content
+        );
+        return blobPath;
+    }
+
+    private Path copyFixtureToDockerRoot() throws Exception {
+        Path dockerRoot = tempDir.resolve(
+                "docker"
+        );
+        Path dbDir = dockerRoot.resolve(
+                "containerd/daemon/io.containerd.metadata.v1.bolt"
+        );
+        Files.createDirectories(
+                dbDir
+        );
+        Path dbPath = dbDir.resolve(
+                "meta.db"
+        );
+        Path fixture = Path.of(
+                ContainerdFileResolverTest.class.getResource(
+                        "/io/oci/docker/containerd/meta.db"
+                ).toURI()
+        );
+        Files.copy(
+                fixture,
+                dbPath
+        );
+        return dockerRoot;
     }
 }

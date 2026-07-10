@@ -27,7 +27,7 @@ public class ContainerdFileResolver {
 
     @ConfigProperty(
             name = "oci.docker-local.containerd-root",
-            defaultValue = "/var/lib/containerd"
+            defaultValue = "/var/lib/docker/containerd/daemon"
     )
     Path containerdRoot;
 
@@ -115,6 +115,7 @@ public class ContainerdFileResolver {
         )) {
             Optional<String> found = imageIdFinder.findImageId(
                     dockerRoot,
+                    containerdRoot,
                     repositoryName,
                     reference
             );

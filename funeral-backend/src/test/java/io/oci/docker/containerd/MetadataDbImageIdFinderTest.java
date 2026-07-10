@@ -2,9 +2,6 @@ package io.oci.docker.containerd;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.Statement;
 import java.util.Optional;
 
 import org.junit.jupiter.api.Test;
@@ -22,27 +19,12 @@ class MetadataDbImageIdFinderTest {
     private final MetadataDbImageIdFinder finder = new MetadataDbImageIdFinder();
 
     @Test
-    void findImageIdFromImagesTableWithTarget() throws Exception {
-        Path dockerRoot = tempDir.resolve(
-                "docker"
-        );
-        Path dbPath = dockerRoot.resolve(
-                "image/overlay2/metadata.db"
-        );
-        Files.createDirectories(
-                dbPath.getParent()
-        );
-        createDb(
-                dbPath,
-                "images",
-                "name",
-                "target",
-                "docker.io/library/alpine:3.20",
-                "{\"digest\":\"sha256:abc123\"}"
-        );
+    void findImageIdByContainerdRoot() throws Exception {
+        Path containerdRoot = copyFixture();
 
         Optional<String> result = finder.findImageId(
-                dockerRoot,
+                null,
+                containerdRoot,
                 "alpine",
                 "3.20"
         );
@@ -57,27 +39,12 @@ class MetadataDbImageIdFinderTest {
     }
 
     @Test
-    void findImageIdFromKvTable() throws Exception {
-        Path dockerRoot = tempDir.resolve(
-                "docker"
-        );
-        Path dbPath = dockerRoot.resolve(
-                "image/overlayfs/metadata.db"
-        );
-        Files.createDirectories(
-                dbPath.getParent()
-        );
-        createDb(
-                dbPath,
-                "kv",
-                "key",
-                "value",
-                "docker.io/library/alpine:3.20",
-                "{\"target\":{\"digest\":\"sha256:def456\"}}"
-        );
+    void findImageIdByDockerRoot() throws Exception {
+        Path dockerRoot = copyFixtureToDockerRoot();
 
         Optional<String> result = finder.findImageId(
                 dockerRoot,
+                null,
                 "alpine",
                 "3.20"
         );
@@ -86,7 +53,27 @@ class MetadataDbImageIdFinderTest {
                 result.isPresent()
         );
         assertEquals(
-                "sha256:def456",
+                "sha256:abc123",
+                result.get()
+        );
+    }
+
+    @Test
+    void findDockerIoLibraryImage() throws Exception {
+        Path containerdRoot = copyFixture();
+
+        Optional<String> result = finder.findImageId(
+                null,
+                containerdRoot,
+                "docker.io/library/alpine",
+                "3.20"
+        );
+
+        assertTrue(
+                result.isPresent()
+        );
+        assertEquals(
+                "sha256:abc123",
                 result.get()
         );
     }
@@ -97,6 +84,7 @@ class MetadataDbImageIdFinderTest {
                 tempDir.resolve(
                         "docker"
                 ),
+                null,
                 "alpine",
                 "3.20"
         );
@@ -107,33 +95,14 @@ class MetadataDbImageIdFinderTest {
     }
 
     @Test
-    void unknownSchemaReturnsEmpty() throws Exception {
-        Path dockerRoot = tempDir.resolve(
-                "docker"
-        );
-        Path dbPath = dockerRoot.resolve(
-                "image/overlay2/metadata.db"
-        );
-        Files.createDirectories(
-                dbPath.getParent()
-        );
-        try (
-                Connection conn = DriverManager.getConnection(
-                        "jdbc:sqlite:" + dbPath
-                );
-                Statement stmt = conn.createStatement()) {
-            stmt.execute(
-                    "CREATE TABLE unknown (foo TEXT, bar TEXT)"
-            );
-            stmt.execute(
-                    "INSERT INTO unknown VALUES ('x', 'y')"
-            );
-        }
+    void unknownImageReturnsEmpty() throws Exception {
+        Path containerdRoot = copyFixture();
 
         Optional<String> result = finder.findImageId(
-                dockerRoot,
-                "alpine",
-                "3.20"
+                null,
+                containerdRoot,
+                "unknown",
+                "latest"
         );
 
         assertFalse(
@@ -141,26 +110,58 @@ class MetadataDbImageIdFinderTest {
         );
     }
 
-    private void createDb(
-            Path dbPath,
-            String tableName,
-            String keyColumn,
-            String valueColumn,
-            String name,
-            String value
-    )
-            throws Exception {
-        try (
-                Connection conn = DriverManager.getConnection(
-                        "jdbc:sqlite:" + dbPath
-                );
-                Statement stmt = conn.createStatement()) {
-            stmt.execute(
-                    "CREATE TABLE " + tableName + " (" + keyColumn + " TEXT, " + valueColumn + " TEXT)"
-            );
-            stmt.execute(
-                    "INSERT INTO " + tableName + " VALUES ('" + name + "', '" + value + "')"
-            );
-        }
+    private Path copyFixture() throws Exception {
+        Path containerdRoot = tempDir.resolve(
+                "containerd"
+        );
+        Path dbDir = containerdRoot.resolve(
+                "io.containerd.metadata.v1.bolt"
+        );
+        Files.createDirectories(
+                dbDir
+        );
+        Path dbPath = dbDir.resolve(
+                "meta.db"
+        );
+        Files.copy(
+                fixtureResource(),
+                dbPath
+        );
+        return containerdRoot;
+    }
+
+    private Path copyFixtureToDockerRoot() throws Exception {
+        Path dockerRoot = tempDir.resolve(
+                "docker"
+        );
+        Path dbDir = dockerRoot.resolve(
+                "containerd/daemon/io.containerd.metadata.v1.bolt"
+        );
+        Files.createDirectories(
+                dbDir
+        );
+        Path dbPath = dbDir.resolve(
+                "meta.db"
+        );
+        Files.copy(
+                fixtureResource(),
+                dbPath
+        );
+        return dockerRoot;
+    }
+
+    private Path fixtureResource() throws Exception {
+        Path path = Path.of(
+                MetadataDbImageIdFinderTest.class.getResource(
+                        "/io/oci/docker/containerd/meta.db"
+                ).toURI()
+        );
+        assertTrue(
+                Files.isRegularFile(
+                        path
+                ),
+                "fixture meta.db not found"
+        );
+        return path;
     }
 }

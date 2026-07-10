@@ -69,6 +69,13 @@ jobs:
         distribution: 'temurin'
         cache: 'maven'
 
+    - name: Build and install bbolt-java
+      run: |
+        if [ ! -d ../bbolt-java ]; then
+          git clone https://github.com/oci-j/bbolt-java.git ../bbolt-java
+        fi
+        mvn -B -f ../bbolt-java/pom.xml install -DskipTests
+
     - name: Build with Maven
       working-directory: ./funeral-backend
       run: mvn -B clean package -DskipTests
@@ -136,6 +143,13 @@ jobs:
         java-version: ${{ env.JAVA_VERSION }}
         distribution: 'temurin'
         cache: 'maven'
+
+    - name: Build and install bbolt-java
+      run: |
+        if [ ! -d ../bbolt-java ]; then
+          git clone https://github.com/oci-j/bbolt-java.git ../bbolt-java
+        fi
+        mvn -B -f ../bbolt-java/pom.xml install -DskipTests
 
     - name: Set up GraalVM
       uses: graalvm/setup-graalvm@v1
@@ -210,6 +224,13 @@ jobs:
         distribution: 'temurin'
         cache: 'maven'
 
+    - name: Build and install bbolt-java
+      run: |
+        if [ ! -d ../bbolt-java ]; then
+          git clone https://github.com/oci-j/bbolt-java.git ../bbolt-java
+        fi
+        mvn -B -f ../bbolt-java/pom.xml install -DskipTests
+
     - name: Start Docker-in-Docker
       run: |
         if docker pull docker:29-dind >/dev/null 2>&1; then
@@ -244,37 +265,39 @@ jobs:
 
     - name: Prepare real metadata.db and containerd blobs
       run: |
-        DB_PATH=$(docker exec dind sh -c 'find /var/lib/docker/image -name metadata.db -print 2>/dev/null | head -1')
-        if [ -z "$DB_PATH" ]; then
-          echo "metadata.db not found"
+        METADATA_DB="/var/lib/docker/containerd/daemon/io.containerd.metadata.v1.bolt/meta.db"
+        CONTENT_DIR="/var/lib/docker/containerd/daemon/io.containerd.content.v1.content"
+        if ! docker exec dind test -f "$METADATA_DB"; then
+          echo "metadata.db not found at $METADATA_DB"
           exit 1
         fi
-        echo "metadata.db path: $DB_PATH"
-        docker exec dind sh -c "cp '$DB_PATH' /tmp/metadata.db" || true
+        if ! docker exec dind test -d "$CONTENT_DIR"; then
+          echo "content dir not found at $CONTENT_DIR"
+          exit 1
+        fi
+        echo "metadata.db path: $METADATA_DB"
+        echo "content dir path: $CONTENT_DIR"
         docker exec dind sh -c 'kill -TERM $(cat /var/run/docker.pid 2>/dev/null || pidof dockerd)' || true
         docker wait dind || true
-        mkdir -p ./funeral-backend/target/real-docker-root/image/overlay2
-        docker cp dind:/tmp/metadata.db ./funeral-backend/target/real-docker-root/image/overlay2/metadata.db
-        docker cp "dind:${DB_PATH}-wal" ./funeral-backend/target/real-docker-root/image/overlay2/metadata.db-wal 2>/dev/null || true
-        docker cp "dind:${DB_PATH}-shm" ./funeral-backend/target/real-docker-root/image/overlay2/metadata.db-shm 2>/dev/null || true
+        mkdir -p ./funeral-backend/target/real-docker-root/containerd/daemon/io.containerd.metadata.v1.bolt
+        docker cp "dind:$METADATA_DB" ./funeral-backend/target/real-docker-root/containerd/daemon/io.containerd.metadata.v1.bolt/meta.db
         mkdir -p ./funeral-backend/target/real-containerd-blobs
-        docker cp dind:/var/lib/containerd/io.containerd.content.v1.content ./funeral-backend/target/real-containerd-blobs/
+        docker cp "dind:$CONTENT_DIR" ./funeral-backend/target/real-containerd-blobs/
         docker rm -f dind
 
-    - name: Dump metadata.db schema
+    - name: Dump metadata.db structure
       run: |
-        if command -v sqlite3 >/dev/null 2>&1; then
-          sqlite3 ./funeral-backend/target/real-docker-root/image/overlay2/metadata.db ".tables"
-          sqlite3 ./funeral-backend/target/real-docker-root/image/overlay2/metadata.db ".schema"
+        if command -v bbolt >/dev/null 2>&1; then
+          bbolt pages ./funeral-backend/target/real-docker-root/containerd/daemon/io.containerd.metadata.v1.bolt/meta.db
         else
-          echo "sqlite3 not available, skipping schema dump"
+          echo "bbolt CLI not available, skipping page dump"
         fi
 
     - name: Run containerd image store integration test
       working-directory: ./funeral-backend
       run: |
         mvn -B test -Dtest=ContainerdFileResolverIntegrationTest \
-          -Doci.docker-local.real-metadata-db=target/real-docker-root/image/overlay2/metadata.db \
+          -Doci.docker-local.real-metadata-db=target/real-docker-root/containerd/daemon/io.containerd.metadata.v1.bolt/meta.db \
           -Doci.docker-local.real-containerd-root=target/real-containerd-blobs
 
   release:

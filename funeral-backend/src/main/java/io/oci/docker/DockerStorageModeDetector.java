@@ -11,7 +11,7 @@ public class DockerStorageModeDetector {
 
     @ConfigProperty(
             name = "oci.docker-local.containerd-root",
-            defaultValue = "/var/lib/containerd"
+            defaultValue = "/var/lib/docker/containerd/daemon"
     )
     Path containerdRoot;
 
@@ -22,11 +22,19 @@ public class DockerStorageModeDetector {
     Path dockerRoot;
 
     public boolean isContainerdImageStore() {
-        Path blobsDir = containerdRoot.resolve(
+        Path dockerContainerd = dockerRoot.resolve(
+                "containerd/daemon/io.containerd.content.v1.content/blobs"
+        );
+        if (Files.isDirectory(
+                dockerContainerd
+        )) {
+            return true;
+        }
+        Path standaloneContainerd = containerdRoot.resolve(
                 "io.containerd.content.v1.content/blobs"
         );
         return Files.isDirectory(
-                blobsDir
+                standaloneContainerd
         );
     }
 
