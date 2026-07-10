@@ -18,8 +18,8 @@ import picocli.CommandLine;
                 TagCommand.class,
                 MirrorCommand.class,
                 AdminCommand.class,
-                PushCommand.class,
-                PullCommand.class,
+                ImportCommand.class,
+                ExportCommand.class,
                 VersionCommand.class,
                 HealthCommand.class
         },
