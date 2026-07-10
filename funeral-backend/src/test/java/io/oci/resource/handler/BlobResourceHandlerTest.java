@@ -1,5 +1,8 @@
 package io.oci.resource.handler;
 
+import java.security.MessageDigest;
+import java.util.HexFormat;
+
 import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
@@ -390,6 +393,161 @@ public class BlobResourceHandlerTest {
                                 is(
                                         416
                                 )
+                        )
+                );
+    }
+
+    @Test
+    public void testChunkUploadPutWithValidDigest() throws Exception {
+        String repository = "test/repo";
+        String blobData = "test chunk blob data";
+        MessageDigest md = MessageDigest.getInstance(
+                "SHA-256"
+        );
+        String digest = "sha256:" + HexFormat.of()
+                .formatHex(
+                        md.digest(
+                                blobData.getBytes()
+                        )
+                );
+
+        String uuid = given().auth()
+                .oauth2(
+                        pushToken
+                )
+                .when()
+                .post(
+                        "/v2/{name}/blobs/uploads/",
+                        repository
+                )
+                .then()
+                .statusCode(
+                        anyOf(
+                                is(
+                                        202
+                                ),
+                                is(
+                                        201
+                                )
+                        )
+                )
+                .extract()
+                .header(
+                        "Docker-Upload-UUID"
+                );
+
+        given().config(
+                RestAssured.config()
+                        .encoderConfig(
+                                EncoderConfig.encoderConfig()
+                                        .encodeContentTypeAs(
+                                                "application/octet-stream",
+                                                ContentType.TEXT
+                                        )
+                        )
+        )
+                .auth()
+                .oauth2(
+                        pushToken
+                )
+                .contentType(
+                        "application/octet-stream"
+                )
+                .queryParam(
+                        "digest",
+                        digest
+                )
+                .body(
+                        blobData
+                )
+                .when()
+                .put(
+                        "/v2/{name}/blobs/uploads/{uuid}/0_0",
+                        repository,
+                        uuid
+                )
+                .then()
+                .statusCode(
+                        201
+                )
+                .header(
+                        "Docker-Content-Digest",
+                        equalTo(
+                                digest
+                        )
+                );
+    }
+
+    @Test
+    public void testChunkUploadPutWithInvalidDigest() throws Exception {
+        String repository = "test/repo";
+        String blobData = "test chunk blob data";
+        String badDigest = "sha256:" + "0".repeat(
+                64
+        );
+
+        String uuid = given().auth()
+                .oauth2(
+                        pushToken
+                )
+                .when()
+                .post(
+                        "/v2/{name}/blobs/uploads/",
+                        repository
+                )
+                .then()
+                .statusCode(
+                        anyOf(
+                                is(
+                                        202
+                                ),
+                                is(
+                                        201
+                                )
+                        )
+                )
+                .extract()
+                .header(
+                        "Docker-Upload-UUID"
+                );
+
+        given().config(
+                RestAssured.config()
+                        .encoderConfig(
+                                EncoderConfig.encoderConfig()
+                                        .encodeContentTypeAs(
+                                                "application/octet-stream",
+                                                ContentType.TEXT
+                                        )
+                        )
+        )
+                .auth()
+                .oauth2(
+                        pushToken
+                )
+                .contentType(
+                        "application/octet-stream"
+                )
+                .queryParam(
+                        "digest",
+                        badDigest
+                )
+                .body(
+                        blobData
+                )
+                .when()
+                .put(
+                        "/v2/{name}/blobs/uploads/{uuid}/0_0",
+                        repository,
+                        uuid
+                )
+                .then()
+                .statusCode(
+                        400
+                )
+                .body(
+                        containsString(
+                                "DIGEST_INVALID"
                         )
                 );
     }
