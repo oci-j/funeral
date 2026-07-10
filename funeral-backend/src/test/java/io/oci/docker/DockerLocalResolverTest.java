@@ -12,6 +12,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class DockerLocalResolverTest {
@@ -36,6 +37,10 @@ class DockerLocalResolverTest {
         containerdResolver.containerdRoot = tempDir.resolve(
                 "containerd"
         );
+        containerdResolver.dockerRoot = tempDir.resolve(
+                "docker"
+        );
+        containerdResolver.imageIdFinder = new io.oci.docker.containerd.MetadataDbImageIdFinder();
         containerdResolver.digestService = digestService;
         resolver.containerdFileResolver = containerdResolver;
 
@@ -102,6 +107,74 @@ class DockerLocalResolverTest {
             assertArrayEquals(
                     blobContent,
                     is.readAllBytes()
+            );
+        }
+    }
+
+    @Test
+    void resolveManifestByDigestUsesCache() throws Exception {
+        String manifestJson = "{\"schemaVersion\":2,\"mediaType\":\"application/vnd.oci.image.manifest.v1+json\",\"config\":{\"digest\":\"sha256:abc\"},\"layers\":[]}";
+        byte[] manifestBytes = manifestJson.getBytes(
+                StandardCharsets.UTF_8
+        );
+        String manifestDigest = digestService.calculateDigest(
+                manifestBytes
+        );
+
+        CountingApiResolver apiResolver = new CountingApiResolver();
+        apiResolver.manifest = new ResolvedManifest(
+                manifestBytes,
+                "application/vnd.oci.image.manifest.v1+json",
+                manifestDigest
+        );
+
+        resolver.apiImageResolver = apiResolver;
+        resolver.containerdFileResolver.directReadEnabled = false;
+        resolver.overlay2FileResolver.directReadEnabled = false;
+
+        Optional<ResolvedManifest> first = resolver.resolveManifest(
+                "myrepo",
+                manifestDigest
+        );
+        assertTrue(
+                first.isPresent()
+        );
+        assertEquals(
+                1,
+                apiResolver.calls
+        );
+
+        Optional<ResolvedManifest> second = resolver.resolveManifest(
+                "myrepo",
+                manifestDigest
+        );
+        assertTrue(
+                second.isPresent()
+        );
+        assertEquals(
+                1,
+                apiResolver.calls
+        );
+        assertSame(
+                first.get(),
+                second.get()
+        );
+    }
+
+    private static class CountingApiResolver extends DockerApiImageResolver {
+
+        int calls;
+
+        ResolvedManifest manifest;
+
+        @Override
+        public Optional<ResolvedManifest> resolveManifest(
+                String repositoryName,
+                String reference
+        ) {
+            calls++;
+            return Optional.of(
+                    manifest
             );
         }
     }

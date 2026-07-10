@@ -8,6 +8,7 @@ import java.util.Optional;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import io.oci.docker.containerd.MetadataDbImageIdFinder;
 import io.oci.service.DigestService;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -38,6 +39,15 @@ public class ContainerdFileResolver {
 
     @Inject
     DigestService digestService;
+
+    @ConfigProperty(
+            name = "oci.docker-local.docker-root",
+            defaultValue = "/var/lib/docker"
+    )
+    Path dockerRoot;
+
+    @Inject
+    MetadataDbImageIdFinder imageIdFinder;
 
     public boolean isAvailable() {
         if (!directReadEnabled) {
@@ -96,13 +106,25 @@ public class ContainerdFileResolver {
         if (!isAvailable()) {
             return Optional.empty();
         }
-        if (reference == null || !reference.startsWith(
-                "sha256:"
-        )) {
+        if (reference == null) {
             return Optional.empty();
         }
+        String digest = reference;
+        if (!reference.startsWith(
+                "sha256:"
+        )) {
+            Optional<String> found = imageIdFinder.findImageId(
+                    dockerRoot,
+                    repositoryName,
+                    reference
+            );
+            if (found.isEmpty()) {
+                return Optional.empty();
+            }
+            digest = found.get();
+        }
         Path file = resolveDigestPath(
-                reference
+                digest
         );
         if (file == null || !Files.isRegularFile(
                 file
@@ -116,21 +138,21 @@ public class ContainerdFileResolver {
             String mediaType = detectMediaType(
                     bytes
             );
-            String digest = digestService.calculateDigest(
+            String calculatedDigest = digestService.calculateDigest(
                     bytes
             );
             return Optional.of(
                     new ResolvedManifest(
                             bytes,
                             mediaType,
-                            digest
+                            calculatedDigest
                     )
             );
         }
         catch (IOException e) {
             log.warn(
                     "Failed to read containerd manifest {} for {}: {}",
-                    reference,
+                    digest,
                     repositoryName,
                     e.getMessage()
             );

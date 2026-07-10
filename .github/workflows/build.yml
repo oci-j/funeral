@@ -73,6 +73,10 @@ jobs:
       working-directory: ./funeral-backend
       run: mvn -B clean package -DskipTests
 
+    - name: Run targeted Docker fallback tests
+      working-directory: ./funeral-backend
+      run: mvn -B test -Dtest=MetadataDbImageIdFinderTest,DockerLocalResolverTest,Overlay2FileResolverTest,ContainerdFileResolverTest
+
     - name: Upload JVM JAR
       uses: actions/upload-artifact@v7
       with:
@@ -191,6 +195,87 @@ jobs:
           funeral-backend/target/surefire-reports/
           funeral-backend/target/native-tests/
         retention-days: 3
+
+  containerd-image-store-integration:
+    name: Containerd Image Store Integration Test
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up JDK 25
+      uses: actions/setup-java@v5
+      with:
+        java-version: ${{ env.JAVA_VERSION }}
+        distribution: 'temurin'
+        cache: 'maven'
+
+    - name: Start Docker-in-Docker
+      run: |
+        if docker pull docker:29-dind >/dev/null 2>&1; then
+          DIND_IMAGE="docker:29-dind"
+        else
+          DIND_IMAGE="docker:dind"
+        fi
+        echo "Using dind image: $DIND_IMAGE"
+        docker run -d --name dind \
+          -e DOCKER_TLS_CERTDIR="" \
+          --privileged \
+          "$DIND_IMAGE"
+
+    - name: Wait for Docker daemon
+      run: |
+        for i in {1..15}; do
+          docker exec dind docker info >/dev/null 2>&1 && exit 0
+          sleep 2
+        done
+        echo "Docker daemon did not start"
+        docker logs dind
+        exit 1
+
+    - name: Pull test image and verify containerd image store
+      run: |
+        docker exec dind docker pull alpine:3.20
+        docker exec dind docker info -f '{{ .DriverStatus }}' | tee /tmp/driver-status.txt
+        if ! grep -qi containerd /tmp/driver-status.txt; then
+          echo "Containerd image store not enabled"
+          exit 1
+        fi
+
+    - name: Prepare real metadata.db and containerd blobs
+      run: |
+        DB_PATH=$(docker exec dind sh -c 'find /var/lib/docker/image -name metadata.db -print 2>/dev/null | head -1')
+        if [ -z "$DB_PATH" ]; then
+          echo "metadata.db not found"
+          exit 1
+        fi
+        echo "metadata.db path: $DB_PATH"
+        docker exec dind sh -c "cp '$DB_PATH' /tmp/metadata.db" || true
+        docker exec dind sh -c 'kill -TERM $(cat /var/run/docker.pid 2>/dev/null || pidof dockerd)' || true
+        docker wait dind || true
+        mkdir -p ./funeral-backend/target/real-docker-root/image/overlay2
+        docker cp dind:/tmp/metadata.db ./funeral-backend/target/real-docker-root/image/overlay2/metadata.db
+        docker cp "dind:${DB_PATH}-wal" ./funeral-backend/target/real-docker-root/image/overlay2/metadata.db-wal 2>/dev/null || true
+        docker cp "dind:${DB_PATH}-shm" ./funeral-backend/target/real-docker-root/image/overlay2/metadata.db-shm 2>/dev/null || true
+        mkdir -p ./funeral-backend/target/real-containerd-blobs
+        docker cp dind:/var/lib/containerd/io.containerd.content.v1.content ./funeral-backend/target/real-containerd-blobs/
+        docker rm -f dind
+
+    - name: Dump metadata.db schema
+      run: |
+        if command -v sqlite3 >/dev/null 2>&1; then
+          sqlite3 ./funeral-backend/target/real-docker-root/image/overlay2/metadata.db ".tables"
+          sqlite3 ./funeral-backend/target/real-docker-root/image/overlay2/metadata.db ".schema"
+        else
+          echo "sqlite3 not available, skipping schema dump"
+        fi
+
+    - name: Run containerd image store integration test
+      working-directory: ./funeral-backend
+      run: |
+        mvn -B test -Dtest=ContainerdFileResolverIntegrationTest \
+          -Doci.docker-local.real-metadata-db=target/real-docker-root/image/overlay2/metadata.db \
+          -Doci.docker-local.real-containerd-root=target/real-containerd-blobs
 
   release:
     name: Create Release

@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Optional;
 
+import io.oci.docker.containerd.MetadataDbImageIdFinder;
 import io.oci.service.DigestService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,6 +35,10 @@ class ContainerdFileResolverTest {
         resolver.containerdRoot = tempDir.resolve(
                 "containerd"
         );
+        resolver.dockerRoot = tempDir.resolve(
+                "docker"
+        );
+        resolver.imageIdFinder = new MetadataDbImageIdFinder();
     }
 
     @Test
