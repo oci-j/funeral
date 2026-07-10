@@ -15,7 +15,7 @@ public class HealthCheckResourceTest {
     public void testHealthEndpoint() {
         given().when()
                 .get(
-                        "/health"
+                        "/funeral_addition/health"
                 )
                 .then()
                 .statusCode(
@@ -60,7 +60,7 @@ public class HealthCheckResourceTest {
     public void testLivenessEndpoint() {
         given().when()
                 .get(
-                        "/health/live"
+                        "/funeral_addition/health/live"
                 )
                 .then()
                 .statusCode(
@@ -81,7 +81,7 @@ public class HealthCheckResourceTest {
     public void testReadinessEndpoint() {
         given().when()
                 .get(
-                        "/health/ready"
+                        "/funeral_addition/health/ready"
                 )
                 .then()
                 .statusCode(

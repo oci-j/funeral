@@ -51,6 +51,12 @@ public class HealthCheckService {
     )
     String bucketName;
 
+    @ConfigProperty(
+            name = "oci.storage.no-minio",
+            defaultValue = "false"
+    )
+    boolean noMinio;
+
     private long startTime;
 
     void onStart(
@@ -124,8 +130,8 @@ public class HealthCheckService {
         long start = System.currentTimeMillis();
 
         try {
-            // Check if MinIO/S3 storage is accessible
-            if (minioClient != null) {
+            // Check if MinIO/S3 storage is accessible, but only when MinIO mode is enabled
+            if (!noMinio && minioClient != null) {
                 // Try to check if the bucket exists as a basic connectivity test
                 boolean bucketExists = minioClient.bucketExists(
                         io.minio.BucketExistsArgs.builder()

@@ -45,6 +45,7 @@ public class AuthTestHelper {
                         scope
                 )
                 .auth()
+                .preemptive()
                 .basic(
                         "admin",
                         "password"

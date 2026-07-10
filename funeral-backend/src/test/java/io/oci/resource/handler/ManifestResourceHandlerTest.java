@@ -1,8 +1,11 @@
 package io.oci.resource.handler;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+
 import io.quarkus.test.common.http.TestHTTPResource;
 import io.quarkus.test.junit.QuarkusTest;
-import io.restassured.http.ContentType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -211,34 +214,183 @@ public class ManifestResourceHandlerTest {
                 );
     }
 
+    private String sha256(
+            String content
+    ) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance(
+                    "SHA-256"
+            );
+            byte[] hash = digest.digest(
+                    content.getBytes(
+                            StandardCharsets.UTF_8
+                    )
+            );
+            StringBuilder hex = new StringBuilder(
+                    "sha256:"
+            );
+            for (byte b : hash) {
+                hex.append(
+                        String.format(
+                                "%02x",
+                                b
+                        )
+                );
+            }
+            return hex.toString();
+        }
+        catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(
+                    e
+            );
+        }
+    }
+
     @Test
-    public void testGetManifestInfo() {
-        String repository = "test/repo";
-        String reference = "latest";
+    public void testPutManifestReturnsComputedDigest() {
+        String manifestContent = """
+                {
+                    "schemaVersion": 2,
+                    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+                    "config": {
+                        "mediaType": "application/vnd.oci.image.config.v1+json",
+                        "size": 100,
+                        "digest": "sha256:test123"
+                    },
+                    "layers": []
+                }
+                """;
+        String repository = "test/put-digest";
+        String reference = "v1.0.0";
+        String expectedDigest = sha256(
+                manifestContent
+        );
 
         given().auth()
                 .oauth2(
-                        authToken
+                        pushToken
+                )
+                .contentType(
+                        "application/vnd.oci.image.manifest.v1+json"
+                )
+                .body(
+                        manifestContent
                 )
                 .when()
-                .get(
-                        "/v2/{name}/manifests/{reference}/info",
+                .put(
+                        "/v2/{name}/manifests/{reference}",
                         repository,
                         reference
                 )
                 .then()
                 .statusCode(
-                        anyOf(
-                                is(
-                                        200
-                                ),
-                                is(
-                                        404
-                                )
+                        is(
+                                201
                         )
                 )
+                .header(
+                        "Docker-Content-Digest",
+                        equalTo(
+                                expectedDigest
+                        )
+                )
+                .header(
+                        "Location",
+                        equalTo(
+                                "/v2/" + repository + "/manifests/" + expectedDigest
+                        )
+                );
+    }
+
+    @Test
+    public void testPutManifestByDigestMismatch() {
+        String manifestContent = """
+                {
+                    "schemaVersion": 2,
+                    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+                    "config": {
+                        "mediaType": "application/vnd.oci.image.config.v1+json",
+                        "size": 100,
+                        "digest": "sha256:test123"
+                    },
+                    "layers": []
+                }
+                """;
+        String repository = "test/digest-mismatch";
+        String reference = "sha256:0000000000000000000000000000000000000000000000000000000000000000";
+
+        given().auth()
+                .oauth2(
+                        pushToken
+                )
                 .contentType(
-                        ContentType.JSON
+                        "application/vnd.oci.image.manifest.v1+json"
+                )
+                .body(
+                        manifestContent
+                )
+                .when()
+                .put(
+                        "/v2/{name}/manifests/{reference}",
+                        repository,
+                        reference
+                )
+                .then()
+                .statusCode(
+                        is(
+                                400
+                        )
+                );
+    }
+
+    @Test
+    public void testPutManifestIgnoresBogusBodyDigest() {
+        String manifestContent = """
+                {
+                    "schemaVersion": 2,
+                    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+                    "digest": "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                    "config": {
+                        "mediaType": "application/vnd.oci.image.config.v1+json",
+                        "size": 100,
+                        "digest": "sha256:test123"
+                    },
+                    "layers": []
+                }
+                """;
+        String repository = "test/bogus-body-digest";
+        String reference = "v1.0.0";
+        String expectedDigest = sha256(
+                manifestContent
+        );
+
+        given().auth()
+                .oauth2(
+                        pushToken
+                )
+                .contentType(
+                        "application/vnd.oci.image.manifest.v1+json"
+                )
+                .body(
+                        manifestContent
+                )
+                .when()
+                .put(
+                        "/v2/{name}/manifests/{reference}",
+                        repository,
+                        reference
+                )
+                .then()
+                .statusCode(
+                        is(
+                                201
+                        )
+                )
+                .header(
+                        "Docker-Content-Digest",
+                        equalTo(
+                                expectedDigest
+                        )
                 );
     }
 }

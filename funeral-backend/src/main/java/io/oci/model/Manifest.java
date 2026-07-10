@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.quarkus.mongodb.panache.PanacheMongoEntity;
 import io.quarkus.mongodb.panache.common.MongoEntity;
 import io.quarkus.runtime.annotations.RegisterForReflection;
@@ -42,16 +43,19 @@ public class Manifest extends PanacheMongoEntity {
         }
     }
 
+    @JsonIgnore
     @BsonProperty(
         "repository_id"
     )
     public ObjectId repositoryId;
 
+    @JsonIgnore
     @BsonProperty(
         "repository_name"
     )
     public String repositoryName;
 
+    @JsonIgnore
     public String digest;
 
     @BsonProperty(
@@ -61,6 +65,7 @@ public class Manifest extends PanacheMongoEntity {
 
     public String content;
 
+    @JsonIgnore
     @BsonProperty(
         "content_length"
     )
@@ -77,22 +82,26 @@ public class Manifest extends PanacheMongoEntity {
 
     public Map<String, Object> annotations;
 
+    @JsonIgnore
     @BsonProperty(
         "created_at"
     )
     public LocalDateTime createdAt;
 
+    @JsonIgnore
     @BsonProperty(
         "updated_at"
     )
     public LocalDateTime updatedAt;
 
     // Additional fields for Docker tar import
+    @JsonIgnore
     @BsonProperty(
         "config_digest"
     )
     public String configDigest;
 
+    @JsonIgnore
     @BsonProperty(
         "layer_digests"
     )

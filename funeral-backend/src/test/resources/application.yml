@@ -22,6 +22,10 @@ oci:
       password: password
       email: admin@funeral.local
       roles: ADMIN;USER;PUSH_ALL;PULL_ALL
+  storage:
+    no-mongo: true
+    no-minio: true
+    local-storage-path: /tmp/funeral-test-storage
 
 smallrye-jwt:
   sign:

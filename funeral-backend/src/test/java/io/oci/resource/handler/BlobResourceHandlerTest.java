@@ -386,6 +386,9 @@ public class BlobResourceHandlerTest {
                                 ),
                                 is(
                                         403
+                                ),
+                                is(
+                                        416
                                 )
                         )
                 );

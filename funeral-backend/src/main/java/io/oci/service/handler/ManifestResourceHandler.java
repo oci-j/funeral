@@ -389,19 +389,16 @@ public class ManifestResourceHandler {
             String contentType,
             InputStream inputStream
     ) {
-        String manifestContent = null;
+        byte[] manifestBytes;
         try {
-            manifestContent = new String(
-                    inputStream.readAllBytes(),
-                    StandardCharsets.UTF_8
-            );
+            manifestBytes = inputStream.readAllBytes();
         }
         catch (IOException e) {
             throw new RuntimeException(
                     e
             );
         }
-        if (manifestContent.isBlank()) {
+        if (manifestBytes.length == 0) {
             return Response.status(
                     400
             )
@@ -414,7 +411,36 @@ public class ManifestResourceHandler {
                                                     "empty manifest"
                                             )
                                     )
-                            )
+                            ).toJson()
+                    )
+                    .build();
+        }
+
+        String manifestContent = new String(
+                manifestBytes,
+                StandardCharsets.UTF_8
+        );
+        String manifestDigest = digestService.calculateDigest(
+                manifestBytes
+        );
+        if (reference.startsWith(
+                "sha256:"
+        ) && !reference.equals(
+                manifestDigest
+        )) {
+            return Response.status(
+                    400
+            )
+                    .entity(
+                            new ErrorResponse(
+                                    List.of(
+                                            new ErrorResponse.Error(
+                                                    "DIGEST_INVALID",
+                                                    "provided digest did not match uploaded content",
+                                                    reference
+                                            )
+                                    )
+                            ).toJson()
                     )
                     .build();
         }
@@ -439,7 +465,7 @@ public class ManifestResourceHandler {
             log.info(
                     "Successfully parsed manifest for repository: {}, digest: {}, tag: {}",
                     repositoryName,
-                    manifest.digest,
+                    manifestDigest,
                     manifest.tag
             );
         }
@@ -461,18 +487,10 @@ public class ManifestResourceHandler {
             );
             manifest = new Manifest();
         }
-        if (manifest.digest == null) {
-            // just as a fallback, calculate digest from content
-            // TODO I know this is wrong but we just do it for now.
-            manifest.digest = digestService.calculateDigest(
-                    manifestContent
-            );
-        }
-
         // Check if manifest already exists
         Manifest existingManifest = manifestStorage.findByRepositoryAndDigest(
                 repositoryName,
-                manifest.digest
+                manifestDigest
         );
         if (existingManifest != null) {
             // Update tag if reference is not a digest
@@ -489,25 +507,21 @@ public class ManifestResourceHandler {
             )
                     .header(
                             "Location",
-                            "/v2/" + repositoryName + "/manifests/" + manifest.digest
+                            "/v2/" + repositoryName + "/manifests/" + manifestDigest
                     )
                     .header(
                             "Docker-Content-Digest",
-                            manifest.digest
+                            manifestDigest
                     )
                     .build();
         }
 
+        manifest.digest = manifestDigest;
         manifest.repositoryId = repo.id;
         manifest.repositoryName = repositoryName;
         manifest.mediaType = contentType != null ? contentType : "application/vnd.docker.distribution.manifest.v2+json";
         manifest.content = manifestContent;
-        manifest.contentLength = (long) manifestContent.getBytes().length;
-
-        // Calculate digest from manifest content (the correct OCI way)
-        manifest.digest = digestService.calculateDigest(
-                manifestContent
-        );
+        manifest.contentLength = (long) manifestBytes.length;
 
         // Extract OCI fields from manifest content
         try {
@@ -626,11 +640,11 @@ public class ManifestResourceHandler {
         )
                 .header(
                         "Location",
-                        "/v2/" + repositoryName + "/manifests/" + manifest.digest
+                        "/v2/" + repositoryName + "/manifests/" + manifestDigest
                 )
                 .header(
                         "Docker-Content-Digest",
-                        manifest.digest
+                        manifestDigest
                 );
         if (manifest.subject != null && StringUtils.isNotBlank(
                 manifest.subject.digest
