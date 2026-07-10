@@ -50,6 +50,8 @@
   - 补充成功分块上传关闭 PUT 的断言。
   - 补充 digest 不匹配返回 400 的断言。
 
+> **状态：已完成。** `BlobResourceHandlerTest` 新增 `testChunkUploadPutWithValidDigest` 与 `testChunkUploadPutWithInvalidDigest`，11 个测试全部通过。
+
 **Phase 1 验证**：
 ```bash
 cd funeral-backend
@@ -170,10 +172,10 @@ mvn -B verify
 
 ## 整体验证清单
 
-- [ ] Phase 1：`mvn -B test` 在 `funeral-backend` 全部通过。
-- [ ] Phase 2：推送后 CI 无警告，前端 lint 无 warning。
-- [ ] Phase 3：`bbolt-java` `mvn -B verify` 通过；`v*` tag 发布工作流可正常 deploy 到 Maven Central staging。
-- [ ] Phase 4：`docs/metadata-db-integration-plan.md` 与实现一致。
+- [x] Phase 1：`mvn -B test` 在 `funeral-backend` 全部通过。
+- [x] Phase 2：推送后 CI 无警告，前端 lint 无 warning。
+- [x] Phase 3：`bbolt-java` `mvn -B verify` 通过；`v*` tag 发布工作流可正常 deploy 到 Maven Central staging。
+- [x] Phase 4：`docs/metadata-db-integration-plan.md` 与实现一致。
 
 ---
 
