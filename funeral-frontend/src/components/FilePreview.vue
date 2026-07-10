@@ -272,7 +272,7 @@ const detectContentType = async () => {
   // Try to load vue-json-pretty for JSON display
   if (contentType.value === 'json') {
     try {
-      const module = await import('vue-json-pretty')
+      await import('vue-json-pretty')
       await import('vue-json-pretty/lib/styles.css')
       vueJsonPrettyAvailable.value = true
     } catch (e) {

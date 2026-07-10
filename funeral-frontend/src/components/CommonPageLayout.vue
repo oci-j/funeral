@@ -62,7 +62,7 @@ import { ref } from 'vue'
 import { InfoFilled } from '@element-plus/icons-vue'
 import AboutDialog from './AboutDialog.vue'
 
-const props = defineProps({
+defineProps({
   // Page header
   title: {
     type: String,

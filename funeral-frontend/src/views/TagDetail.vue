@@ -296,13 +296,12 @@
 
 <script setup>
 import { ref, onMounted, computed, watch } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRouter } from 'vue-router'
 import { Back, DocumentCopy, Document, Loading, Box } from '@element-plus/icons-vue'
 import TarViewer from '../components/TarViewer.vue'
 
 import { registryApi } from '../api/registry'
 import { ElMessage } from 'element-plus'
-import { useAuthStore } from '../stores/auth'
 import { useProtectedPage } from '../composables/useAuthCheck.js'
 
 // Define props
@@ -334,9 +333,7 @@ const loadVueJsonPretty = async () => {
   }
 }
 
-const route = useRoute()
 const router = useRouter()
-const authStore = useAuthStore()
 
 // Use props instead of route.params
 const repositoryName = ref(props.name)

@@ -10,7 +10,7 @@
         <div class="item-info">
           <!-- Expand/Collapse icon for directories -->
           <el-icon v-if="node.type === 'directory'" class="expand-icon">
-            <component :is="expanded ? 'Minus' : 'Plus'" />
+            <component :is="expandCollapseIcon" />
           </el-icon>
           <div v-else class="indent-spacer"></div>
 
@@ -71,6 +71,8 @@ const showEmptyFolders = inject('showEmptyFolders')
 const previewFile = inject('previewFile')
 
 const expanded = ref(props.node.type === 'directory')
+
+const expandCollapseIcon = computed(() => (expanded.value ? Minus : Plus))
 
 // Watch for allExpanded changes
 watch(allExpanded, newVal => {

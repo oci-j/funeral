@@ -13,7 +13,7 @@
       <div class="header-actions">
         <el-button-group size="small">
           <el-button @click="toggleExpandAll">
-            <el-icon><component :is="allExpanded ? 'Fold' : 'Expand'" /></el-icon>
+            <el-icon><component :is="expandCollapseIcon" /></el-icon>
             {{ allExpanded ? 'Collapse All' : 'Expand All' }}
           </el-button>
           <el-button @click="toggleEmptyFolders">
@@ -323,6 +323,7 @@ const toggleEmptyFolders = () => {
 }
 
 // Computed properties
+const expandCollapseIcon = computed(() => (allExpanded.value ? Fold : Expand))
 const fileCount = computed(() => {
   return files.value.filter(f => f.type === 'file' || f.type === 'symlink' || f.type === 'hardlink')
     .length

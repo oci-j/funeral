@@ -133,7 +133,6 @@ import {
   User,
   SwitchButton,
   Tools,
-  Lock,
   Unlock,
   Loading,
   ArrowDown,
@@ -142,7 +141,7 @@ import {
 } from '@element-plus/icons-vue'
 import { useAuthStore } from './stores/auth'
 import { useRouter } from 'vue-router'
-import { computed, ref } from 'vue'
+import { ref } from 'vue'
 import { ElMessage } from 'element-plus'
 import AboutDialog from './components/AboutDialog.vue'
 
@@ -150,16 +149,6 @@ const authStore = useAuthStore()
 const router = useRouter()
 const aboutDialog = ref()
 const mobileMenuOpen = ref(false)
-
-const authStatusText = computed(() => {
-  if (authStore.checkingConfig) return 'Checking Auth...'
-  return authStore.authEnabled ? 'Auth Enabled' : 'Auth Disabled (Admin)'
-})
-
-const authStatusType = computed(() => {
-  if (authStore.checkingConfig) return 'info'
-  return authStore.authEnabled ? 'danger' : 'success'
-})
 
 const handleUserCommand = command => {
   if (command === 'logout') {
