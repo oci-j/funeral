@@ -38,6 +38,14 @@ class DockerLocalResolverTest {
         );
         containerdResolver.digestService = digestService;
         resolver.containerdFileResolver = containerdResolver;
+
+        Overlay2FileResolver overlay2Resolver = new Overlay2FileResolver();
+        overlay2Resolver.dockerRoot = tempDir.resolve(
+                "docker"
+        );
+        overlay2Resolver.directReadEnabled = true;
+        overlay2Resolver.digestService = digestService;
+        resolver.overlay2FileResolver = overlay2Resolver;
     }
 
     @Test

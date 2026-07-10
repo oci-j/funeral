@@ -14,6 +14,9 @@ public class DockerLocalResolver {
     @Inject
     ContainerdFileResolver containerdFileResolver;
 
+    @Inject
+    Overlay2FileResolver overlay2FileResolver;
+
     public Optional<ResolvedManifest> resolveManifest(
             String repositoryName,
             String reference
@@ -25,9 +28,16 @@ public class DockerLocalResolver {
         if (api.isPresent()) {
             return api;
         }
-        return containerdFileResolver.resolveManifest(
+        Optional<ResolvedManifest> containerd = containerdFileResolver.resolveManifest(
                 reference,
                 repositoryName
+        );
+        if (containerd.isPresent()) {
+            return containerd;
+        }
+        return overlay2FileResolver.resolveManifest(
+                repositoryName,
+                reference
         );
     }
 
@@ -42,8 +52,15 @@ public class DockerLocalResolver {
         if (api.isPresent()) {
             return api;
         }
-        return containerdFileResolver.resolveBlob(
+        Optional<ResolvedBlob> containerd = containerdFileResolver.resolveBlob(
                 digest
+        );
+        if (containerd.isPresent()) {
+            return containerd;
+        }
+        return overlay2FileResolver.resolveBlob(
+                digest,
+                repositoryName
         );
     }
 }
