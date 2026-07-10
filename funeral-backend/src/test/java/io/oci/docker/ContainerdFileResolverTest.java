@@ -101,8 +101,8 @@ class ContainerdFileResolverTest {
         );
 
         Optional<ResolvedManifest> resolved = resolver.resolveManifest(
-                digest,
-                "myrepo"
+                "myrepo",
+                digest
         );
         assertTrue(
                 resolved.isPresent()
@@ -133,8 +133,8 @@ class ContainerdFileResolverTest {
         );
 
         Optional<ResolvedManifest> resolved = resolver.resolveManifest(
-                "3.20",
-                "alpine"
+                "alpine",
+                "3.20"
         );
         assertTrue(
                 resolved.isPresent()
@@ -161,8 +161,8 @@ class ContainerdFileResolverTest {
         );
 
         Optional<ResolvedManifest> resolved = resolver.resolveManifest(
-                "latest",
-                "myrepo"
+                "myrepo",
+                "latest"
         );
         assertFalse(
                 resolved.isPresent()

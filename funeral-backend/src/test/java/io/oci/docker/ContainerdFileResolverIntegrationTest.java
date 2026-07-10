@@ -59,7 +59,7 @@ class ContainerdFileResolverIntegrationTest {
         resolver = new ContainerdFileResolver();
         resolver.directReadEnabled = true;
         resolver.containerdRoot = containerdRoot;
-        resolver.dockerRoot = metadataDb.getParent().getParent().getParent();
+        resolver.dockerRoot = metadataDb.getParent().getParent().getParent().getParent();
         resolver.imageIdFinder = new MetadataDbImageIdFinder();
         resolver.digestService = new DigestService();
     }

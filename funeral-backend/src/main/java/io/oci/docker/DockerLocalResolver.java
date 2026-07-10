@@ -49,8 +49,8 @@ public class DockerLocalResolver {
             return api;
         }
         Optional<ResolvedManifest> containerd = containerdFileResolver.resolveManifest(
-                reference,
-                repositoryName
+                repositoryName,
+                reference
         );
         if (containerd.isPresent()) {
             cache(

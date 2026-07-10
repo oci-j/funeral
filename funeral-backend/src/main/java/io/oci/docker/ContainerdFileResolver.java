@@ -100,8 +100,8 @@ public class ContainerdFileResolver {
     }
 
     public Optional<ResolvedManifest> resolveManifest(
-            String reference,
-            String repositoryName
+            String repositoryName,
+            String reference
     ) {
         if (!isAvailable()) {
             return Optional.empty();
