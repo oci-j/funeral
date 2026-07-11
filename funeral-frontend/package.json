@@ -18,7 +18,7 @@
   "dependencies": {
     "@element-plus/icons-vue": "^2.3.1",
     "crypto-js": "^4.2.0",
-    "element-plus": "^2.14.2",
+    "element-plus": "^2.14.3",
     "js-untar": "2.0.0",
     "pako": "^3.0.1",
     "pinia": "^3.0.4",
