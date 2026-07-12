@@ -42,6 +42,24 @@ public class ImagePackager {
     )
             throws IOException,
             InterruptedException {
+        packageToOciLayout(
+                manifestBytes,
+                mediaType,
+                reader,
+                null,
+                layoutDir
+        );
+    }
+
+    public static void packageToOciLayout(
+            byte[] manifestBytes,
+            String mediaType,
+            BlobReader reader,
+            String platform,
+            Path layoutDir
+    )
+            throws IOException,
+            InterruptedException {
         Files.createDirectories(
                 layoutDir.resolve(
                         "blobs/sha256"
@@ -51,7 +69,8 @@ public class ImagePackager {
         ResolvedManifest resolved = resolveImageManifest(
                 manifestBytes,
                 mediaType,
-                reader
+                reader,
+                platform
         );
         String manifestDigest = DigestUtil.sha256(
                 resolved.manifestBytes
@@ -120,6 +139,26 @@ public class ImagePackager {
     )
             throws IOException,
             InterruptedException {
+        packageToDockerTar(
+                manifestBytes,
+                mediaType,
+                reader,
+                null,
+                imageRef,
+                tarFile
+        );
+    }
+
+    public static void packageToDockerTar(
+            byte[] manifestBytes,
+            String mediaType,
+            BlobReader reader,
+            String platform,
+            ImageReference imageRef,
+            Path tarFile
+    )
+            throws IOException,
+            InterruptedException {
         Path tempDir = Files.createTempDirectory(
                 "funeral-oci-layout"
         );
@@ -128,6 +167,7 @@ public class ImagePackager {
                     manifestBytes,
                     mediaType,
                     reader,
+                    platform,
                     tempDir
             );
             DockerTarConverter.ociLayoutToTar(
@@ -143,10 +183,11 @@ public class ImagePackager {
         }
     }
 
-    private static ResolvedManifest resolveImageManifest(
+    public static ResolvedManifest resolveImageManifest(
             byte[] manifestBytes,
             String mediaType,
-            BlobReader reader
+            BlobReader reader,
+            String platform
     )
             throws IOException,
             InterruptedException {
@@ -172,6 +213,9 @@ public class ImagePackager {
                             : OCI_MANIFEST_MEDIA_TYPE;
                     if (isImageManifestMediaType(
                             descMediaType
+                    ) && matchesPlatform(
+                            descriptor,
+                            platform
                     )) {
                         String digest = descriptor.get(
                                 "digest"
@@ -185,6 +229,11 @@ public class ImagePackager {
                         );
                     }
                 }
+                if (platform != null && !platform.isBlank()) {
+                    throw new IOException(
+                            "No manifest found for platform " + platform
+                    );
+                }
             }
             throw new IOException(
                     "No image manifest found in index"
@@ -193,6 +242,43 @@ public class ImagePackager {
         return new ResolvedManifest(
                 manifestBytes,
                 mediaType
+        );
+    }
+
+    private static boolean matchesPlatform(
+            JsonNode descriptor,
+            String platform
+    ) {
+        if (platform == null || platform.isBlank()) {
+            return true;
+        }
+        String[] parts = platform.split(
+                "/"
+        );
+        if (parts.length != 2) {
+            return true;
+        }
+        String expectedOs = parts[0];
+        String expectedArch = parts[1];
+        JsonNode platformNode = descriptor.get(
+                "platform"
+        );
+        if (platformNode == null) {
+            return false;
+        }
+        JsonNode osNode = platformNode.get(
+                "os"
+        );
+        JsonNode archNode = platformNode.get(
+                "architecture"
+        );
+        if (osNode == null || archNode == null) {
+            return false;
+        }
+        return expectedOs.equals(
+                osNode.asText()
+        ) && expectedArch.equals(
+                archNode.asText()
         );
     }
 
@@ -326,13 +412,13 @@ public class ImagePackager {
         );
     }
 
-    private static class ResolvedManifest {
+    public static class ResolvedManifest {
 
-        final byte[] manifestBytes;
+        public final byte[] manifestBytes;
 
-        final String mediaType;
+        public final String mediaType;
 
-        ResolvedManifest(
+        public ResolvedManifest(
                 byte[] manifestBytes,
                 String mediaType
         ) {

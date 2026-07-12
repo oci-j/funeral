@@ -29,6 +29,21 @@ public class FuneralClient {
 
     private static final String DEFAULT_SERVICE = "funeral-registry";
 
+    static {
+        String allowed = System.getProperty(
+                "jdk.httpclient.allowRestrictedHeaders",
+                ""
+        );
+        if (!allowed.contains(
+                "Host"
+        )) {
+            System.setProperty(
+                    "jdk.httpclient.allowRestrictedHeaders",
+                    allowed.isEmpty() ? "Host" : allowed + ",Host"
+            );
+        }
+    }
+
     private final HttpClient httpClient;
 
     private final String baseUrl;
