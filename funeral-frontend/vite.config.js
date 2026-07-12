@@ -25,12 +25,6 @@ export default defineConfig({
         }
       }
     },
-    coverage: {
-      provider: 'v8',
-      reporter: ['text', 'html', 'json-summary'],
-      reportsDirectory: './coverage',
-      include: ['src/**/*.js', 'src/**/*.vue'],
-    },
   },
   server: {
     port: 3000,

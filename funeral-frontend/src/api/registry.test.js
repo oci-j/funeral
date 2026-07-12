@@ -206,4 +206,192 @@ describe('registryApi', () => {
     const result = await registryApi.getBlobContent('my/repo', 'sha256:abc')
     expect(result.type).toBe('blob')
   })
+
+  it('getBlobContent returns text for +json expected media type', async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      headers: { get: vi.fn(() => 'application/vnd.oci.image.config.v1+json') },
+      text: async () => '{"config":true}',
+    })
+
+    const result = await registryApi.getBlobContent('my/repo', 'sha256:abc', 'application/vnd.oci.image.config.v1+json')
+    expect(result.type).toBe('text')
+    expect(result.content).toBe('{"config":true}')
+  })
+
+  it('getBlobContent throws on error', async () => {
+    global.fetch.mockRejectedValue(new Error('network'))
+
+    await expect(registryApi.getBlobContent('my/repo', 'sha256:abc')).rejects.toThrow('network')
+  })
+
+  describe('admin and permission endpoints', () => {
+    it('updateUser sends PUT data', async () => {
+      global.fetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ username: 'updated' }),
+      })
+
+      const result = await registryApi.updateUser('olduser', { password: 'newpass' })
+      expect(result.username).toBe('updated')
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/funeral_addition/admin/users/olduser',
+        expect.objectContaining({
+          method: 'PUT',
+          body: JSON.stringify({ password: 'newpass' }),
+        })
+      )
+    })
+
+    it('updateUser throws on 401 and logs out', async () => {
+      const { useAuthStore } = await import('../stores/auth')
+      const logoutMock = vi.fn()
+      useAuthStore.mockReturnValue({
+        getAuthHeader: () => 'Bearer test-token',
+        logout: logoutMock,
+      })
+
+      global.fetch.mockResolvedValue({
+        ok: false,
+        status: 401,
+      })
+
+      await expect(registryApi.updateUser('user', {})).rejects.toThrow('Authentication required')
+      expect(logoutMock).toHaveBeenCalled()
+    })
+
+    it('deleteUser sends DELETE', async () => {
+      global.fetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+      })
+
+      const result = await registryApi.deleteUser('user')
+      expect(global.fetch).toHaveBeenCalledWith('/funeral_addition/admin/users/user', expect.objectContaining({ method: 'DELETE' }))
+      expect(result.ok).toBe(true)
+    })
+
+    it('getUserPermissions returns data', async () => {
+      global.fetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ repo: 'admin' }),
+      })
+
+      const result = await registryApi.getUserPermissions('user')
+      expect(result).toEqual({ repo: 'admin' })
+      expect(global.fetch).toHaveBeenCalledWith('/funeral_addition/admin/permissions/user', expect.any(Object))
+    })
+
+    it('setUserPermission sends POST data', async () => {
+      global.fetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ username: 'user', repository: 'repo' }),
+      })
+
+      const result = await registryApi.setUserPermission('user', 'repo', { permission: 'admin' })
+      expect(result.repository).toBe('repo')
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/funeral_addition/admin/permissions/user/repo',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ permission: 'admin' }),
+        })
+      )
+    })
+
+    it('deleteUserPermission sends DELETE', async () => {
+      global.fetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+      })
+
+      const result = await registryApi.deleteUserPermission('user', 'repo')
+      expect(global.fetch).toHaveBeenCalledWith('/funeral_addition/admin/permissions/user/repo', expect.objectContaining({ method: 'DELETE' }))
+      expect(result.ok).toBe(true)
+    })
+  })
+
+  describe('manifest and blob endpoints', () => {
+    it('getManifest returns data', async () => {
+      global.fetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ schemaVersion: 2 }),
+      })
+
+      const result = await registryApi.getManifest('my/repo', 'v1')
+      expect(result.schemaVersion).toBe(2)
+      expect(global.fetch).toHaveBeenCalledWith('/v2/my/repo/manifests/v1', expect.any(Object))
+    })
+
+    it('getManifest throws on 401 and logs out', async () => {
+      const { useAuthStore } = await import('../stores/auth')
+      const logoutMock = vi.fn()
+      useAuthStore.mockReturnValue({
+        getAuthHeader: () => 'Bearer test-token',
+        logout: logoutMock,
+      })
+
+      global.fetch.mockResolvedValue({
+        ok: false,
+        status: 401,
+      })
+
+      await expect(registryApi.getManifest('my/repo', 'v1')).rejects.toThrow('Authentication required')
+      expect(logoutMock).toHaveBeenCalled()
+    })
+  })
+
+  describe('common error handling', () => {
+    it('getRepositories throws non-401 errors', async () => {
+      global.fetch.mockResolvedValue({
+        ok: false,
+        status: 403,
+      })
+
+      await expect(registryApi.getRepositories()).rejects.toThrow('HTTP error! status: 403')
+    })
+
+    it('getRepositoryTags logs out on 401', async () => {
+      const { useAuthStore } = await import('../stores/auth')
+      const logoutMock = vi.fn()
+      useAuthStore.mockReturnValue({
+        getAuthHeader: () => 'Bearer test-token',
+        logout: logoutMock,
+      })
+
+      global.fetch.mockResolvedValue({
+        ok: false,
+        status: 401,
+      })
+
+      await expect(registryApi.getRepositoryTags('my/repo')).rejects.toThrow('Authentication required')
+      expect(logoutMock).toHaveBeenCalled()
+    })
+
+    it('does not add Authorization header when auth header is empty', async () => {
+      const { useAuthStore } = await import('../stores/auth')
+      useAuthStore.mockReturnValue({
+        getAuthHeader: () => '',
+        logout: vi.fn(),
+      })
+
+      global.fetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: async () => ({ repositories: [] }),
+      })
+
+      await registryApi.getRepositories()
+      expect(global.fetch).toHaveBeenCalledWith(
+        '/v2/repositories',
+        expect.objectContaining({
+          headers: expect.not.objectContaining({ Authorization: expect.anything() }),
+        })
+      )
+    })
+  })
 })

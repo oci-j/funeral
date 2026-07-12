@@ -19,6 +19,14 @@ export default defineConfig({
       reporter: ['text', 'html', 'json-summary'],
       reportsDirectory: './coverage',
       include: ['src/**/*.js', 'src/**/*.vue'],
+      exclude: [
+        '**/*.test.*',
+        '**/*.spec.*',
+        'coverage/**',
+        '**/node_modules/**',
+        '**/src/main.js',
+        '**/src/test-utils/**',
+      ],
     },
   },
 })

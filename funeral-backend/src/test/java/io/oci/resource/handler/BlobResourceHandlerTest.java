@@ -551,4 +551,219 @@ public class BlobResourceHandlerTest {
                         )
                 );
     }
+
+    @Test
+    public void testHeadBlobUnknown() {
+        String repository = "test/head-unknown-" + System.nanoTime();
+        String digest = "sha256:0000000000000000000000000000000000000000000000000000000000000000";
+
+        given().auth()
+                .oauth2(
+                        authToken
+                )
+                .when()
+                .head(
+                        "/v2/{name}/blobs/{digest}",
+                        repository,
+                        digest
+                )
+                .then()
+                .statusCode(
+                        is(
+                                404
+                        )
+                );
+    }
+
+    @Test
+    public void testGetBlobUnknown() {
+        String repository = "test/get-unknown-" + System.nanoTime();
+        String digest = "sha256:0000000000000000000000000000000000000000000000000000000000000000";
+
+        given().auth()
+                .oauth2(
+                        authToken
+                )
+                .when()
+                .get(
+                        "/v2/{name}/blobs/{digest}",
+                        repository,
+                        digest
+                )
+                .then()
+                .statusCode(
+                        is(
+                                404
+                        )
+                );
+    }
+
+    @Test
+    public void testUploadAndDeleteBlob() throws Exception {
+        String repository = "test/delete-blob-" + System.nanoTime();
+        String blobData = "blob to delete";
+        MessageDigest md = MessageDigest.getInstance(
+                "SHA-256"
+        );
+        String digest = "sha256:" + HexFormat.of()
+                .formatHex(
+                        md.digest(
+                                blobData.getBytes()
+                        )
+                );
+
+        given().config(
+                RestAssured.config()
+                        .encoderConfig(
+                                EncoderConfig.encoderConfig()
+                                        .encodeContentTypeAs(
+                                                "application/octet-stream",
+                                                ContentType.TEXT
+                                        )
+                        )
+        )
+                .auth()
+                .oauth2(
+                        pushToken
+                )
+                .contentType(
+                        "application/octet-stream"
+                )
+                .queryParam(
+                        "digest",
+                        digest
+                )
+                .body(
+                        blobData
+                )
+                .when()
+                .post(
+                        "/v2/{name}/blobs/uploads/",
+                        repository
+                )
+                .then()
+                .statusCode(
+                        is(
+                                201
+                        )
+                )
+                .header(
+                        "Docker-Content-Digest",
+                        equalTo(
+                                digest
+                        )
+                );
+
+        given().auth()
+                .oauth2(
+                        pushToken
+                )
+                .when()
+                .delete(
+                        "/v2/{name}/blobs/{digest}",
+                        repository,
+                        digest
+                )
+                .then()
+                .statusCode(
+                        is(
+                                202
+                        )
+                );
+
+        given().auth()
+                .oauth2(
+                        authToken
+                )
+                .when()
+                .head(
+                        "/v2/{name}/blobs/{digest}",
+                        repository,
+                        digest
+                )
+                .then()
+                .statusCode(
+                        is(
+                                404
+                        )
+                );
+    }
+
+    @Test
+    public void testStartBlobUploadWithMount() throws Exception {
+        String repository = "test/mount-source-" + System.nanoTime();
+        String blobData = "blob to mount";
+        MessageDigest md = MessageDigest.getInstance(
+                "SHA-256"
+        );
+        String digest = "sha256:" + HexFormat.of()
+                .formatHex(
+                        md.digest(
+                                blobData.getBytes()
+                        )
+                );
+
+        given().config(
+                RestAssured.config()
+                        .encoderConfig(
+                                EncoderConfig.encoderConfig()
+                                        .encodeContentTypeAs(
+                                                "application/octet-stream",
+                                                ContentType.TEXT
+                                        )
+                        )
+        )
+                .auth()
+                .oauth2(
+                        pushToken
+                )
+                .contentType(
+                        "application/octet-stream"
+                )
+                .queryParam(
+                        "digest",
+                        digest
+                )
+                .body(
+                        blobData
+                )
+                .when()
+                .post(
+                        "/v2/{name}/blobs/uploads/",
+                        repository
+                )
+                .then()
+                .statusCode(
+                        is(
+                                201
+                        )
+                );
+
+        String targetRepository = "test/mount-target-" + System.nanoTime();
+        given().auth()
+                .oauth2(
+                        pushToken
+                )
+                .queryParam(
+                        "mount",
+                        digest
+                )
+                .when()
+                .post(
+                        "/v2/{name}/blobs/uploads/",
+                        targetRepository
+                )
+                .then()
+                .statusCode(
+                        is(
+                                201
+                        )
+                )
+                .header(
+                        "Location",
+                        equalTo(
+                                "/v2/" + targetRepository + "/blobs/" + digest
+                        )
+                );
+    }
 }

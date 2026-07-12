@@ -393,4 +393,222 @@ public class ManifestResourceHandlerTest {
                         )
                 );
     }
+
+    @Test
+    public void testGetManifestInfo() {
+        String manifestContent = """
+                {
+                    "schemaVersion": 2,
+                    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+                    "config": {
+                        "mediaType": "application/vnd.oci.image.config.v1+json",
+                        "size": 100,
+                        "digest": "sha256:test123"
+                    },
+                    "layers": []
+                }
+                """;
+        String repository = "test/info-" + System.nanoTime();
+        String reference = "v1.0.0";
+
+        given().auth()
+                .oauth2(
+                        pushToken
+                )
+                .contentType(
+                        "application/vnd.oci.image.manifest.v1+json"
+                )
+                .body(
+                        manifestContent
+                )
+                .when()
+                .put(
+                        "/v2/{name}/manifests/{reference}",
+                        repository,
+                        reference
+                )
+                .then()
+                .statusCode(
+                        is(
+                                201
+                        )
+                );
+
+        given().auth()
+                .oauth2(
+                        authToken
+                )
+                .when()
+                .get(
+                        "/v2/{name}/manifests/{reference}/info",
+                        repository,
+                        reference
+                )
+                .then()
+                .statusCode(
+                        is(
+                                200
+                        )
+                )
+                .body(
+                        "digest",
+                        notNullValue()
+                )
+                .body(
+                        "mediaType",
+                        startsWith(
+                                "application/vnd.oci.image.manifest.v1+json"
+                        )
+                );
+    }
+
+    @Test
+    public void testGetManifestInfoUnknownRepository() {
+        String repository = "test/unknown-repo-" + System.nanoTime();
+        String reference = "v1.0.0";
+
+        given().auth()
+                .oauth2(
+                        authToken
+                )
+                .when()
+                .get(
+                        "/v2/{name}/manifests/{reference}/info",
+                        repository,
+                        reference
+                )
+                .then()
+                .statusCode(
+                        is(
+                                404
+                        )
+                );
+    }
+
+    @Test
+    public void testDeleteManifestSuccess() {
+        String manifestContent = """
+                {
+                    "schemaVersion": 2,
+                    "mediaType": "application/vnd.oci.image.manifest.v1+json",
+                    "config": {
+                        "mediaType": "application/vnd.oci.image.config.v1+json",
+                        "size": 100,
+                        "digest": "sha256:test123"
+                    },
+                    "layers": []
+                }
+                """;
+        String repository = "test/delete-" + System.nanoTime();
+        String reference = "v1.0.0";
+
+        given().auth()
+                .oauth2(
+                        pushToken
+                )
+                .contentType(
+                        "application/vnd.oci.image.manifest.v1+json"
+                )
+                .body(
+                        manifestContent
+                )
+                .when()
+                .put(
+                        "/v2/{name}/manifests/{reference}",
+                        repository,
+                        reference
+                )
+                .then()
+                .statusCode(
+                        is(
+                                201
+                        )
+                );
+
+        given().auth()
+                .oauth2(
+                        pushToken
+                )
+                .when()
+                .delete(
+                        "/v2/{name}/manifests/{reference}",
+                        repository,
+                        reference
+                )
+                .then()
+                .statusCode(
+                        is(
+                                202
+                        )
+                );
+
+        given().auth()
+                .oauth2(
+                        authToken
+                )
+                .when()
+                .get(
+                        "/v2/{name}/manifests/{reference}",
+                        repository,
+                        reference
+                )
+                .then()
+                .statusCode(
+                        is(
+                                404
+                        )
+                );
+    }
+
+    @Test
+    public void testHeadManifestUnknownRepository() {
+        String repository = "test/unknown-head-" + System.nanoTime();
+        String reference = "v1.0.0";
+
+        given().auth()
+                .oauth2(
+                        authToken
+                )
+                .when()
+                .head(
+                        "/v2/{name}/manifests/{reference}",
+                        repository,
+                        reference
+                )
+                .then()
+                .statusCode(
+                        is(
+                                404
+                        )
+                );
+    }
+
+    @Test
+    public void testPutEmptyManifest() {
+        String repository = "test/empty-" + System.nanoTime();
+        String reference = "v1.0.0";
+
+        given().auth()
+                .oauth2(
+                        pushToken
+                )
+                .contentType(
+                        "application/vnd.oci.image.manifest.v1+json"
+                )
+                .body(
+                        ""
+                )
+                .when()
+                .put(
+                        "/v2/{name}/manifests/{reference}",
+                        repository,
+                        reference
+                )
+                .then()
+                .statusCode(
+                        is(
+                                400
+                        )
+                );
+    }
 }

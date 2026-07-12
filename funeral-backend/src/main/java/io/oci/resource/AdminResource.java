@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import at.favre.lib.crypto.bcrypt.BCrypt;
 import io.oci.dto.ErrorResponse;
 import io.oci.dto.UserRequest;
 import io.oci.dto.UserResponse;
@@ -773,25 +774,10 @@ public class AdminResource {
     private String hashPassword(
             String password
     ) {
-        try {
-            java.security.MessageDigest digest = java.security.MessageDigest.getInstance(
-                    "SHA-256"
-            );
-            byte[] hash = digest.digest(
-                    password.getBytes(
-                            java.nio.charset.StandardCharsets.UTF_8
-                    )
-            );
-            return java.util.Base64.getEncoder()
-                    .encodeToString(
-                            hash
-                    );
-        }
-        catch (java.security.NoSuchAlgorithmException e) {
-            throw new RuntimeException(
-                    "Failed to hash password",
-                    e
-            );
-        }
+        return BCrypt.withDefaults()
+                .hashToString(
+                        12,
+                        password.toCharArray()
+                );
     }
 }
