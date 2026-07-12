@@ -84,13 +84,13 @@ jobs:
       working-directory: ./funeral-backend
       run: mvn -B verify -Dtest='!*MirrorResourceTest'
 
-    - name: Upload backend coverage report
+    - name: Upload backend jacoco exec
       if: always()
       uses: actions/upload-artifact@v7
       with:
-        name: backend-coverage-${{ github.sha }}
-        path: funeral-backend/target/jacoco-report/
-        retention-days: 7
+        name: backend-jacoco-exec-${{ github.sha }}
+        path: funeral-backend/target/jacoco.exec
+        retention-days: 1
 
     - name: Upload JVM JAR
       uses: actions/upload-artifact@v7
@@ -222,6 +222,7 @@ jobs:
   containerd-image-store-integration:
     name: Containerd Image Store Integration Test
     runs-on: ubuntu-latest
+    needs: build-jvm
 
     steps:
     - uses: actions/checkout@v7
@@ -308,6 +309,26 @@ jobs:
         mvn -B test -Dtest=ContainerdFileResolverIntegrationTest \
           -Doci.docker-local.real-metadata-db=target/real-docker-root/containerd/daemon/io.containerd.metadata.v1.bolt/meta.db \
           -Doci.docker-local.real-containerd-root=target/real-containerd-blobs
+
+    - name: Download backend jacoco exec
+      uses: actions/download-artifact@v8
+      with:
+        name: backend-jacoco-exec-${{ github.sha }}
+        path: /tmp/backend-jacoco-exec
+
+    - name: Merge coverage and generate report
+      working-directory: ./funeral-backend
+      run: |
+        mv /tmp/backend-jacoco-exec/jacoco.exec target/jacoco-backend.exec
+        mvn -B jacoco:merge@merge-coverage jacoco:report@report-merged
+
+    - name: Upload merged backend coverage report
+      if: always()
+      uses: actions/upload-artifact@v7
+      with:
+        name: backend-coverage-${{ github.sha }}
+        path: funeral-backend/target/jacoco-merged-report/
+        retention-days: 7
 
   release:
     name: Create Release
@@ -407,7 +428,7 @@ jobs:
   coverage-pages:
     name: Deploy Coverage Badges to GitHub Pages
     runs-on: ubuntu-latest
-    needs: build-jvm
+    needs: [build-jvm, containerd-image-store-integration]
     if: github.ref == 'refs/heads/main'
     permissions:
       contents: read
