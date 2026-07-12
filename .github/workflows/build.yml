@@ -89,7 +89,7 @@ jobs:
       uses: actions/upload-artifact@v7
       with:
         name: backend-jacoco-exec-${{ github.sha }}
-        path: funeral-backend/target/jacoco.exec
+        path: funeral-backend/target/jacoco-quarkus.exec
         retention-days: 1
 
     - name: Upload JVM JAR
@@ -319,7 +319,7 @@ jobs:
     - name: Merge coverage and generate report
       working-directory: ./funeral-backend
       run: |
-        mv /tmp/backend-jacoco-exec/jacoco.exec target/jacoco-backend.exec
+        mv /tmp/backend-jacoco-exec/jacoco-quarkus.exec target/jacoco-backend.exec
         mvn -B jacoco:merge@merge-coverage jacoco:report@report-merged
 
     - name: Upload merged backend coverage report

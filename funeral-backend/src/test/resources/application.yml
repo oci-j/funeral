@@ -9,6 +9,9 @@ quarkus:
     database: funeral-test
   smallrye-jwt:
     enabled: true
+  jacoco:
+    data-file: target/jacoco-quarkus.exec
+    reuse-data-file: true
 
 oci:
   auth:
