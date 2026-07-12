@@ -10,7 +10,7 @@ FUNERAL is an OCI (Open Container Initiative) image registry implemented in Java
 
 - **Backend**: Java 17/Quarkus REST API server (port 8911)
 - **Frontend**: Vue.js 3 web interface (port 3000)
-- **Storage**: MongoDB for metadata + MinIO S3 for blob storage
+- **Storage**: MongoDB for metadata + MinIO S3 for blob storage, OR local disk storage (`NO_MONGO=true`, `NO_MINIO=true`)
 - **Container Support**: Docker with GraalVM native compilation
 
 ## Development Commands
@@ -113,9 +113,23 @@ Current conformance: 75/75 runnable specs passing (4 skipped) from OCI Distribut
 
 ## Testing Approach
 
-- **Backend**: Limited test coverage - focus on manual testing with OCI conformance suite
-- **Frontend**: No automated tests currently - manual testing through UI
-- **Integration**: Use OCI Distribution Spec conformance tests as primary validation
+- **Backend**: Comprehensive unit and integration tests using JUnit 5 and QuarkusTest (`funeral-backend/src/test/java/io/oci/`)
+  - Core OCI v2 endpoints: `ManifestResourceHandlerTest`, `BlobResourceHandlerTest`, `TagResourceHandlerTest`, `RegistryResourceHandlerTest`
+  - Registry client abstraction: `MirrorResourceTest` (offline with mock), `MirrorResourceNetworkIT` (network-tagged, opt-in)
+  - Helm mirroring: `MirrorHelmResourceTest`
+  - Storage: `S3StorageServiceTest` (with in-memory S3 client), `LocalStorageAdapterTest`
+  - Docker local image store: `ContainerdFileResolverTest`, `Overlay2FileResolverTest`, etc.
+- **Frontend**: Automated tests with Vitest and `@vue/test-utils` (`funeral-frontend/src/**/*.test.js`)
+- **Integration**: CI runs Docker push/pull against a native Funeral binary; OCI Distribution Spec conformance tests are used as additional validation
+
+Run all tests:
+```bash
+cd funeral-backend
+mvn test
+
+cd ../funeral-frontend
+pnpm run test:coverage
+```
 
 ## Deployment Options
 
@@ -162,7 +176,8 @@ See [TESTING.md](funeral-backend/TESTING.md) for detailed testing documentation.
 
 ## Important Notes
 
-- No security features implemented - designed for trusted environments only
+- JWT-based authentication is implemented and can be enabled with `AUTH_ENABLED=true`
+- `NO_MONGO=true` and `NO_MINIO=true` allow running with local disk storage only
 - Focus on OCI Pull/Push API compliance over advanced features
 - GraalVM native compilation supported for lightweight deployments
 - Frontend is optional - backend provides full OCI API functionality

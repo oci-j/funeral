@@ -47,18 +47,34 @@ pnpm install
 pnpm build
 cd ../funeral-backend
 mvn quarkus:dev
-#mvn clean install
+```
+
+2. run tests
+
+```shell
+cd funeral-frontend
+pnpm run test:coverage
+
+cd ../funeral-backend
+mvn test
+```
+
+3. run with local disk storage (no MongoDB/MinIO required)
+
+```shell
+export NO_MONGO=true
+export NO_MINIO=true
+export LOCAL_STORAGE_PATH=/tmp/funeral-storage
+./funeral-0.2.0-runner
 ```
 
 # Current Status
 
-It just begins the development.
+The project has a full test suite and CI pipeline:
 
-Don't use it in production, it's not ready yet.
-
-Though there be no tests defined
-in [oci-distribution-spec](https://github.com/opencontainers/distribution-spec.git)
-failed, it still doesn't mean it's ready for production.
+- Backend: `mvn test` passes; OCI Distribution Spec conformance tests pass (74/79 runnable specs, 5 skipped)
+- Frontend: `pnpm run test:coverage` passes with high coverage
+- CI: GitHub Actions builds JVM and native binaries, runs unit tests, performs native smoke tests, and verifies Docker push/pull against a Funeral registry
 
 ```
 xenoamess@xenoamessum890pro:~/workspace/distribution-spec/conformance$ ./conformance.test
@@ -67,11 +83,7 @@ Running Suite: conformance tests - /home/xenoamess/workspace/distribution-spec/c
 Random Seed: 1755533753
 
 Will run 79 of 79 specs
-•••••S••••••••••••••••••••••••••••••••••••S•SS••••••••••S••••••
-    WARNING: filtering by artifact-type is not implemented
-    
-    /home/xenoamess/workspace/distribution-spec/conformance/03_discovery_test.go:364
-••••••••••••••••
+•••••S••••••••••••••••••••••••••••••••••••S•SS••••••••••S•••••••••••••••••••••••••••••••
 HTML report was created: /home/xenoamess/workspace/distribution-spec/conformance/report.html
 
 Ran 74 of 79 Specs in 1.636 seconds
@@ -79,32 +91,18 @@ SUCCESS! -- 74 Passed | 0 Failed | 0 Pending | 5 Skipped
 PASS
 ```
 
+Note: filtering by `artifact-type` is not yet implemented (one of the skipped conformance specs).
+
 # Short-Term Goal
 
-This repo is a subject of a bigger project to make oci better, with less bandwidth.
-[Add an import mechanism to oci image format, to reduce bandwidth cost on image upgrades]https://github.com/users/XenoAmess/projects/1
+This repo is a subject of a bigger project to make OCI better, with less bandwidth.
+[Add an import mechanism to OCI image format, to reduce bandwidth cost on image upgrades](https://github.com/users/XenoAmess/projects/1)
 
-The main efforts now be on:
+The main efforts are on:
 
-1. make it pass more tests, means
-   follow [oci-distribution-spec](https://github.com/opencontainers/distribution-spec.git) spec more.
-
-   according to docs in [oci-distribution-spec](https://github.com/opencontainers/distribution-spec.git),
-    ```
-    The tests are broken down into 4 major categories:
-    
-    1. Pull - Highest priority - All OCI registries MUST support pulling OCI container
-    images.
-    2. Push - Registries need a way to get content to be pulled, but clients can/should
-    be more forgiving here. For example, if needing to fallback after an unsupported endpoint.
-    3. Content Discovery - Includes tag listing (and possibly search in the future).
-    4. Content Management - Lowest Priority - Includes tag, blob, and repo deletion.
-    (Note: Many registries may have other ways to accomplish this than the OCI API.)
-    ```
-
-   we would focus on Pull and Push part.
-
-2. make it usable enough for my `image import block` research, then use it.
+1. Improve test coverage and CI reliability.
+2. Refine OCI Pull/Push API conformance.
+3. Make the registry usable for the `image import block` research.
 
 # Ultimate Goal
 
@@ -112,22 +110,7 @@ The ultimate goal for the repo is to be used as a light-weighted image registry.
 
 It would focus more on usability, and become straightforward to use/establish.
 
-1. make middlewares optional
-
-   right now we use mongo for data storage, and minio for blob storage.
-   we have a plan to offer some configs to allow using disk instead, for people who don't want to setup docker and
-   minio.
-
-2. more light-weighted
-
-   we will find a way to make binary release, most likely by graalvm.
-
+1. make middlewares optional (done: local disk storage with `NO_MONGO=true` and `NO_MINIO=true`)
+2. more light-weighted (done: GraalVM native binary releases)
 3. stability refines
-
-4. storage compression
-
-   After my research of bandwidth/image compression done (I hope I can finish it in 2 years, but I doubt. too many
-   things to do...),
-   would I start another project to make the storage more compressed...by replacing the TAR.
-
-   But that would be a long-term goal, and we shall do things one by one.
+4. storage compression (long-term research goal)

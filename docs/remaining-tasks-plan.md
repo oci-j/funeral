@@ -1,5 +1,7 @@
 # 剩余任务执行计划（当前迭代）
 
+> ⚠️ 本文档已过期。后续执行计划与最新状态请参见 [`docs/complete-tasks-plan.md`](./complete-tasks-plan.md)。
+
 本文档记录本次迭代需要完成的剩余任务： funeral backend Phase 1.2 收尾、文档同步、Dependabot 配置调整。
 
 ---
