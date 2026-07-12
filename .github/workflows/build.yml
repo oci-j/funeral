@@ -80,9 +80,9 @@ jobs:
       working-directory: ./funeral-backend
       run: mvn -B clean package -DskipTests
 
-    - name: Run targeted Docker fallback tests
+    - name: Run backend tests
       working-directory: ./funeral-backend
-      run: mvn -B verify -Dtest=MetadataDbImageIdFinderTest,DockerLocalResolverTest,Overlay2FileResolverTest,ContainerdFileResolverTest
+      run: mvn -B verify -Dtest='!*MirrorResourceTest'
 
     - name: Upload backend coverage report
       if: always()
