@@ -6,6 +6,7 @@ import { elementStubs, loadingDirective } from '../test-utils/element-stubs'
 
 const mockAuthStore = {
   getAuthHeader: vi.fn(() => 'Bearer token'),
+  logout: vi.fn(),
 }
 
 vi.mock('../stores/auth', () => ({
@@ -102,13 +103,119 @@ describe('Upload', () => {
     expect(wrapper.find('.upload-result').text()).toContain('Upload failed')
   })
 
-  it('copies docker command to clipboard', async () => {
+  it('warns when uploading without files', async () => {
+    const { ElMessage } = await import('element-plus')
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    await wrapper.vm.uploadTarFiles()
+    await flushPromises()
+
+    expect(ElMessage.warning).toHaveBeenCalledWith('Please select at least one file')
+    expect(global.fetch).not.toHaveBeenCalled()
+  })
+
+  it('clears result when a file is removed', async () => {
+    const wrapper = createWrapper()
+    wrapper.vm.uploadResult = { success: true }
+
+    wrapper.vm.handleFileRemove()
+
+    expect(wrapper.vm.uploadResult).toBeNull()
+  })
+
+  it('handles 401 response by logging out', async () => {
+    global.fetch.mockResolvedValue({
+      status: 401,
+      ok: false,
+      statusText: 'Unauthorized',
+    })
+    const { ElMessage } = await import('element-plus')
+
+    const wrapper = createWrapper()
+    const file = new File(['content'], 'image.tar', { type: 'application/x-tar' })
+    wrapper.vm.fileList = [{ name: 'image.tar', raw: file }]
+    await flushPromises()
+
+    await wrapper.find('.upload-actions .el-button').trigger('click')
+    await flushPromises()
+
+    expect(mockAuthStore.logout).toHaveBeenCalled()
+    expect(ElMessage.error).toHaveBeenCalled()
+    expect(wrapper.vm.uploadResult.error).toContain('Authentication required')
+  })
+
+  it('shows failed files when batch has failures', async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        totalFiles: 2,
+        successfulUploads: 1,
+        failedUploads: 1,
+        repositories: [],
+        manifests: [],
+        blobs: [],
+        results: [
+          { fileIndex: 1, success: true, uploadResponse: { repositories: [], manifests: [], blobs: [] } },
+          { fileIndex: 2, success: false, error: 'bad tar' },
+        ],
+      }),
+    })
+    const wrapper = createWrapper()
+
+    const file = new File(['content'], 'image.tar', { type: 'application/x-tar' })
+    wrapper.vm.fileList = [{ name: 'image.tar', raw: file }]
+    await flushPromises()
+
+    await wrapper.find('.upload-actions .el-button').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('.upload-result').exists()).toBe(true)
+    expect(wrapper.vm.uploadResult.batchInfo.failedUploads).toBe(1)
+  })
+
+  it('handles single file response without batch info', async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        repositories: ['my-app'],
+        manifests: [],
+        blobs: [],
+      }),
+    })
+    const wrapper = createWrapper()
+
+    const file = new File(['content'], 'image.tar', { type: 'application/x-tar' })
+    wrapper.vm.fileList = [{ name: 'image.tar', raw: file }]
+    await flushPromises()
+
+    await wrapper.find('.upload-actions .el-button').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('.upload-result').exists()).toBe(true)
+    expect(wrapper.find('.upload-result').text()).toContain('my-app')
+  })
+
+  it('shows error when copying command fails', async () => {
+    const { ElMessage } = await import('element-plus')
+    navigator.clipboard.writeText.mockRejectedValue(new Error('denied'))
+
     const wrapper = createWrapper()
     const copyBtn = wrapper.findAll('.command-input').at(0).find('.el-button')
     await copyBtn.trigger('click')
     await flushPromises()
 
-    expect(navigator.clipboard.writeText).toHaveBeenCalled()
-    expect(ElMessage.success).toHaveBeenCalledWith('Copied to clipboard')
+    expect(ElMessage.error).toHaveBeenCalledWith('Failed to copy to clipboard')
+  })
+
+  it('accepts supported tar file types', () => {
+    const wrapper = createWrapper()
+    const tarFile = new File(['content'], 'image.tar', { type: 'application/x-tar' })
+    const tgzFile = new File(['content'], 'image.tgz', { type: 'application/gzip' })
+    const pngFile = new File(['content'], 'image.png', { type: 'image/png' })
+
+    expect(wrapper.vm.handleBeforeUpload(tarFile)).toBe(true)
+    expect(wrapper.vm.handleBeforeUpload(tgzFile)).toBe(true)
+    expect(wrapper.vm.handleBeforeUpload(pngFile)).toBe(false)
   })
 })

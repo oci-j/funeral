@@ -10,6 +10,7 @@ import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
+import java.util.regex.Pattern;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -45,6 +46,11 @@ public class MirrorResource {
     );
 
     private static final ObjectMapper objectMapper = new ObjectMapper();
+
+    private static final Pattern IMAGE_REFERENCE_PATTERN = Pattern.compile(
+            "^(https?://)?[a-zA-Z0-9][a-zA-Z0-9_.-]*(:[0-9]+)?(/[a-zA-Z0-9][a-zA-Z0-9_.-]*)*(:[a-zA-Z0-9_.-]+)?$",
+            Pattern.CASE_INSENSITIVE
+    );
 
     @Inject
     @Named(
@@ -138,6 +144,31 @@ public class MirrorResource {
                     Response.Status.BAD_REQUEST,
                     "BAD_REQUEST",
                     "Source image is required",
+                    null
+            );
+        }
+
+        String normalizedProtocol = protocol != null ? protocol.trim().toLowerCase() : "https";
+        if (!"https".equals(
+                normalizedProtocol
+        ) && !"http".equals(
+                normalizedProtocol
+        )) {
+            return createErrorResponse(
+                    Response.Status.BAD_REQUEST,
+                    "INVALID_PROTOCOL",
+                    "Protocol must be 'http' or 'https'",
+                    null
+            );
+        }
+
+        if (!IMAGE_REFERENCE_PATTERN.matcher(
+                sourceImage.trim()
+        ).matches()) {
+            return createErrorResponse(
+                    Response.Status.BAD_REQUEST,
+                    "INVALID_IMAGE_FORMAT",
+                    "Invalid source image format: " + sourceImage,
                     null
             );
         }

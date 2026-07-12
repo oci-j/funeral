@@ -211,15 +211,16 @@ public class AuthenticationFilter implements ContainerRequestFilter {
         )) {
             boolean hasPush = false;
             if (actionsClaim instanceof java.util.Collection<?> actions) {
-                hasPush = actions.contains(
+                hasPush = hasAction(
+                        actions,
                         "push"
                 );
                 if (!hasPush) {
                     for (Object action : actions) {
-                        if (action instanceof JsonString && ((JsonString) action).getString()
-                                .equals(
-                                        "push"
-                                )) {
+                        if (action instanceof JsonString && hasAction(
+                                ((JsonString) action).getString(),
+                                "push"
+                        )) {
                             hasPush = true;
                             break;
                         }
@@ -227,7 +228,8 @@ public class AuthenticationFilter implements ContainerRequestFilter {
                 }
             }
             else if (actionsClaim instanceof String actionsStr) {
-                hasPush = actionsStr.contains(
+                hasPush = hasAction(
+                        actionsStr,
                         "push"
                 );
             }
@@ -325,8 +327,15 @@ public class AuthenticationFilter implements ContainerRequestFilter {
                                 "Docker-Distribution-API-Version",
                                 "registry/2.0"
                         )
+                        .type(
+                                "application/json"
+                        )
+                        .entity(
+                                "{\"errors\":[{\"code\":\"UNAUTHORIZED\",\"message\":\"authentication required\"}]}"
+                        )
                         .build()
         );
+
     }
 
     private void abortWithForbidden(
@@ -340,10 +349,35 @@ public class AuthenticationFilter implements ContainerRequestFilter {
                                 "Docker-Distribution-API-Version",
                                 "registry/2.0"
                         )
+                        .type(
+                                "application/json"
+                        )
                         .entity(
                                 "{\"errors\":[{\"code\":\"DENIED\",\"message\":\"requested access to the resource is denied\"}]}"
                         )
                         .build()
+        );
+    }
+
+    private boolean hasAction(
+            java.util.Collection<?> actions,
+            String action
+    ) {
+        return actions.contains(
+                action
+        ) || actions.contains(
+                "*"
+        );
+    }
+
+    private boolean hasAction(
+            String actions,
+            String action
+    ) {
+        return actions.contains(
+                action
+        ) || actions.contains(
+                "*"
         );
     }
 
@@ -359,6 +393,9 @@ public class AuthenticationFilter implements ContainerRequestFilter {
                         .header(
                                 "Docker-Distribution-API-Version",
                                 "registry/2.0"
+                        )
+                        .type(
+                                "application/json"
                         )
                         .entity(
                                 String.format(

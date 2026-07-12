@@ -33,7 +33,7 @@ public class AdminResourceTest {
             adminToken = getToken(
                     "admin",
                     "password",
-                    "registry:catalog:push,pull"
+                    "registry:catalog:*"
             );
         }
     }
@@ -560,7 +560,7 @@ public class AdminResourceTest {
         String userToken = getToken(
                 username,
                 "password",
-                "registry:catalog:push,pull"
+                "repository:test:push,pull"
         );
         given().auth()
                 .oauth2(

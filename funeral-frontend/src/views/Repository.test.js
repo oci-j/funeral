@@ -214,4 +214,140 @@ describe('Repository', () => {
     expect(ElMessage.error).toHaveBeenCalledWith('Failed to fetch repository tags')
     expect(wrapper.vm.loading).toBe(false)
   })
+
+  it('shows empty state when no tags exist', async () => {
+    const { registryApi } = await import('../api/registry')
+    registryApi.getRepositoryTags.mockResolvedValue({ tags: [] })
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    expect(wrapper.find('.el-empty').exists()).toBe(true)
+    expect(wrapper.find('.tag-card').exists()).toBe(false)
+  })
+
+  it('falls back to unknown info when manifest fetch fails', async () => {
+    const { registryApi } = await import('../api/registry')
+    registryApi.getRepositoryTags.mockResolvedValue({ tags: ['v1.0'] })
+    registryApi.getManifestInfo.mockRejectedValue(new Error('not found'))
+    registryApi.getManifest.mockRejectedValue(new Error('not found'))
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    expect(wrapper.find('.digest-text').text()).toBe('Unknown')
+    expect(wrapper.find('.tag-card').exists()).toBe(true)
+  })
+
+  it('shows unknown type for non-docker non-helm artifacts', async () => {
+    const { registryApi } = await import('../api/registry')
+    registryApi.getRepositoryTags.mockResolvedValue({ tags: ['v1.0'] })
+    registryApi.getManifestInfo.mockResolvedValue({
+      digest: 'sha256:abc',
+      contentLength: 1024,
+      createdAt: '2026-01-01',
+    })
+    registryApi.getManifest.mockResolvedValue({
+      config: { mediaType: 'application/vnd.custom.thing' },
+      layers: [],
+    })
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    expect(wrapper.find('.el-tag').text()).toBe('OCI Artifact')
+  })
+
+  it('does not delete tag on cancel', async () => {
+    const { registryApi } = await import('../api/registry')
+    const { ElMessageBox, ElMessage } = await import('element-plus')
+    registryApi.getRepositoryTags.mockResolvedValue({ tags: ['v1.0'] })
+    registryApi.getManifestInfo.mockResolvedValue({
+      digest: 'sha256:abc',
+      contentLength: 1024,
+      createdAt: '2026-01-01',
+    })
+    registryApi.getManifest.mockResolvedValue({ config: {}, layers: [] })
+    ElMessageBox.confirm.mockRejectedValue('cancel')
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    const deleteBtn = wrapper
+      .findAll('.tag-card .el-button')
+      .find(btn => btn.text().includes('Delete'))
+    await deleteBtn.trigger('click')
+    await flushPromises()
+
+    expect(ElMessageBox.confirm).toHaveBeenCalled()
+    expect(registryApi.deleteTag).not.toHaveBeenCalled()
+    expect(ElMessage.error).not.toHaveBeenCalled()
+  })
+
+  it('shows error when deleting tag fails', async () => {
+    const { registryApi } = await import('../api/registry')
+    const { ElMessageBox, ElMessage } = await import('element-plus')
+    registryApi.getRepositoryTags.mockResolvedValue({ tags: ['v1.0'] })
+    registryApi.getManifestInfo.mockResolvedValue({
+      digest: 'sha256:abc',
+      contentLength: 1024,
+      createdAt: '2026-01-01',
+    })
+    registryApi.getManifest.mockResolvedValue({ config: {}, layers: [] })
+    registryApi.deleteTag.mockRejectedValue(new Error('forbidden'))
+    ElMessageBox.confirm.mockResolvedValue('confirm')
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    const deleteBtn = wrapper
+      .findAll('.tag-card .el-button')
+      .find(btn => btn.text().includes('Delete'))
+    await deleteBtn.trigger('click')
+    await flushPromises()
+
+    expect(registryApi.deleteTag).toHaveBeenCalledWith('repo/one', 'v1.0')
+    expect(ElMessage.error).toHaveBeenCalledWith('Failed to delete tag "v1.0": forbidden')
+  })
+
+  it('shows error when copying command fails', async () => {
+    const { registryApi } = await import('../api/registry')
+    registryApi.getRepositoryTags.mockResolvedValue({ tags: ['latest'] })
+    registryApi.getManifestInfo.mockResolvedValue({
+      digest: 'sha256:abc',
+      contentLength: 1024,
+      createdAt: '2026-01-01',
+    })
+    registryApi.getManifest.mockResolvedValue({
+      config: { mediaType: 'application/vnd.oci.image.config.v1+json' },
+      layers: [],
+    })
+    const { ElMessage } = await import('element-plus')
+    navigator.clipboard.writeText.mockRejectedValue(new Error('denied'))
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    const copyBtn = wrapper.find('.command-input .el-button')
+    await copyBtn.trigger('click')
+    await flushPromises()
+
+    expect(ElMessage.error).toHaveBeenCalledWith('Failed to copy to clipboard')
+  })
+
+  it('goes back when Back is clicked', async () => {
+    const { registryApi } = await import('../api/registry')
+    registryApi.getRepositoryTags.mockResolvedValue({ tags: [] })
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    await wrapper.find('.page-header .el-button').trigger('click')
+    expect(mockRouter.back).toHaveBeenCalled()
+  })
+
+  it('formatSize returns Unknown for unknown size', () => {
+    const wrapper = createWrapper()
+    expect(wrapper.vm.formatSize('Unknown')).toBe('Unknown')
+  })
 })

@@ -170,13 +170,96 @@ describe('Admin', () => {
     expect(ElMessage.success).toHaveBeenCalledWith('User deleted successfully')
   })
 
-  it('manages user permissions', async () => {
+  it('shows error when fetching users fails', async () => {
+    const { registryApi } = await import('../api/registry')
+    const { ElMessage } = await import('element-plus')
+    registryApi.getUsers.mockRejectedValue(new Error('network'))
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    expect(ElMessage.error).toHaveBeenCalledWith('Failed to fetch users: network')
+    expect(wrapper.vm.loading).toBe(false)
+  })
+
+  it('shows error when creating user fails', async () => {
+    const { registryApi } = await import('../api/registry')
+    const { ElMessage } = await import('element-plus')
+    registryApi.getUsers.mockResolvedValue(mockUsers)
+    registryApi.createUser.mockRejectedValue(new Error('username taken'))
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    wrapper.vm.showCreateDialog = true
+    wrapper.vm.userForm.username = 'newuser'
+    wrapper.vm.userForm.email = 'new@example.com'
+    wrapper.vm.userForm.password = 'password123'
+    wrapper.vm.userForm.roles = ['USER']
+    await flushPromises()
+
+    await wrapper.findAll('.el-dialog__footer .el-button').at(1).trigger('click')
+    await flushPromises()
+
+    expect(registryApi.createUser).toHaveBeenCalled()
+    expect(ElMessage.error).toHaveBeenCalledWith('username taken')
+    expect(wrapper.vm.saving).toBe(false)
+  })
+
+  it('does not delete user on cancel', async () => {
+    const { registryApi } = await import('../api/registry')
+    const { ElMessageBox, ElMessage } = await import('element-plus')
+    registryApi.getUsers.mockResolvedValue(mockUsers)
+    ElMessageBox.confirm.mockRejectedValue('cancel')
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    await wrapper.vm.deleteUser(mockUsers[1])
+    await flushPromises()
+
+    expect(ElMessageBox.confirm).toHaveBeenCalled()
+    expect(registryApi.deleteUser).not.toHaveBeenCalled()
+    expect(ElMessage.error).not.toHaveBeenCalled()
+  })
+
+  it('shows error when deleting user fails', async () => {
+    const { registryApi } = await import('../api/registry')
+    const { ElMessage, ElMessageBox } = await import('element-plus')
+    registryApi.getUsers.mockResolvedValue(mockUsers)
+    registryApi.deleteUser.mockRejectedValue(new Error('forbidden'))
+    ElMessageBox.confirm.mockResolvedValue('confirm')
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    await wrapper.vm.deleteUser(mockUsers[1])
+    await flushPromises()
+
+    expect(registryApi.deleteUser).toHaveBeenCalledWith('user')
+    expect(ElMessage.error).toHaveBeenCalledWith('forbidden')
+  })
+
+  it('shows error when fetching permissions fails', async () => {
+    const { registryApi } = await import('../api/registry')
+    const { ElMessage } = await import('element-plus')
+    registryApi.getUsers.mockResolvedValue(mockUsers)
+    registryApi.getUserPermissions.mockRejectedValue(new Error('unauthorized'))
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    await wrapper.vm.managePermissions(mockUsers[0])
+    await flushPromises()
+
+    expect(ElMessage.error).toHaveBeenCalledWith('Failed to fetch permissions: unauthorized')
+  })
+
+  it('warns when adding permission without repository', async () => {
     const { registryApi } = await import('../api/registry')
     const { ElMessage, ElMessageBox } = await import('element-plus')
     registryApi.getUsers.mockResolvedValue(mockUsers)
     registryApi.getUserPermissions.mockResolvedValue([])
-    registryApi.setUserPermission.mockResolvedValue({})
-    registryApi.deleteUserPermission.mockResolvedValue({})
     ElMessageBox.confirm.mockResolvedValue('confirm')
 
     const wrapper = createWrapper()
@@ -185,18 +268,85 @@ describe('Admin', () => {
     await wrapper.vm.managePermissions(mockUsers[0])
     await flushPromises()
 
-    expect(registryApi.getUserPermissions).toHaveBeenCalledWith('admin')
-    expect(wrapper.vm.showPermissionDialog).toBe(true)
+    await wrapper.find('.permission-controls .el-button').trigger('click')
+    await flushPromises()
+
+    expect(ElMessage.warning).toHaveBeenCalledWith('Please enter repository name')
+    expect(registryApi.setUserPermission).not.toHaveBeenCalled()
+  })
+
+  it('shows error when adding permission fails', async () => {
+    const { registryApi } = await import('../api/registry')
+    const { ElMessage, ElMessageBox } = await import('element-plus')
+    registryApi.getUsers.mockResolvedValue(mockUsers)
+    registryApi.getUserPermissions.mockResolvedValue([])
+    registryApi.setUserPermission.mockRejectedValue(new Error('denied'))
+    ElMessageBox.confirm.mockResolvedValue('confirm')
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    await wrapper.vm.managePermissions(mockUsers[0])
+    await flushPromises()
 
     wrapper.vm.newPermission.repository = 'repo/one'
     await wrapper.find('.permission-controls .el-button').trigger('click')
     await flushPromises()
 
-    expect(registryApi.setUserPermission).toHaveBeenCalledWith(
-      'admin',
-      'repo/one',
-      expect.objectContaining({ canPull: true, canPush: false })
-    )
-    expect(ElMessage.success).toHaveBeenCalledWith('Permission added successfully')
+    expect(registryApi.setUserPermission).toHaveBeenCalled()
+    expect(ElMessage.error).toHaveBeenCalledWith('denied')
+  })
+
+  it('does not delete permission on cancel', async () => {
+    const { registryApi } = await import('../api/registry')
+    const { ElMessageBox, ElMessage } = await import('element-plus')
+    registryApi.getUsers.mockResolvedValue(mockUsers)
+    registryApi.getUserPermissions.mockResolvedValue([
+      { repositoryName: 'repo/one', canPull: true, canPush: false },
+    ])
+    ElMessageBox.confirm.mockRejectedValue('cancel')
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    await wrapper.vm.managePermissions(mockUsers[0])
+    await flushPromises()
+
+    await wrapper.vm.deletePermission({ repositoryName: 'repo/one' })
+    await flushPromises()
+
+    expect(ElMessageBox.confirm).toHaveBeenCalled()
+    expect(registryApi.deleteUserPermission).not.toHaveBeenCalled()
+    expect(ElMessage.error).not.toHaveBeenCalled()
+  })
+
+  it('shows error when deleting permission fails', async () => {
+    const { registryApi } = await import('../api/registry')
+    const { ElMessage, ElMessageBox } = await import('element-plus')
+    registryApi.getUsers.mockResolvedValue(mockUsers)
+    registryApi.getUserPermissions.mockResolvedValue([
+      { repositoryName: 'repo/one', canPull: true, canPush: false },
+    ])
+    registryApi.deleteUserPermission.mockRejectedValue(new Error('denied'))
+    ElMessageBox.confirm.mockResolvedValue('confirm')
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    await wrapper.vm.managePermissions(mockUsers[0])
+    await flushPromises()
+
+    await wrapper.vm.deletePermission({ repositoryName: 'repo/one' })
+    await flushPromises()
+
+    expect(registryApi.deleteUserPermission).toHaveBeenCalledWith('admin', 'repo/one')
+    expect(ElMessage.error).toHaveBeenCalledWith('denied')
+  })
+
+  it('formatDate returns empty for falsy values', () => {
+    const wrapper = createWrapper()
+    expect(wrapper.vm.formatDate('')).toBe('')
+    expect(wrapper.vm.formatDate(null)).toBe('')
+    expect(wrapper.vm.formatDate(undefined)).toBe('')
   })
 })

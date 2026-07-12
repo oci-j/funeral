@@ -159,4 +159,137 @@ describe('MirrorHelm', () => {
     expect(navigator.clipboard.writeText).toHaveBeenCalled()
     expect(ElMessage.success).toHaveBeenCalledWith('Helm command copied to clipboard')
   })
+
+  it('shows error when required fields are empty', async () => {
+    const { ElMessage } = await import('element-plus')
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    await wrapper.vm.startMirroring()
+    await flushPromises()
+
+    expect(ElMessage.error).toHaveBeenCalledWith('Please complete required fields')
+    expect(global.fetch).not.toHaveBeenCalled()
+  })
+
+  it('defaults target repository to chart name and target version to version', async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => successResponse,
+    })
+
+    const wrapper = createWrapper()
+    wrapper.vm.form.sourceRepo = 'registry.example.com'
+    wrapper.vm.form.chartName = 'nginx'
+    wrapper.vm.form.version = '1.0.0'
+    await flushPromises()
+
+    await wrapper.find('.mirror-helm-actions .el-button').trigger('click')
+    await flushPromises()
+
+    const body = global.fetch.mock.calls[0][1].body.toString()
+    expect(body).toContain('targetRepository=nginx')
+    expect(body).toContain('targetVersion=1.0.0')
+  })
+
+  it('generates ChartMuseum install command', async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ...successResponse,
+        format: 'chartmuseum',
+        targetChart: 'nginx',
+        targetVersion: '1.0.0',
+      }),
+    })
+
+    const wrapper = createWrapper()
+    wrapper.vm.form.sourceRepo = 'https://charts.example.com'
+    wrapper.vm.form.chartName = 'nginx'
+    wrapper.vm.form.format = 'chartmuseum'
+    await flushPromises()
+
+    await wrapper.find('.mirror-helm-actions .el-button').trigger('click')
+    await flushPromises()
+
+    const copyBtn = wrapper
+      .findAll('.result-actions .el-button')
+      .find(btn => btn.text().includes('Copy'))
+    expect(copyBtn).toBeDefined()
+    await copyBtn.trigger('click')
+    await flushPromises()
+
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith(
+      expect.stringContaining('helm repo add')
+    )
+  })
+
+  it('shows fallback error when response has no error details', async () => {
+    global.fetch.mockResolvedValue({
+      ok: false,
+      statusText: 'Bad Request',
+      json: async () => ({}),
+    })
+    const { ElMessage } = await import('element-plus')
+
+    const wrapper = createWrapper()
+    wrapper.vm.form.sourceRepo = 'registry.example.com'
+    wrapper.vm.form.chartName = 'nginx'
+    await flushPromises()
+
+    await wrapper.find('.mirror-helm-actions .el-button').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('.result-error').exists()).toBe(true)
+    expect(ElMessage.error).toHaveBeenCalledWith('Mirror failed: Bad Request')
+  })
+
+  it('shows error when copying helm command fails', async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => successResponse,
+    })
+    navigator.clipboard.writeText.mockRejectedValue(new Error('denied'))
+    const { ElMessage } = await import('element-plus')
+
+    const wrapper = createWrapper()
+    wrapper.vm.form.sourceRepo = 'registry.example.com'
+    wrapper.vm.form.chartName = 'nginx'
+    await flushPromises()
+
+    await wrapper.find('.mirror-helm-actions .el-button').trigger('click')
+    await flushPromises()
+
+    const copyBtn = wrapper
+      .findAll('.result-actions .el-button')
+      .find(btn => btn.text().includes('Copy'))
+    expect(copyBtn).toBeDefined()
+    await copyBtn.trigger('click')
+    await flushPromises()
+
+    expect(ElMessage.error).toHaveBeenCalledWith('Failed to copy to clipboard')
+  })
+
+  it('navigates to repository on success', async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => successResponse,
+    })
+
+    const wrapper = createWrapper()
+    wrapper.vm.form.sourceRepo = 'registry.example.com'
+    wrapper.vm.form.chartName = 'nginx'
+    await flushPromises()
+
+    await wrapper.find('.mirror-helm-actions .el-button').trigger('click')
+    await flushPromises()
+
+    const viewBtn = wrapper
+      .findAll('.result-actions .el-button')
+      .find(btn => btn.text().includes('View Repository'))
+    expect(viewBtn).toBeDefined()
+    await viewBtn.trigger('click')
+
+    expect(mockRouter.push).toHaveBeenCalledWith('/repository/nginx')
+  })
 })

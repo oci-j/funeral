@@ -394,4 +394,41 @@ describe('registryApi', () => {
       )
     })
   })
+
+  describe('endpoint error handling', () => {
+    const testEndpoint = (name, callFn) => {
+      it(`${name} logs out on 401`, async () => {
+        const { useAuthStore } = await import('../stores/auth')
+        const logoutMock = vi.fn()
+        useAuthStore.mockReturnValue({
+          getAuthHeader: () => 'Bearer test-token',
+          logout: logoutMock,
+        })
+        global.fetch.mockResolvedValue({ ok: false, status: 401 })
+
+        await expect(callFn()).rejects.toThrow('Authentication required')
+        expect(logoutMock).toHaveBeenCalled()
+      })
+
+      it(`${name} throws non-401 errors`, async () => {
+        global.fetch.mockResolvedValue({ ok: false, status: 500 })
+
+        await expect(callFn()).rejects.toThrow('HTTP error! status: 500')
+      })
+    }
+
+    testEndpoint('getRepositoryTags', () => registryApi.getRepositoryTags('my/repo'))
+    testEndpoint('getManifestInfo', () => registryApi.getManifestInfo('my/repo', 'v1'))
+    testEndpoint('deleteRepository', () => registryApi.deleteRepository('my/repo'))
+    testEndpoint('deleteTag', () => registryApi.deleteTag('my/repo', 'v1'))
+    testEndpoint('getUsers', () => registryApi.getUsers())
+    testEndpoint('createUser', () => registryApi.createUser({ username: 'u' }))
+    testEndpoint('updateUser', () => registryApi.updateUser('u', {}))
+    testEndpoint('deleteUser', () => registryApi.deleteUser('u'))
+    testEndpoint('getUserPermissions', () => registryApi.getUserPermissions('u'))
+    testEndpoint('setUserPermission', () => registryApi.setUserPermission('u', 'repo', {}))
+    testEndpoint('deleteUserPermission', () => registryApi.deleteUserPermission('u', 'repo'))
+    testEndpoint('getManifest', () => registryApi.getManifest('my/repo', 'v1'))
+    testEndpoint('getBlobContent', () => registryApi.getBlobContent('my/repo', 'sha256:abc'))
+  })
 })

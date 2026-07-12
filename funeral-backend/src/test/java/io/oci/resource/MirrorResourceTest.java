@@ -2,6 +2,7 @@ package io.oci.resource;
 
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.http.ContentType;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import static io.restassured.RestAssured.given;
@@ -10,6 +11,9 @@ import static org.hamcrest.Matchers.greaterThanOrEqualTo;
 import static org.hamcrest.Matchers.hasSize;
 
 @QuarkusTest
+@Disabled(
+    "Requires external network access to Docker Hub"
+)
 public class MirrorResourceTest {
 
     @Test
@@ -244,26 +248,16 @@ public class MirrorResourceTest {
                 )
                 .then()
                 .statusCode(
-                        anyOf(
-                                is(
-                                        200
-                                ),
-                                is(
-                                        202
-                                ),
-                                is(
-                                        201
-                                ),
-                                is(
-                                        500
-                                ),
-                                is(
-                                        503
-                                )
-                        )
+                        400
                 )
                 .contentType(
                         ContentType.JSON
+                )
+                .body(
+                        "errors[0].code",
+                        containsString(
+                                "INVALID_PROTOCOL"
+                        )
                 );
     }
 }
