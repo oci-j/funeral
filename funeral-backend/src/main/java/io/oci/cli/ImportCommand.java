@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Iterator;
 import java.util.concurrent.Callable;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -64,6 +63,14 @@ public class ImportCommand implements Callable<Integer> {
     )
     String serverUrl;
 
+    @CommandLine.Option(
+            names = {
+                    "--platform"
+            },
+            description = "Platform for multi-arch images, e.g. linux/amd64"
+    )
+    String platform;
+
     @Override
     public Integer call() throws Exception {
         ImageReference ref = ImageReference.parse(
@@ -95,49 +102,18 @@ public class ImportCommand implements Callable<Integer> {
                         "application/vnd.oci.image.manifest.v1+json"
                 );
 
-        byte[] imageManifestBytes = manifestBytes;
-        String imageMediaType = mediaType;
-        if (isIndexMediaType(
-                mediaType
-        )) {
-            JsonNode index = MAPPER.readTree(
-                    manifestBytes
-            );
-            JsonNode manifests = index.get(
-                    "manifests"
-            );
-            if (manifests != null && manifests.isArray()) {
-                Iterator<JsonNode> it = manifests.elements();
-                while (it.hasNext()) {
-                    JsonNode descriptor = it.next();
-                    String descMediaType = descriptor.has(
-                            "mediaType"
-                    )
-                            ? descriptor.get(
-                                    "mediaType"
-                            ).asText()
-                            : "application/vnd.oci.image.manifest.v1+json";
-                    if (isImageManifestMediaType(
-                            descMediaType
-                    )) {
-                        String digest = descriptor.get(
-                                "digest"
-                        ).asText();
-                        imageManifestBytes = client.getBlob(
-                                ref.repository,
-                                digest
-                        );
-                        imageMediaType = descMediaType;
-                        break;
-                    }
-                }
-            }
-        }
-
         ImagePackager.BlobReader reader = digest -> client.getBlob(
                 ref.repository,
                 digest
         );
+        ImagePackager.ResolvedManifest resolved = ImagePackager.resolveImageManifest(
+                manifestBytes,
+                mediaType,
+                reader,
+                platform
+        );
+        byte[] imageManifestBytes = resolved.manifestBytes;
+        String imageMediaType = resolved.mediaType;
 
         switch (outputType.toLowerCase()) {
             case "local":
@@ -183,6 +159,12 @@ public class ImportCommand implements Callable<Integer> {
     )
             throws IOException,
             InterruptedException {
+        Path storageDir = Path.of(
+                storagePath
+        );
+        Files.createDirectories(
+                storageDir
+        );
         LocalStorageAdapter local = new LocalStorageAdapter(
                 storagePath
         );
@@ -297,26 +279,6 @@ public class ImportCommand implements Callable<Integer> {
         );
         System.out.println(
                 "Wrote OCI layout to " + ociDir
-        );
-    }
-
-    private boolean isIndexMediaType(
-            String mediaType
-    ) {
-        return "application/vnd.oci.image.index.v1+json".equals(
-                mediaType
-        ) || "application/vnd.docker.distribution.manifest.list.v2+json".equals(
-                mediaType
-        );
-    }
-
-    private boolean isImageManifestMediaType(
-            String mediaType
-    ) {
-        return "application/vnd.oci.image.manifest.v1+json".equals(
-                mediaType
-        ) || "application/vnd.docker.distribution.manifest.v2+json".equals(
-                mediaType
         );
     }
 }

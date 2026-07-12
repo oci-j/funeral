@@ -200,4 +200,109 @@ public class ImagePackagerTest {
             );
         }
     }
+
+    @Test
+    public void testResolveImageManifestWithPlatform() throws Exception {
+        byte[] amd64Config = "amd64-config".getBytes(
+                StandardCharsets.UTF_8
+        );
+        byte[] arm64Config = "arm64-config".getBytes(
+                StandardCharsets.UTF_8
+        );
+        byte[] layer = "layer".getBytes(
+                StandardCharsets.UTF_8
+        );
+        String amd64ConfigDigest = DigestUtil.sha256(
+                amd64Config
+        );
+        String arm64ConfigDigest = DigestUtil.sha256(
+                arm64Config
+        );
+        String layerDigest = DigestUtil.sha256(
+                layer
+        );
+
+        String amd64Manifest = buildManifest(
+                amd64ConfigDigest,
+                layerDigest,
+                amd64Config.length,
+                layer.length
+        );
+        String arm64Manifest = buildManifest(
+                arm64ConfigDigest,
+                layerDigest,
+                arm64Config.length,
+                layer.length
+        );
+        String amd64Digest = DigestUtil.sha256(
+                amd64Manifest.getBytes(
+                        StandardCharsets.UTF_8
+                )
+        );
+        String arm64Digest = DigestUtil.sha256(
+                arm64Manifest.getBytes(
+                        StandardCharsets.UTF_8
+                )
+        );
+
+        String index = "{\"schemaVersion\":2,\"mediaType\":\"application/vnd.oci.image.index.v1+json\",\"manifests\":[{\"mediaType\":\"application/vnd.oci.image.manifest.v1+json\",\"digest\":\""
+                + amd64Digest + "\",\"size\":" + amd64Manifest.length()
+                + ",\"platform\":{\"os\":\"linux\",\"architecture\":\"amd64\"}},{\"mediaType\":\"application/vnd.oci.image.manifest.v1+json\",\"digest\":\""
+                + arm64Digest + "\",\"size\":" + arm64Manifest.length()
+                + ",\"platform\":{\"os\":\"linux\",\"architecture\":\"arm64\"}}]}";
+
+        ImagePackager.BlobReader reader = digest -> {
+            if (digest.equals(
+                    amd64Digest
+            )) {
+                return amd64Manifest.getBytes(
+                        StandardCharsets.UTF_8
+                );
+            }
+            if (digest.equals(
+                    arm64Digest
+            )) {
+                return arm64Manifest.getBytes(
+                        StandardCharsets.UTF_8
+                );
+            }
+            throw new IOException(
+                    "unknown blob " + digest
+            );
+        };
+
+        ImagePackager.ResolvedManifest resolved = ImagePackager.resolveImageManifest(
+                index.getBytes(
+                        StandardCharsets.UTF_8
+                ),
+                "application/vnd.oci.image.index.v1+json",
+                reader,
+                "linux/arm64"
+        );
+        JsonNode manifest = MAPPER.readTree(
+                resolved.manifestBytes
+        );
+        assertEquals(
+                arm64ConfigDigest,
+                manifest.get(
+                        "config"
+                )
+                        .get(
+                                "digest"
+                        )
+                        .asText()
+        );
+    }
+
+    private String buildManifest(
+            String configDigest,
+            String layerDigest,
+            int configSize,
+            int layerSize
+    ) {
+        return "{\"schemaVersion\":2,\"mediaType\":\"application/vnd.oci.image.manifest.v1+json\",\"config\":{\"mediaType\":\"application/vnd.oci.image.config.v1+json\",\"digest\":\""
+                + configDigest + "\",\"size\":" + configSize
+                + "},\"layers\":[{\"mediaType\":\"application/vnd.oci.image.layer.v1.tar+gzip\",\"digest\":\""
+                + layerDigest + "\",\"size\":" + layerSize + "}]}";
+    }
 }

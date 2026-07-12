@@ -79,11 +79,27 @@ public class ExportCommand implements Callable<Integer> {
 
     @CommandLine.Option(
             names = {
+                    "--platform"
+            },
+            description = "Platform for multi-arch images, e.g. linux/amd64"
+    )
+    String platform;
+
+    @CommandLine.Option(
+            names = {
                     "--use-docker"
             },
             description = "Always use docker push for target registries"
     )
     boolean useDocker;
+
+    @CommandLine.Option(
+            names = {
+                    "--continue-on-error"
+            },
+            description = "Continue exporting to remaining targets if one fails"
+    )
+    boolean continueOnError;
 
     @Override
     public Integer call() throws Exception {
@@ -93,8 +109,20 @@ public class ExportCommand implements Callable<Integer> {
         SourceBundle bundle = resolveSource(
                 source
         );
+        ImagePackager.ResolvedManifest resolved = ImagePackager.resolveImageManifest(
+                bundle.manifestBytes,
+                bundle.mediaType,
+                bundle.reader,
+                platform
+        );
+        bundle = new SourceBundle(
+                resolved.manifestBytes,
+                resolved.mediaType,
+                bundle.reader
+        );
 
         DockerCliAdapter docker = new DockerCliAdapter();
+        List<String> failures = new java.util.ArrayList<>();
         for (String target : targets) {
             ImageReference targetRef = ImageReference.parse(
                     target
@@ -137,11 +165,34 @@ public class ExportCommand implements Callable<Integer> {
                         "Exported to " + targetRef
                 );
             }
+            catch (Exception e) {
+                String message = targetRef + ": " + e.getMessage();
+                System.out.println(
+                        "Export failed for " + message
+                );
+                failures.add(
+                        message
+                );
+                if (!continueOnError) {
+                    return 1;
+                }
+            }
             finally {
                 Files.deleteIfExists(
                         tarFile
                 );
             }
+        }
+        if (!failures.isEmpty()) {
+            System.out.println(
+                    "Some targets failed:"
+            );
+            for (String failure : failures) {
+                System.out.println(
+                        "  " + failure
+                );
+            }
+            return 1;
         }
         return 0;
     }
