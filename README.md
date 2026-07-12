@@ -1,7 +1,7 @@
 # FUNERAL
 
-![Backend Coverage](https://img.shields.io/endpoint?url=https://oci-j.github.io/funeral/coverage-backend.json)
-![Frontend Coverage](https://img.shields.io/endpoint?url=https://oci-j.github.io/funeral/coverage-frontend.json)
+[![Backend Coverage](https://img.shields.io/endpoint?url=https://oci-j.github.io/funeral/coverage-backend.json)](https://oci-j.github.io/funeral/backend/index.html)
+[![Frontend Coverage](https://img.shields.io/endpoint?url=https://oci-j.github.io/funeral/coverage-frontend.json)](https://oci-j.github.io/funeral/frontend/index.html)
 
 FUNERAL is an oci image registry following [oci-distribution-spec](https://github.com/opencontainers/distribution-spec.git)
 
