@@ -82,7 +82,7 @@ jobs:
 
     - name: Run targeted Docker fallback tests
       working-directory: ./funeral-backend
-      run: mvn -B test -Dtest=MetadataDbImageIdFinderTest,DockerLocalResolverTest,Overlay2FileResolverTest,ContainerdFileResolverTest
+      run: mvn -B verify -Dtest=MetadataDbImageIdFinderTest,DockerLocalResolverTest,Overlay2FileResolverTest,ContainerdFileResolverTest
 
     - name: Upload backend coverage report
       if: always()
