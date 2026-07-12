@@ -491,6 +491,10 @@ jobs:
                   "color": color
               }, f)
           PY
+          mkdir -p pages/backend
+          cp -R backend-coverage/* pages/backend/
+          mkdir -p pages/frontend
+          cp -R frontend-coverage/* pages/frontend/
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
