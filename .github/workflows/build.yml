@@ -199,6 +199,29 @@ jobs:
           exit 1
         fi
 
+    - name: Native Binary Smoke Test
+      working-directory: ./funeral-backend
+      run: |
+        chmod +x target/funeral
+        echo "=== CLI version check ==="
+        ./target/funeral --version
+        ./target/funeral version
+        echo "=== Start server and health check ==="
+        ./target/funeral serve &
+        SERVER_PID=$!
+        for i in {1..30}; do
+          if curl -sf http://localhost:8911/funeral_addition/health >/dev/null 2>&1; then
+            echo "Health check passed"
+            kill $SERVER_PID
+            wait $SERVER_PID 2>/dev/null || true
+            exit 0
+          fi
+          sleep 1
+        done
+        echo "Health check failed"
+        kill $SERVER_PID 2>/dev/null || true
+        exit 1
+
     - name: Upload Native Binary
       uses: actions/upload-artifact@v7
       with:
@@ -216,6 +239,88 @@ jobs:
           funeral-backend/target/native-tests/
         retention-days: 3
         if-no-files-found: ignore
+
+  docker-push-pull:
+    name: Docker Push/Pull Integration
+    runs-on: ubuntu-latest
+    needs: build-native
+
+    steps:
+    - uses: actions/checkout@v7
+
+    - name: Download native binary
+      uses: actions/download-artifact@v8
+      with:
+        name: funeral-native-${{ github.sha }}
+        path: funeral-native
+
+    - name: Make native binary executable
+      run: chmod +x funeral-native/funeral
+
+    - name: Configure Docker insecure registry
+      run: |
+        python3 - <<'PY' > /tmp/daemon.json
+        import json
+        import os
+        path = '/etc/docker/daemon.json'
+        d = {}
+        if os.path.exists(path):
+            with open(path) as f:
+                d = json.load(f)
+        d.setdefault('insecure-registries', [])
+        if 'localhost:8911' not in d['insecure-registries']:
+            d['insecure-registries'].append('localhost:8911')
+        print(json.dumps(d, indent=2))
+        PY
+        sudo cp /tmp/daemon.json /etc/docker/daemon.json
+        sudo systemctl restart docker || sudo service docker restart
+        for i in {1..30}; do
+          if docker info >/dev/null 2>&1; then
+            echo "Docker daemon is ready"
+            break
+          fi
+          sleep 1
+        done
+        docker info >/dev/null 2>&1 || { echo "Docker daemon did not become ready"; exit 1; }
+
+    - name: Start Funeral registry
+      run: |
+        export LOCAL_STORAGE_PATH=/tmp/funeral-docker-test
+        export AUTH_REALM=http://localhost:8911/v2/token
+        export AUTH_SERVICE=funeral-registry
+        ./funeral-native/funeral serve &
+        echo "SERVER_PID=$!" >> $GITHUB_ENV
+        for i in {1..30}; do
+          if curl -sf http://localhost:8911/funeral_addition/health >/dev/null 2>&1; then
+            echo "Funeral registry is healthy"
+            exit 0
+          fi
+          sleep 1
+        done
+        echo "Funeral registry did not become healthy"
+        exit 1
+
+    - name: Docker login, push and pull
+      run: |
+        docker pull alpine:3.20
+        docker tag alpine:3.20 localhost:8911/smoke/alpine:3.20
+        docker login localhost:8911 -u admin -p password
+        docker push localhost:8911/smoke/alpine:3.20
+        docker rmi localhost:8911/smoke/alpine:3.20
+        docker pull localhost:8911/smoke/alpine:3.20
+
+    - name: Verify with Funeral CLI
+      run: |
+        ./funeral-native/funeral login localhost:8911 -u admin -p password
+        ./funeral-native/funeral repo list localhost:8911
+
+    - name: Stop Funeral registry
+      if: always()
+      run: |
+        if [ -n "$SERVER_PID" ]; then
+          kill $SERVER_PID 2>/dev/null || true
+          wait $SERVER_PID 2>/dev/null || true
+        fi
 
   containerd-image-store-integration:
     name: Containerd Image Store Integration Test
