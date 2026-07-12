@@ -8,6 +8,10 @@ import io.oci.cli.config.RegistryAuth;
 
 public class KeyringCredentialsStore implements CredentialsStore {
 
+    private static final boolean DISABLE_KEYRING = Boolean.getBoolean(
+            "funeral.cli.disableKeyring"
+    );
+
     private final ConfigManager configManager;
 
     public KeyringCredentialsStore(
@@ -16,11 +20,20 @@ public class KeyringCredentialsStore implements CredentialsStore {
         this.configManager = configManager;
     }
 
+    private void checkEnabled() {
+        if (DISABLE_KEYRING) {
+            throw new RuntimeException(
+                    "Keyring disabled by funeral.cli.disableKeyring"
+            );
+        }
+    }
+
     @Override
     public void save(
             String registry,
             Credentials credentials
     ) {
+        checkEnabled();
         try (Keyring keyring = Keyring.create()) {
             keyring.setPassword(
                     domain(
@@ -56,6 +69,7 @@ public class KeyringCredentialsStore implements CredentialsStore {
     public Credentials load(
             String registry
     ) {
+        checkEnabled();
         CliConfig config = configManager.load();
         RegistryAuth auth = config.auths.get(
                 registry
@@ -91,6 +105,7 @@ public class KeyringCredentialsStore implements CredentialsStore {
     public void delete(
             String registry
     ) {
+        checkEnabled();
         CliConfig config = configManager.load();
         RegistryAuth auth = config.auths.get(
                 registry

@@ -29,6 +29,7 @@ public class LoginCommand implements Callable<Integer> {
                     "-u", "--username"
             },
             description = "Username",
+            arity = "0..1",
             interactive = true
     )
     String username;

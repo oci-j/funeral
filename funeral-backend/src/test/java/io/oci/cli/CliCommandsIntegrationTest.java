@@ -31,6 +31,10 @@ public class CliCommandsIntegrationTest {
                 "funeral.config.dir",
                 tempConfigDir.toString()
         );
+        System.setProperty(
+                "funeral.cli.disableKeyring",
+                "true"
+        );
 
         server = new MockRegistryServer();
         server.start();
@@ -44,6 +48,9 @@ public class CliCommandsIntegrationTest {
     public void tearDown() {
         System.clearProperty(
                 "funeral.config.dir"
+        );
+        System.clearProperty(
+                "funeral.cli.disableKeyring"
         );
         if (server != null) {
             server.stop();
@@ -158,6 +165,49 @@ public class CliCommandsIntegrationTest {
                         .contains(
                                 "No users found"
                         )
+        );
+    }
+
+    @Test
+    public void testLogin(
+            QuarkusMainLauncher launcher
+    )
+            throws IOException {
+        LaunchResult result = launcher.launch(
+                "login",
+                registryArg(),
+                "-u",
+                "user",
+                "-p",
+                "pass"
+        );
+        assertEquals(
+                0,
+                result.exitCode()
+        );
+        assertTrue(
+                result.getOutput()
+                        .contains(
+                                "Login succeeded"
+                        )
+        );
+        Path credentialsFile = tempConfigDir.resolve(
+                "credentials.json"
+        );
+        assertTrue(
+                Files.exists(
+                        credentialsFile
+                ),
+                "Credentials file should be created"
+        );
+        String contents = Files.readString(
+                credentialsFile
+        );
+        assertTrue(
+                contents.contains(
+                        "user"
+                ),
+                "Credentials file should contain username"
         );
     }
 }
