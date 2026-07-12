@@ -142,8 +142,8 @@
 | 计划入 docs | 完成 | d5f51e5 | 已存在 |
 | A | 完成 | 84ac128 | 前端 lint、后端 warning、MirrorHelmResource 清理 |
 | B | 完成 | a93d2e3 | RegistryClient 抽象 + MirrorResource 可测试化 |
-| C | 未开始 | - | - |
-| D | 未开始 | - | - |
+| C | 完成 | ec6cc3f | MirrorHelmResourceTest、S3StorageServiceTest |
+| D | 进行中 | - | 前端函数覆盖率 |
 | E | 未开始 | - | - |
 | F | 未开始 | - | - |
 
