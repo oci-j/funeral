@@ -53,6 +53,16 @@ Date: 2026-07-12
 - Next `main` run `Build Native Binary` (run `29189547557`) succeeded, including `Deploy Coverage Badges to GitHub Pages`.
 - Confirmed the frontend coverage pipeline is still compatible with Vite 8.
 
+## 2026-07-12 test expansion
+
+- Added backend tests: `AdminResourceTest`, `OciV2ResourceTest`, extended `ManifestResourceHandlerTest` and `BlobResourceHandlerTest`.
+- Added frontend tests: `src/stores/index.test.js`, extended `src/api/registry.test.js`.
+- Fixed `AdminResource` password hashing: it used SHA-256 while `AuthService` verifies BCrypt, so admin-created users could not log in.
+- Backend coverage (build-jvm, excluding `MirrorResourceTest` and `ImportExportIntegrationTest`): ~40% instruction (up from 26%).
+- Frontend coverage: ~91% statements / 70% branches / 68% functions.
+- Local run: `mvn -B verify -Dtest='!*MirrorResourceTest,!*ImportExportIntegrationTest'` succeeds; `ImportExportIntegrationTest` fails locally due to JDK "restricted header name: Host" but passes in CI.
+- Coverage tooling remains a hybrid: `jacoco-maven-plugin` for plain JUnit plus `quarkus-jacoco` for `@QuarkusTest`, both writing to `target/jacoco-quarkus.exec`.
+
 ## Skill updates
 
 The following items were folded back into `/home/xenoamess/workspace/coverage-report-skill/SKILL.md`:
