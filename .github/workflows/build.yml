@@ -493,10 +493,10 @@ jobs:
           PY
           mkdir -p pages/backend
           cp -R backend-coverage/* pages/backend/
-          cp pages/backend/index.html pages/backend/coverage.html
+          mv pages/backend/index.html pages/backend/coverage.html
           mkdir -p pages/frontend
           cp -R frontend-coverage/* pages/frontend/
-          cp pages/frontend/index.html pages/frontend/coverage.html
+          mv pages/frontend/index.html pages/frontend/coverage.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v3
