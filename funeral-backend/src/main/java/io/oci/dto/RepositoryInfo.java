@@ -14,6 +14,9 @@ public class RepositoryInfo {
 
     public long tagCount;
 
+    public RepositoryInfo() {
+    }
+
     public RepositoryInfo(
             String name,
             LocalDateTime createdAt,

@@ -10,6 +10,9 @@ public class TagsResponse {
 
     public List<String> tags;
 
+    public TagsResponse() {
+    }
+
     public TagsResponse(
             String name,
             List<String> tags

@@ -29,6 +29,20 @@ public class MockRegistryServer implements AutoCloseable {
 
     private final Map<String, ManifestEntry> manifests = new HashMap<>();
 
+    private final Map<String, String> tagsResponses = new HashMap<>();
+
+    private final Map<String, String> mirrorResponses = new HashMap<>();
+
+    private volatile String healthResponse = "{\"status\":\"UP\"}";
+
+    private volatile String repositoriesResponse = "[]";
+
+    private volatile String usersResponse = "[]";
+
+    private volatile String adminPostResponse = "{}";
+
+    private volatile String permissionsResponse = "[]";
+
     private final List<String> hostHeaders = Collections.synchronizedList(
             new ArrayList<>()
     );
@@ -143,6 +157,64 @@ public class MockRegistryServer implements AutoCloseable {
         this.failUpload = fail;
     }
 
+    public void setHealthResponse(
+            String healthResponse
+    ) {
+        this.healthResponse = healthResponse;
+    }
+
+    public void setRepositoriesResponse(
+            String repositoriesResponse
+    ) {
+        this.repositoriesResponse = repositoriesResponse;
+    }
+
+    public void setTagsResponse(
+            String repository,
+            String tagsResponse
+    ) {
+        this.tagsResponses.put(
+                repository,
+                tagsResponse
+        );
+    }
+
+    public void setMirrorImageResponse(
+            String mirrorImageResponse
+    ) {
+        this.mirrorResponses.put(
+                "image",
+                mirrorImageResponse
+        );
+    }
+
+    public void setMirrorHelmResponse(
+            String mirrorHelmResponse
+    ) {
+        this.mirrorResponses.put(
+                "helm",
+                mirrorHelmResponse
+        );
+    }
+
+    public void setUsersResponse(
+            String usersResponse
+    ) {
+        this.usersResponse = usersResponse;
+    }
+
+    public void setAdminPostResponse(
+            String adminPostResponse
+    ) {
+        this.adminPostResponse = adminPostResponse;
+    }
+
+    public void setPermissionsResponse(
+            String permissionsResponse
+    ) {
+        this.permissionsResponse = permissionsResponse;
+    }
+
     private class Handler implements HttpHandler {
 
         @Override
@@ -175,6 +247,71 @@ public class MockRegistryServer implements AutoCloseable {
                     );
                     return;
                 }
+                if (path.equals(
+                        "/funeral_addition/health"
+                ) && "GET".equals(
+                        method
+                )) {
+                    sendJson(
+                            exchange,
+                            200,
+                            healthResponse
+                    );
+                    return;
+                }
+                if (path.equals(
+                        "/v2/repositories"
+                ) && "GET".equals(
+                        method
+                )) {
+                    sendJson(
+                            exchange,
+                            200,
+                            repositoriesResponse
+                    );
+                    return;
+                }
+                if (path.endsWith(
+                        "/tags/list"
+                ) && "GET".equals(
+                        method
+                )) {
+                    handleTags(
+                            exchange,
+                            path
+                    );
+                    return;
+                }
+                if (path.startsWith(
+                        "/v2/"
+                ) && !path.contains(
+                        "/manifests/"
+                ) && !path.contains(
+                        "/blobs/"
+                ) && !path.contains(
+                        "/tags/list"
+                ) && "DELETE".equals(
+                        method
+                )) {
+                    send(
+                            exchange,
+                            204,
+                            ""
+                    );
+                    return;
+                }
+                if (path.contains(
+                        "/manifests/"
+                ) && "DELETE".equals(
+                        method
+                )) {
+                    send(
+                            exchange,
+                            204,
+                            ""
+                    );
+                    return;
+                }
                 if (path.contains(
                         "/manifests/"
                 )) {
@@ -201,6 +338,126 @@ public class MockRegistryServer implements AutoCloseable {
                     handleUpload(
                             exchange
                     );
+                    return;
+                }
+                if (path.equals(
+                        "/funeral_addition/mirror/pull"
+                ) && "POST".equals(
+                        method
+                )) {
+                    sendJson(
+                            exchange,
+                            200,
+                            mirrorResponses.getOrDefault(
+                                    "image",
+                                    "{}"
+                            )
+                    );
+                    return;
+                }
+                if (path.equals(
+                        "/funeral_addition/mirror/helm/pull"
+                ) && "POST".equals(
+                        method
+                )) {
+                    sendJson(
+                            exchange,
+                            200,
+                            mirrorResponses.getOrDefault(
+                                    "helm",
+                                    "{}"
+                            )
+                    );
+                    return;
+                }
+                if (path.equals(
+                        "/funeral_addition/admin/users"
+                )) {
+                    if ("GET".equals(
+                            method
+                    )) {
+                        sendJson(
+                                exchange,
+                                200,
+                                usersResponse
+                        );
+                    }
+                    else if ("POST".equals(
+                            method
+                    )) {
+                        sendJson(
+                                exchange,
+                                200,
+                                adminPostResponse
+                        );
+                    }
+                    else {
+                        send(
+                                exchange,
+                                405,
+                                "Method not allowed"
+                        );
+                    }
+                    return;
+                }
+                if (path.startsWith(
+                        "/funeral_addition/admin/users/"
+                )) {
+                    if ("PUT".equals(
+                            method
+                    ) || "DELETE".equals(
+                            method
+                    )) {
+                        sendJson(
+                                exchange,
+                                200,
+                                adminPostResponse
+                        );
+                    }
+                    else {
+                        send(
+                                exchange,
+                                405,
+                                "Method not allowed"
+                        );
+                    }
+                    return;
+                }
+                if (path.equals(
+                        "/funeral_addition/admin/permissions"
+                ) && "GET".equals(
+                        method
+                )) {
+                    sendJson(
+                            exchange,
+                            200,
+                            permissionsResponse
+                    );
+                    return;
+                }
+                if (path.startsWith(
+                        "/funeral_addition/admin/permissions/"
+                )) {
+                    if ("GET".equals(
+                            method
+                    ) || "POST".equals(
+                            method
+                    ) || "DELETE".equals(
+                            method
+                    )) {
+                        sendJson(
+                                exchange,
+                                200,
+                                permissionsResponse
+                        );
+                    }
+                    else {
+                        send(
+                                exchange,
+                                405,
+                                "Method not allowed"
+                        );
+                    }
                     return;
                 }
                 send(
@@ -278,6 +535,37 @@ public class MockRegistryServer implements AutoCloseable {
             catch (Exception e) {
                 return false;
             }
+        }
+
+        private void handleTags(
+                HttpExchange exchange,
+                String path
+        )
+                throws IOException {
+            int tagsIdx = path.lastIndexOf(
+                    "/tags/list"
+            );
+            if (tagsIdx < 0) {
+                send(
+                        exchange,
+                        404,
+                        "Not found"
+                );
+                return;
+            }
+            String repo = path.substring(
+                    "/v2/".length(),
+                    tagsIdx
+            );
+            String response = tagsResponses.getOrDefault(
+                    repo,
+                    "{\"name\":\"" + repo + "\",\"tags\":[]}"
+            );
+            sendJson(
+                    exchange,
+                    200,
+                    response
+            );
         }
 
         private void handleManifest(
