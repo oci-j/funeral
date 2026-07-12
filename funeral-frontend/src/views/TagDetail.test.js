@@ -299,7 +299,6 @@ describe('TagDetail', () => {
 
   it('shows error in dialog when blob fetch fails', async () => {
     const { registryApi } = await import('../api/registry')
-    const { ElMessage } = await import('element-plus')
     registryApi.getManifest.mockResolvedValue(mockManifest())
     registryApi.getManifestInfo.mockResolvedValue(mockManifestInfo())
     registryApi.getBlobContent.mockRejectedValue(new Error('network'))

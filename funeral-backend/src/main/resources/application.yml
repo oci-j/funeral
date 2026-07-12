@@ -8,14 +8,9 @@ quarkus:
     host: 0.0.0.0
     port: 8911
     cors:
-      ~: true
       origins: "*"
       headers: "*"
       methods: "*"
-  smallrye-openapi:
-    info-title: OCI Distribution Registry API
-    info-version: 1.0.0
-    info-description: OCI Distribution Specification compliant registry with MongoDB and MinIO S3
 
 oci:
   s3:

@@ -42,7 +42,6 @@ jobs:
       run: pnpm install
 
     - name: Lint frontend
-      continue-on-error: true
       working-directory: ./funeral-frontend
       run: pnpm run lint
 
@@ -125,7 +124,6 @@ jobs:
       run: pnpm install
 
     - name: Lint frontend
-      continue-on-error: true
       working-directory: ./funeral-frontend
       run: pnpm run lint
 

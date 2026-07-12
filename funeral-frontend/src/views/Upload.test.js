@@ -1,6 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { mount, flushPromises } from '@vue/test-utils'
-import { ElMessage } from 'element-plus'
 import Upload from './Upload.vue'
 import { elementStubs, loadingDirective } from '../test-utils/element-stubs'
 

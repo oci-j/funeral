@@ -83,70 +83,19 @@ public class MirrorHelmResource {
      * @param format Format of the source (oci or chartmuseum)
      * @return Mirror result
      */
-    @POST
-    @Path(
-        "/pull"
-    )
-    @Produces(
-        MediaType.APPLICATION_JSON
-    )
-    @Consumes(
-        MediaType.APPLICATION_FORM_URLENCODED
-    )
     /**
-     * Check if registry is accessible with a quick ping
+     * Mirror/Pull Helm chart from external repository
+     *
+     * @param sourceRepo Full source repository URL or name
+     * @param chartName Chart name
+     * @param version Chart version
+     * @param targetRepository Optional target repository name
+     * @param targetVersion Optional target version
+     * @param username Optional username for authentication
+     * @param password Optional password for authentication
+     * @param format Format of the source (oci or chartmuseum)
+     * @return Mirror result
      */
-    private boolean isRegistryAccessible(
-            String registry
-    ) {
-        try {
-            String testUrl = registry.contains(
-                    "docker.io"
-            ) ? "https://registry.hub.docker.com/v2/" : "https://" + registry + "/v2/";
-
-            HttpRequest request = HttpRequest.newBuilder()
-                    .uri(
-                            URI.create(
-                                    testUrl
-                            )
-                    )
-                    .timeout(
-                            Duration.ofSeconds(
-                                    5
-                            )
-                    )
-                    .GET()
-                    .build();
-
-            HttpClient client = HttpClient.newBuilder()
-                    .followRedirects(
-                            HttpClient.Redirect.NORMAL
-                    )
-                    .connectTimeout(
-                            Duration.ofSeconds(
-                                    5
-                            )
-                    )
-                    .build();
-
-            HttpResponse<String> response = client.send(
-                    request,
-                    HttpResponse.BodyHandlers.ofString()
-            );
-
-            // Docker registry returns 401 (unauthorized) for v2/ endpoint, which is expected
-            return response.statusCode() == 401 || response.statusCode() == 200;
-        }
-        catch (Exception e) {
-            log.warn(
-                    "Registry accessibility check failed for {}: {}",
-                    registry,
-                    e.getMessage()
-            );
-            return false;
-        }
-    }
-
     @POST
     @Path(
         "/pull"
