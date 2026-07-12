@@ -16,6 +16,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import io.oci.docker.DockerSaveTarParser;
 import io.oci.docker.ResolvedBlob;
 import io.oci.docker.ResolvedManifest;
+import io.oci.model.ImageReference;
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;

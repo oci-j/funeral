@@ -1,4 +1,4 @@
-package io.oci.cli.oci;
+package io.oci.model;
 
 import java.util.Locale;
 
@@ -145,6 +145,20 @@ public class ImageReference {
         if (repository.isEmpty()) {
             throw new IllegalArgumentException(
                     "repository name is empty: " + ref
+            );
+        }
+
+        if (repository.contains(
+                " "
+        ) || (tag != null && tag.contains(
+                " "
+        )) || (digest != null && digest.contains(
+                " "
+        )) || registry.contains(
+                " "
+        )) {
+            throw new IllegalArgumentException(
+                    "invalid image reference: " + ref
             );
         }
 

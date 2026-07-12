@@ -16,8 +16,8 @@ import io.oci.cli.config.RegistryAlias;
 import io.oci.cli.oci.DockerCliAdapter;
 import io.oci.cli.oci.DockerTarConverter;
 import io.oci.cli.oci.ImagePackager;
-import io.oci.cli.oci.ImageReference;
 import io.oci.cli.oci.LocalStorageAdapter;
+import io.oci.model.ImageReference;
 import picocli.CommandLine;
 
 @CommandLine.Command(

@@ -39,6 +39,18 @@ public abstract class AbstractStorageService {
     )
             throws IOException;
 
+    public String storeBlob(
+            String expectedDigest,
+            InputStream inputStream,
+            long size
+    )
+            throws IOException {
+        return storeBlob(
+                inputStream,
+                expectedDigest
+        );
+    }
+
     public abstract InputStream getBlobStream(
             String digest
     )

@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.oci.dto.ErrorResponse;
 import io.oci.model.Blob;
+import io.oci.model.ImageReference;
 import io.oci.model.Manifest;
 import io.oci.model.Repository;
 import io.oci.service.AbstractStorageService;
@@ -356,7 +357,7 @@ public class MirrorHelmResource {
             );
 
             // Parse the OCI reference
-            ImageRef ref = parseOCIReference(
+            ImageReference ref = parseOCIReference(
                     registry,
                     chartName,
                     version
@@ -385,15 +386,17 @@ public class MirrorHelmResource {
 
                 // Override the tag with the full digest from the index (including sha256: prefix)
                 // This is required for fetching manifests by digest
-                ImageRef digestRef = new ImageRef();
-                digestRef.registry = ref.registry;
-                digestRef.fullRepositoryPath = ref.fullRepositoryPath;
-                digestRef.tag = manifestContent.indexManifestDigest;
+                ImageReference digestRef = new ImageReference(
+                        ref.registry,
+                        ref.repository,
+                        null,
+                        manifestContent.indexManifestDigest
+                );
 
                 log.info(
                         "Fetching manifest with digest reference: {}/{}",
-                        digestRef.fullRepositoryPath,
-                        digestRef.tag
+                        digestRef.repository,
+                        manifestContent.indexManifestDigest
                 );
 
                 manifestContent = pullOCIManifest(
@@ -1108,23 +1111,24 @@ public class MirrorHelmResource {
     /**
      * Parse OCI reference components
      */
-    private ImageRef parseOCIReference(
+    private ImageReference parseOCIReference(
             String registry,
             String chartName,
             String version
     ) {
-        ImageRef ref = new ImageRef();
-        ref.registry = registry;
-        ref.fullRepositoryPath = chartName;
-        ref.tag = version;
-        return ref;
+        return new ImageReference(
+                registry,
+                chartName,
+                version,
+                null
+        );
     }
 
     /**
      * Pull manifest from OCI registry for Helm chart
      */
     private ManifestContent pullOCIManifest(
-            ImageRef ref,
+            ImageReference ref,
             String username,
             String password
     )
@@ -1176,7 +1180,7 @@ public class MirrorHelmResource {
                 "docker.io"
         )) {
             String token = getDockerHubAnonymousToken(
-                    ref.fullRepositoryPath
+                    ref.repository
             );
             if (token != null) {
                 requestBuilder.header(
@@ -1391,7 +1395,7 @@ public class MirrorHelmResource {
      * Pull blob from OCI registry
      */
     private byte[] pullOCIBlob(
-            ImageRef ref,
+            ImageReference ref,
             String digest,
             String username,
             String password
@@ -1439,7 +1443,7 @@ public class MirrorHelmResource {
                 "docker.io"
         )) {
             String token = getDockerHubAnonymousToken(
-                    ref.fullRepositoryPath
+                    ref.repository
             );
             if (token != null) {
                 requestBuilder.header(
@@ -1552,7 +1556,7 @@ public class MirrorHelmResource {
      * Build manifest URL for OCI registry
      */
     private String buildManifestUrl(
-            ImageRef ref,
+            ImageReference ref,
             String protocol
     ) {
         if (protocol == null || (!protocol.equals(
@@ -1577,9 +1581,9 @@ public class MirrorHelmResource {
         if (registryHost.equals(
                 "registry.hub.docker.com"
         )) {
-            return "https://registry.hub.docker.com/v2/" + ref.fullRepositoryPath + "/manifests/" + ref.tag;
+            return "https://registry.hub.docker.com/v2/" + ref.repository + "/manifests/" + ref.tag;
         }
-        return protocol + "://" + registryHost + "/v2/" + ref.fullRepositoryPath + "/manifests/" + ref.tag;
+        return protocol + "://" + registryHost + "/v2/" + ref.repository + "/manifests/" + ref.tag;
     }
 
     /**
@@ -1737,7 +1741,7 @@ public class MirrorHelmResource {
      * Build blob URL for OCI registry
      */
     private String buildBlobUrl(
-            ImageRef ref,
+            ImageReference ref,
             String digest,
             String protocol
     ) {
@@ -1763,20 +1767,12 @@ public class MirrorHelmResource {
         if (registryHost.equals(
                 "registry.hub.docker.com"
         )) {
-            return "https://registry.hub.docker.com/v2/" + ref.fullRepositoryPath + "/blobs/" + digest;
+            return "https://registry.hub.docker.com/v2/" + ref.repository + "/blobs/" + digest;
         }
-        return protocol + "://" + registryHost + "/v2/" + ref.fullRepositoryPath + "/blobs/" + digest;
+        return protocol + "://" + registryHost + "/v2/" + ref.repository + "/blobs/" + digest;
     }
 
     // Inner classes
-
-    static class ImageRef {
-        String registry = "docker.io";
-
-        String fullRepositoryPath;
-
-        String tag = "latest";
-    }
 
     static class ManifestContent {
         String digest;

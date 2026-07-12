@@ -5,8 +5,8 @@ import io.oci.cli.auth.Credentials;
 import io.oci.cli.auth.CredentialsStore;
 import io.oci.cli.client.FuneralClient;
 import io.oci.cli.config.ConfigManager;
-import io.oci.cli.oci.ImageReference;
 import io.oci.cli.util.RegistryResolver;
+import io.oci.model.ImageReference;
 
 public class CliHelper {
 

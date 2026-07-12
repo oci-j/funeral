@@ -1,6 +1,6 @@
 package io.oci.cli;
 
-import io.oci.cli.oci.ImageReference;
+import io.oci.model.ImageReference;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
