@@ -142,7 +142,14 @@ public class MirrorHelmResource {
             @DefaultValue(
                 "oci"
             )
-            String format
+            String format,
+            @FormParam(
+                "protocol"
+            )
+            @DefaultValue(
+                "https"
+            )
+            String protocol
     )
             throws IOException,
             InterruptedException {
@@ -169,6 +176,15 @@ public class MirrorHelmResource {
                     "Source repository is required",
                     null
             );
+        }
+
+        String normalizedProtocol = protocol != null ? protocol.trim().toLowerCase() : "https";
+        if (!"http".equals(
+                normalizedProtocol
+        ) && !"https".equals(
+                normalizedProtocol
+        )) {
+            normalizedProtocol = "https";
         }
 
         try {
@@ -200,7 +216,8 @@ public class MirrorHelmResource {
                         finalTargetRepo,
                         finalTargetVersion,
                         username,
-                        password
+                        password,
+                        normalizedProtocol
                 );
             }
             else if ("chartmuseum".equalsIgnoreCase(
@@ -301,7 +318,8 @@ public class MirrorHelmResource {
             String targetRepo,
             String targetVersion,
             String username,
-            String password
+            String password,
+            String protocol
     )
             throws IOException,
             InterruptedException {
@@ -325,7 +343,8 @@ public class MirrorHelmResource {
                 targetRepo,
                 targetVersion,
                 username,
-                password
+                password,
+                protocol
         );
     }
 
@@ -339,7 +358,8 @@ public class MirrorHelmResource {
             String targetRepo,
             String targetVersion,
             String username,
-            String password
+            String password,
+            String protocol
     )
             throws IOException,
             InterruptedException {
@@ -367,7 +387,8 @@ public class MirrorHelmResource {
             ManifestContent manifestContent = pullOCIManifest(
                     ref,
                     username,
-                    password
+                    password,
+                    protocol
             );
 
             // If this is an OCI index (manifest list), fetch the actual manifest
@@ -402,7 +423,8 @@ public class MirrorHelmResource {
                 manifestContent = pullOCIManifest(
                         digestRef,
                         username,
-                        password
+                        password,
+                        protocol
                 );
 
                 log.info(
@@ -430,7 +452,8 @@ public class MirrorHelmResource {
                         ref,
                         manifestContent.configDigest,
                         username,
-                        password
+                        password,
+                        protocol
                 );
                 storeBlob(
                         manifestContent.configDigest,
@@ -456,7 +479,8 @@ public class MirrorHelmResource {
                         ref,
                         layerDigest,
                         username,
-                        password
+                        password,
+                        protocol
                 );
                 storeBlob(
                         layerDigest,
@@ -1130,13 +1154,14 @@ public class MirrorHelmResource {
     private ManifestContent pullOCIManifest(
             ImageReference ref,
             String username,
-            String password
+            String password,
+            String protocol
     )
             throws IOException,
             InterruptedException {
         String manifestUrl = buildManifestUrl(
                 ref,
-                "https"
+                protocol
         );
 
         log.info(
@@ -1398,14 +1423,15 @@ public class MirrorHelmResource {
             ImageReference ref,
             String digest,
             String username,
-            String password
+            String password,
+            String protocol
     )
             throws IOException,
             InterruptedException {
         String blobUrl = buildBlobUrl(
                 ref,
                 digest,
-                "https"
+                protocol
         );
 
         log.info(

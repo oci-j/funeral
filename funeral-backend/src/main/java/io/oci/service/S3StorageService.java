@@ -10,22 +10,6 @@ import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.minio.BucketExistsArgs;
-import io.minio.ComposeObjectArgs;
-import io.minio.GetObjectArgs;
-import io.minio.MakeBucketArgs;
-import io.minio.MinioClient;
-import io.minio.ObjectWriteResponse;
-import io.minio.PutObjectArgs;
-import io.minio.RemoveObjectArgs;
-import io.minio.SetBucketLifecycleArgs;
-import io.minio.SourceObject;
-import io.minio.StatObjectArgs;
-import io.minio.StatObjectResponse;
-import io.minio.errors.ErrorResponseException;
-import io.minio.messages.Filter;
-import io.minio.messages.LifecycleConfiguration;
-import io.minio.messages.Status;
 import io.oci.exception.WithResponseException;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -40,7 +24,7 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 public class S3StorageService extends AbstractStorageService {
 
     @Inject
-    MinioClient minioClient;
+    S3Client s3Client;
 
     @ConfigProperty(
             name = "oci.storage.bucket",
@@ -63,64 +47,36 @@ public class S3StorageService extends AbstractStorageService {
             throws IOException,
             WithResponseException {
         try {
-            // Ensure bucket exists
             ensureTempBucketExists();
-            // Store in S3
             String objectKey = "chunk/" + uploadUuid + "/" + index;
-            {
-                StatObjectResponse stat = null;
-                try {
-                    stat = minioClient.statObject(
-                            StatObjectArgs.builder()
-                                    .bucket(
-                                            tempBucketName
-                                    )
-                                    .object(
-                                            objectKey
-                                    )
-                                    .build()
-                    );
-                }
-                catch (Exception e) {
-                }
-                if (stat != null && stat.size() > 0) {
-                    throw new WithResponseException(
-                            Response.status(
-                                    416
-                            ).build()
-                    );
-                }
+            long existingSize = 0;
+            try {
+                existingSize = s3Client.statObject(
+                        tempBucketName,
+                        objectKey
+                );
             }
-            ObjectWriteResponse objectWriteResponse = minioClient.putObject(
-                    PutObjectArgs.builder()
-                            .bucket(
-                                    tempBucketName
-                            )
-                            .object(
-                                    objectKey
-                            )
-                            .stream(
-                                    inputStream,
-                                    -1L,
-                                    1024L * 1024 * 8
-                            )
-                            .contentType(
-                                    "application/octet-stream"
-                            )
-                            .build()
+            catch (IOException e) {
+                // Object does not exist yet
+            }
+            if (existingSize > 0) {
+                throw new WithResponseException(
+                        Response.status(
+                                416
+                        ).build()
+                );
+            }
+            s3Client.putObject(
+                    tempBucketName,
+                    objectKey,
+                    inputStream,
+                    -1L,
+                    "application/octet-stream"
             );
-            StatObjectResponse stat = minioClient.statObject(
-                    StatObjectArgs.builder()
-                            .bucket(
-                                    tempBucketName
-                            )
-                            .object(
-                                    objectKey
-                            )
-                            .build()
+            return s3Client.statObject(
+                    tempBucketName,
+                    objectKey
             );
-            long bytesWritten = stat.size();
-            return bytesWritten;
         }
         catch (WithResponseException | IOException e) {
             throw e;
@@ -141,56 +97,32 @@ public class S3StorageService extends AbstractStorageService {
     )
             throws IOException {
         try {
-            // Ensure bucket exists
             ensureBucketExists();
 
-            // Store in S3
             String finalObjectKey = "blobs/" + digest.replace(
                     ":",
                     "/"
             );
 
-            List<SourceObject> sources = new ArrayList<>();
+            List<String> sourceKeys = new ArrayList<>();
             for (int i = 0; i <= maxIndex; i++) {
-                String objectKey = "chunk/" + uploadUuid + "/" + i;
-                sources.add(
-                        SourceObject.builder()
-                                .bucket(
-                                        tempBucketName
-                                )
-                                .object(
-                                        objectKey
-                                )
-                                .build()
+                sourceKeys.add(
+                        "chunk/" + uploadUuid + "/" + i
                 );
             }
-            minioClient.composeObject(
-                    ComposeObjectArgs.builder()
-                            .bucket(
-                                    bucketName
-                            )
-                            .object(
-                                    finalObjectKey
-                            )
-                            .sources(
-                                    sources
-                            )
-                            .build()
+            s3Client.composeObject(
+                    bucketName,
+                    finalObjectKey,
+                    tempBucketName,
+                    sourceKeys
             );
 
-            // Clean up temporary chunk objects
             for (int i = 0; i <= maxIndex; i++) {
                 String objectKey = "chunk/" + uploadUuid + "/" + i;
                 try {
-                    minioClient.removeObject(
-                            RemoveObjectArgs.builder()
-                                    .bucket(
-                                            tempBucketName
-                                    )
-                                    .object(
-                                            objectKey
-                                    )
-                                    .build()
+                    s3Client.removeObject(
+                            tempBucketName,
+                            objectKey
                     );
                 }
                 catch (Exception ignored) {
@@ -212,7 +144,6 @@ public class S3StorageService extends AbstractStorageService {
     )
             throws IOException {
         try {
-            // Ensure bucket exists
             ensureTempBucketExists();
         }
         catch (Exception e) {
@@ -226,17 +157,11 @@ public class S3StorageService extends AbstractStorageService {
         while (true) {
             String objectKey = "chunk/" + uploadUuid + "/" + i;
             try {
-                StatObjectResponse stat = minioClient.statObject(
-                        StatObjectArgs.builder()
-                                .bucket(
-                                        tempBucketName
-                                )
-                                .object(
-                                        objectKey
-                                )
-                                .build()
+                long size = s3Client.statObject(
+                        tempBucketName,
+                        objectKey
                 );
-                bytesWritten += stat.size();
+                bytesWritten += size;
             }
             catch (Exception e) {
                 return new CalculateTempChunkResult(
@@ -255,10 +180,8 @@ public class S3StorageService extends AbstractStorageService {
     )
             throws IOException {
         try {
-            // Ensure bucket exists
             ensureBucketExists();
 
-            // Create temp file to calculate digest and size
             File tempFile = File.createTempFile(
                     "blob-",
                     ".tmp"
@@ -304,7 +227,6 @@ public class S3StorageService extends AbstractStorageService {
                 );
             }
 
-            // Store in S3
             String objectKey = "blobs/" + calculatedDigest.replace(
                     ":",
                     "/"
@@ -314,23 +236,12 @@ public class S3StorageService extends AbstractStorageService {
                     FileInputStream fis = new FileInputStream(
                             tempFile
                     )) {
-                minioClient.putObject(
-                        PutObjectArgs.builder()
-                                .bucket(
-                                        bucketName
-                                )
-                                .object(
-                                        objectKey
-                                )
-                                .stream(
-                                        fis,
-                                        size,
-                                        -1L
-                                )
-                                .contentType(
-                                        "application/octet-stream"
-                                )
-                                .build()
+                s3Client.putObject(
+                        bucketName,
+                        objectKey,
+                        fis,
+                        size,
+                        "application/octet-stream"
                 );
             }
 
@@ -343,6 +254,9 @@ public class S3StorageService extends AbstractStorageService {
                     "SHA-256 not available",
                     e
             );
+        }
+        catch (IOException e) {
+            throw e;
         }
         catch (Exception e) {
             throw new IOException(
@@ -362,25 +276,15 @@ public class S3StorageService extends AbstractStorageService {
                     ":",
                     "/"
             );
-            return minioClient.getObject(
-                    GetObjectArgs.builder()
-                            .bucket(
-                                    bucketName
-                            )
-                            .object(
-                                    objectKey
-                            )
-                            .build()
+            return s3Client.getObject(
+                    bucketName,
+                    objectKey
             );
         }
+        catch (IOException e) {
+            throw e;
+        }
         catch (Exception e) {
-            if (e instanceof ErrorResponseException && ((ErrorResponseException) e).errorResponse()
-                    .code()
-                    .equals(
-                            "NoSuchKey"
-                    )) {
-                return null;
-            }
             throw new IOException(
                     "Failed to get blob",
                     e
@@ -398,17 +302,13 @@ public class S3StorageService extends AbstractStorageService {
                     ":",
                     "/"
             );
-            StatObjectResponse stat = minioClient.statObject(
-                    StatObjectArgs.builder()
-                            .bucket(
-                                    bucketName
-                            )
-                            .object(
-                                    objectKey
-                            )
-                            .build()
+            return s3Client.statObject(
+                    bucketName,
+                    objectKey
             );
-            return stat.size();
+        }
+        catch (IOException e) {
+            throw e;
         }
         catch (Exception e) {
             throw new IOException(
@@ -428,16 +328,13 @@ public class S3StorageService extends AbstractStorageService {
                     ":",
                     "/"
             );
-            minioClient.removeObject(
-                    RemoveObjectArgs.builder()
-                            .bucket(
-                                    bucketName
-                            )
-                            .object(
-                                    objectKey
-                            )
-                            .build()
+            s3Client.removeObject(
+                    bucketName,
+                    objectKey
             );
+        }
+        catch (IOException e) {
+            throw e;
         }
         catch (Exception e) {
             throw new IOException(
@@ -463,72 +360,49 @@ public class S3StorageService extends AbstractStorageService {
         }
     }
 
-    private void ensureBucketExists() throws Exception {
-        boolean exists = minioClient.bucketExists(
-                BucketExistsArgs.builder()
-                        .bucket(
-                                bucketName
-                        )
-                        .build()
-        );
-
-        if (!exists) {
-            minioClient.makeBucket(
-                    MakeBucketArgs.builder()
-                            .bucket(
-                                    bucketName
-                            )
-                            .build()
+    private void ensureBucketExists() throws IOException {
+        try {
+            if (!s3Client.bucketExists(
+                    bucketName
+            )) {
+                s3Client.makeBucket(
+                        bucketName
+                );
+            }
+        }
+        catch (IOException e) {
+            throw e;
+        }
+        catch (Exception e) {
+            throw new IOException(
+                    "Failed to ensure bucket exists",
+                    e
             );
         }
     }
 
-    private void ensureTempBucketExists() throws Exception {
-        boolean exists = minioClient.bucketExists(
-                BucketExistsArgs.builder()
-                        .bucket(
-                                tempBucketName
-                        )
-                        .build()
-        );
-
-        if (!exists) {
-            minioClient.makeBucket(
-                    MakeBucketArgs.builder()
-                            .bucket(
-                                    tempBucketName
-                            )
-                            .build()
-            );
-            minioClient.setBucketLifecycle(
-                    SetBucketLifecycleArgs.builder()
-                            .bucket(
-                                    tempBucketName
-                            )
-                            .config(
-                                    new LifecycleConfiguration(
-                                            List.of(
-                                                    new LifecycleConfiguration.Rule(
-                                                            Status.ENABLED,
-                                                            null,
-                                                            new LifecycleConfiguration.Expiration(
-                                                                    (java.time.ZonedDateTime) null,
-                                                                    1,
-                                                                    null,
-                                                                    null
-                                                            ),
-                                                            new Filter(
-                                                                    "chunk/"
-                                                            ),
-                                                            null,
-                                                            null,
-                                                            null,
-                                                            null
-                                                    )
-                                            )
-                                    )
-                            )
-                            .build()
+    private void ensureTempBucketExists() throws IOException {
+        try {
+            if (!s3Client.bucketExists(
+                    tempBucketName
+            )) {
+                s3Client.makeBucket(
+                        tempBucketName
+                );
+                s3Client.setBucketLifecycle(
+                        tempBucketName,
+                        "chunk/",
+                        1
+                );
+            }
+        }
+        catch (IOException e) {
+            throw e;
+        }
+        catch (Exception e) {
+            throw new IOException(
+                    "Failed to ensure temp bucket exists",
+                    e
             );
         }
     }
