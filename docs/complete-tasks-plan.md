@@ -145,7 +145,7 @@
 | C | 完成 | ec6cc3f | MirrorHelmResourceTest、S3StorageServiceTest |
 | D | 完成 | 1ae315f | 前端函数覆盖率 93.04% |
 | E | 完成 | 5d4d940 | native smoke、Docker push/pull、CI 严格测试基线 |
-| F | 未开始 | - | - |
+| F | 完成 | 79433bb | CLAUDE.md、README.md、过期计划标记 |
 
 ---
 
