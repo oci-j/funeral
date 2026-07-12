@@ -144,7 +144,7 @@
 | B | 完成 | a93d2e3 | RegistryClient 抽象 + MirrorResource 可测试化 |
 | C | 完成 | ec6cc3f | MirrorHelmResourceTest、S3StorageServiceTest |
 | D | 完成 | 1ae315f | 前端函数覆盖率 93.04% |
-| E | 进行中 | - | CI 与真实集成 |
+| E | 完成 | 5d4d940 | native smoke、Docker push/pull、CI 严格测试基线 |
 | F | 未开始 | - | - |
 
 ---
