@@ -97,4 +97,41 @@ describe('Login', () => {
     expect(mockAuthStore.loginAnonymous).toHaveBeenCalled()
     expect(mockRouter.push).toHaveBeenCalledWith('/')
   })
+
+  it('fills credentials through the DOM and logs in', async () => {
+    mockAuthStore.login.mockResolvedValue({ success: true })
+    const wrapper = createWrapper()
+
+    const inputs = wrapper.findAll('.el-input')
+    await inputs.at(0).setValue('admin')
+    await inputs.at(1).setValue('password')
+    await wrapper.find('.login-button').trigger('click')
+    await flushPromises()
+
+    expect(mockAuthStore.login).toHaveBeenCalledWith('admin', 'password')
+    expect(mockRouter.push).toHaveBeenCalledWith('/')
+  })
+
+  it('submits the form on enter key', async () => {
+    mockAuthStore.login.mockResolvedValue({ success: true })
+    const wrapper = createWrapper()
+
+    const input = wrapper.find('.el-input')
+    await input.setValue('admin')
+    await input.trigger('keyup', { key: 'Enter' })
+    await flushPromises()
+
+    expect(mockAuthStore.login).toHaveBeenCalledWith('admin', expect.any(String))
+  })
+
+  it('shows error when login throws an exception', async () => {
+    mockAuthStore.login.mockRejectedValue(new Error('network'))
+    const wrapper = createWrapper()
+
+    await wrapper.find('.login-button').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('.error-message').exists()).toBe(true)
+    expect(wrapper.find('.error-message').text()).toContain('network')
+  })
 })

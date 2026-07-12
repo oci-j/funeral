@@ -136,4 +136,15 @@ describe('FilePreview', () => {
     expect(anchorClickSpy).toHaveBeenCalled()
     expect(revokeObjectURLSpy).toHaveBeenCalledWith('blob:mock-url')
   })
+
+  it('closes the dialog via the header close button', async () => {
+    const wrapper = createWrapper({ fileName: 'test.txt', fileContent: 'Hello', fileSize: 5 })
+    await openDialog(wrapper)
+
+    await wrapper.find('.el-dialog__close').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.emitted('update:visible')).toBeTruthy()
+    expect(wrapper.emitted('update:visible').at(-1)).toEqual([false])
+  })
 })

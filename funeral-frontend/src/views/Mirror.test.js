@@ -238,6 +238,32 @@ describe('Mirror', () => {
     expect(ElMessage.error).toHaveBeenCalledWith('Failed to copy to clipboard')
   })
 
+  it('copies pull command and shows success message', async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => successResponse,
+    })
+    navigator.clipboard.writeText.mockResolvedValue()
+    const { ElMessage } = await import('element-plus')
+
+    const wrapper = createWrapper()
+    wrapper.vm.form.sourceImage = 'nginx:latest'
+    await flushPromises()
+
+    await wrapper.find('.mirror-actions .el-button').trigger('click')
+    await flushPromises()
+
+    const copyBtn = wrapper
+      .findAll('.result-actions .el-button')
+      .find(btn => btn.text().includes('Copy'))
+    expect(copyBtn).toBeDefined()
+    await copyBtn.trigger('click')
+    await flushPromises()
+
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith('docker pull localhost:8911/nginx:latest')
+    expect(ElMessage.success).toHaveBeenCalledWith('Pull command copied to clipboard')
+  })
+
   it('navigates to repository on success', async () => {
     global.fetch.mockResolvedValue({
       ok: true,
@@ -258,5 +284,38 @@ describe('Mirror', () => {
     await viewBtn.trigger('click')
 
     expect(mockRouter.push).toHaveBeenCalledWith('/repository/nginx')
+  })
+
+  it('fills all form fields via the DOM and starts mirroring', async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => successResponse,
+    })
+    const { ElMessage } = await import('element-plus')
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    const inputs = wrapper.findAll('.mirror-form .el-input')
+    await inputs.at(0).setValue('docker pull nginx:latest')
+    await inputs.at(1).setValue('nginx')
+    await inputs.at(2).setValue('latest')
+    await inputs.at(3).setValue('user')
+    await inputs.at(4).setValue('pass')
+    await wrapper.find('.mirror-form .el-select').setValue('http')
+    await wrapper.find('.mirror-form .el-switch').setValue(true)
+
+    await wrapper.find('.mirror-actions .el-button').trigger('click')
+    await flushPromises()
+
+    const body = global.fetch.mock.calls[0][1].body.toString()
+    expect(body).toContain('sourceImage=nginx%3Alatest')
+    expect(body).toContain('targetRepository=nginx')
+    expect(body).toContain('targetTag=latest')
+    expect(body).toContain('username=user')
+    expect(body).toContain('password=pass')
+    expect(body).toContain('protocol=http')
+    expect(body).toContain('insecure=true')
+    expect(ElMessage.success).toHaveBeenCalledWith('Successfully mirrored nginx:latest!')
   })
 })

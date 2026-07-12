@@ -349,4 +349,181 @@ describe('Admin', () => {
     expect(wrapper.vm.formatDate(null)).toBe('')
     expect(wrapper.vm.formatDate(undefined)).toBe('')
   })
+
+  it('opens create dialog by clicking Create User button', async () => {
+    const { registryApi } = await import('../api/registry')
+    registryApi.getUsers.mockResolvedValue([mockUsers[0]])
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    const createBtn = wrapper
+      .findAll('.card-header .el-button')
+      .find(btn => btn.text().includes('Create User'))
+    expect(createBtn).toBeDefined()
+    await createBtn.trigger('click')
+    await flushPromises()
+
+    expect(wrapper.vm.showCreateDialog).toBe(true)
+  })
+
+  it('fills the create user form through the DOM and submits', async () => {
+    const { registryApi } = await import('../api/registry')
+    const { ElMessage } = await import('element-plus')
+    registryApi.getUsers.mockResolvedValue([mockUsers[0]])
+    registryApi.createUser.mockResolvedValue({})
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    const createBtn = wrapper
+      .findAll('.card-header .el-button')
+      .find(btn => btn.text().includes('Create User'))
+    await createBtn.trigger('click')
+    await flushPromises()
+
+    const inputs = wrapper.findAll('.el-dialog .el-input')
+    await inputs.at(0).setValue('newuser')
+    await inputs.at(1).setValue('new@example.com')
+    await inputs.at(2).setValue('password123')
+    await wrapper.find('.el-dialog .el-select').setValue('USER')
+    await wrapper.find('.el-dialog .el-switch').setValue(false)
+
+    await wrapper.findAll('.el-dialog__footer .el-button').at(1).trigger('click')
+    await flushPromises()
+
+    expect(registryApi.createUser).toHaveBeenCalled()
+    expect(ElMessage.success).toHaveBeenCalledWith('User created successfully')
+  })
+
+  it('closes create dialog by clicking Cancel', async () => {
+    const { registryApi } = await import('../api/registry')
+    registryApi.getUsers.mockResolvedValue([mockUsers[0]])
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    wrapper.vm.showCreateDialog = true
+    await flushPromises()
+
+    await wrapper.findAll('.el-dialog__footer .el-button').at(0).trigger('click')
+    await flushPromises()
+
+    expect(wrapper.vm.showCreateDialog).toBe(false)
+  })
+
+  it('opens permission dialog by clicking the permissions button', async () => {
+    const { registryApi } = await import('../api/registry')
+    registryApi.getUsers.mockResolvedValue([mockUsers[0]])
+    registryApi.getUserPermissions.mockResolvedValue([])
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    await wrapper.findAll('.el-button-group .el-button').at(1).trigger('click')
+    await flushPromises()
+
+    expect(wrapper.vm.showPermissionDialog).toBe(true)
+    expect(registryApi.getUserPermissions).toHaveBeenCalledWith('admin')
+  })
+
+  it('adds a permission through the DOM', async () => {
+    const { registryApi } = await import('../api/registry')
+    const { ElMessage } = await import('element-plus')
+    registryApi.getUsers.mockResolvedValue([mockUsers[0]])
+    registryApi.getUserPermissions.mockResolvedValue([])
+    registryApi.setUserPermission.mockResolvedValue({})
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    await wrapper.findAll('.el-button-group .el-button').at(1).trigger('click')
+    await flushPromises()
+
+    const input = wrapper.find('.permission-controls .el-input')
+    await input.setValue('repo/one')
+    await wrapper.find('.permission-controls .el-button').trigger('click')
+    await flushPromises()
+
+    expect(registryApi.setUserPermission).toHaveBeenCalledWith(
+      'admin',
+      'repo/one',
+      expect.any(Object)
+    )
+    expect(ElMessage.success).toHaveBeenCalledWith('Permission added successfully')
+  })
+
+  it('deletes a permission after confirmation', async () => {
+    const { registryApi } = await import('../api/registry')
+    const { ElMessage, ElMessageBox } = await import('element-plus')
+    registryApi.getUsers.mockResolvedValue([mockUsers[0]])
+    registryApi.getUserPermissions.mockResolvedValue([
+      { repositoryName: 'repo/one', canPull: true, canPush: false },
+    ])
+    registryApi.deleteUserPermission.mockResolvedValue({})
+    ElMessageBox.confirm.mockResolvedValue('confirm')
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    await wrapper.findAll('.el-button-group .el-button').at(1).trigger('click')
+    await flushPromises()
+
+    const deleteBtn = wrapper.findAll('.el-dialog .el-table .el-button').at(0)
+    await deleteBtn.trigger('click')
+    await flushPromises()
+
+    expect(ElMessageBox.confirm).toHaveBeenCalled()
+    expect(registryApi.deleteUserPermission).toHaveBeenCalledWith('admin', 'repo/one')
+    expect(ElMessage.success).toHaveBeenCalledWith('Permission deleted successfully')
+  })
+
+  it('closes permission dialog via the header close button', async () => {
+    const { registryApi } = await import('../api/registry')
+    registryApi.getUsers.mockResolvedValue([mockUsers[0]])
+    registryApi.getUserPermissions.mockResolvedValue([])
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    await wrapper.findAll('.el-button-group .el-button').at(1).trigger('click')
+    await flushPromises()
+
+    await wrapper.find('.el-dialog__close').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.vm.showPermissionDialog).toBe(false)
+  })
+
+  it('edits a user by clicking the edit button', async () => {
+    const { registryApi } = await import('../api/registry')
+    registryApi.getUsers.mockResolvedValue([mockUsers[0]])
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    await wrapper.findAll('.el-button-group .el-button').at(0).trigger('click')
+    await flushPromises()
+
+    expect(wrapper.vm.showCreateDialog).toBe(true)
+    expect(wrapper.vm.editingUser).toStrictEqual(mockUsers[0])
+  })
+
+  it('deletes a user by clicking the delete button and confirming', async () => {
+    const { registryApi } = await import('../api/registry')
+    const { ElMessage, ElMessageBox } = await import('element-plus')
+    registryApi.getUsers.mockResolvedValue([mockUsers[1]])
+    registryApi.deleteUser.mockResolvedValue({})
+    ElMessageBox.confirm.mockResolvedValue('confirm')
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    await wrapper.findAll('.el-button-group .el-button').at(2).trigger('click')
+    await flushPromises()
+
+    expect(ElMessageBox.confirm).toHaveBeenCalled()
+    expect(registryApi.deleteUser).toHaveBeenCalledWith('user')
+    expect(ElMessage.success).toHaveBeenCalledWith('User deleted successfully')
+  })
 })

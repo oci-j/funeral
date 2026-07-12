@@ -396,6 +396,37 @@ describe('TagDetail', () => {
     expect(ElMessage.error).toHaveBeenCalledWith('Failed to copy to clipboard')
   })
 
+  it('formats MB sizes', async () => {
+    const { registryApi } = await import('../api/registry')
+    registryApi.getManifest.mockResolvedValue(mockManifest())
+    registryApi.getManifestInfo.mockResolvedValue({ ...mockManifestInfo(), size: 1024 * 1024 * 2 })
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    expect(wrapper.find('.tag-info-card').text()).toContain('2.00 MB')
+  })
+
+  it('shows non-JSON text content directly', async () => {
+    const { registryApi } = await import('../api/registry')
+    registryApi.getManifest.mockResolvedValue(mockManifest())
+    registryApi.getManifestInfo.mockResolvedValue(mockManifestInfo())
+    registryApi.getBlobContent.mockResolvedValue({
+      type: 'text',
+      content: 'not json',
+      contentType: 'text/plain',
+    })
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    const layerBtn = wrapper.findAll('.layer-card .el-button').find(btn => btn.text().includes('Details'))
+    await layerBtn.trigger('click')
+    await flushPromises()
+
+    expect(wrapper.find('.text-viewer').text()).toBe('not json')
+  })
+
   it('re-fetches when props change', async () => {
     const { registryApi } = await import('../api/registry')
     registryApi.getManifest.mockResolvedValue(mockManifest())
@@ -410,5 +441,71 @@ describe('TagDetail', () => {
     await flushPromises()
 
     expect(registryApi.getManifest).toHaveBeenCalledWith('repo/two', 'v2.0')
+  })
+
+  it('shows config blob content by clicking Details', async () => {
+    const { registryApi } = await import('../api/registry')
+    registryApi.getManifest.mockResolvedValue(mockManifest())
+    registryApi.getManifestInfo.mockResolvedValue(mockManifestInfo())
+    registryApi.getBlobContent.mockResolvedValue({
+      type: 'text',
+      content: '{"config":"data"}',
+      contentType: 'application/json',
+    })
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    const detailBtn = wrapper.findAll('.config-card .el-button').find(btn => btn.text().includes('Details'))
+    expect(detailBtn).toBeDefined()
+    await detailBtn.trigger('click')
+    await flushPromises()
+
+    expect(registryApi.getBlobContent).toHaveBeenCalledWith('repo/one', 'sha256:config', expect.any(String))
+    expect(wrapper.vm.dialogVisible).toBe(true)
+  })
+
+  it('closes the dialog via the header close button', async () => {
+    const { registryApi } = await import('../api/registry')
+    registryApi.getManifest.mockResolvedValue(mockManifest())
+    registryApi.getManifestInfo.mockResolvedValue(mockManifestInfo())
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    await wrapper.find('.tag-info-card .el-button').trigger('click')
+    await flushPromises()
+    expect(wrapper.vm.dialogVisible).toBe(true)
+
+    await wrapper.find('.el-dialog__close').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.vm.dialogVisible).toBe(false)
+  })
+
+  it('copies blob content from the dialog', async () => {
+    const { registryApi } = await import('../api/registry')
+    const { ElMessage } = await import('element-plus')
+    registryApi.getManifest.mockResolvedValue(mockManifest())
+    registryApi.getManifestInfo.mockResolvedValue(mockManifestInfo())
+    registryApi.getBlobContent.mockResolvedValue({
+      type: 'text',
+      content: 'plain blob content',
+      contentType: 'text/plain',
+    })
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    const layerBtn = wrapper.findAll('.layer-card .el-button').find(btn => btn.text().includes('Details'))
+    await layerBtn.trigger('click')
+    await flushPromises()
+
+    const copyBtn = wrapper.findAll('.el-dialog__footer .el-button').at(1)
+    await copyBtn.trigger('click')
+    await flushPromises()
+
+    expect(navigator.clipboard.writeText).toHaveBeenCalledWith('plain blob content')
+    expect(ElMessage.success).toHaveBeenCalledWith('Copied to clipboard')
   })
 })

@@ -97,4 +97,19 @@ describe('router', () => {
     expect(router.currentRoute.value.path).toBe('/login')
     expect(router.currentRoute.value.query.redirect).toBe('/repository/test-repo')
   })
+
+  it('resolves all route component factories', async () => {
+    mockAuthStore.isAuthenticated = true
+    mockAuthStore.isAdmin = true
+    const { default: router } = await importRouter()
+
+    await router.push('/')
+    await router.push('/repository/test-repo')
+    await router.push('/repository/test-repo/tag/v1.0')
+    await router.push('/upload')
+    await router.push('/mirror')
+    await router.push('/mirror-helm')
+
+    expect(router.currentRoute.value.path).toBe('/mirror-helm')
+  })
 })

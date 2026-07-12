@@ -217,4 +217,84 @@ describe('Upload', () => {
     expect(wrapper.vm.handleBeforeUpload(tgzFile)).toBe(true)
     expect(wrapper.vm.handleBeforeUpload(pngFile)).toBe(false)
   })
+
+  it('adds a file through the uploader and uploads', async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => batchResponse,
+    })
+    const { ElMessage } = await import('element-plus')
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    const file = new File(['content'], 'image.tar', { type: 'application/x-tar' })
+    wrapper.findComponent({ name: 'ElUpload' }).vm.$emit('update:file-list', [
+      { name: 'image.tar', raw: file },
+    ])
+    await flushPromises()
+
+    await wrapper.find('.upload-actions .el-button').trigger('click')
+    await flushPromises()
+
+    expect(global.fetch).toHaveBeenCalledWith(
+      '/funeral_addition/write/upload/dockertar/batch',
+      expect.objectContaining({ method: 'POST' })
+    )
+    expect(wrapper.find('.upload-result').exists()).toBe(true)
+    expect(ElMessage.success).toHaveBeenCalled()
+  })
+
+  it('shows error when upload response is not ok', async () => {
+    global.fetch.mockResolvedValue({
+      ok: false,
+      status: 500,
+      statusText: 'Server Error',
+    })
+    const { ElMessage } = await import('element-plus')
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    const file = new File(['content'], 'image.tar', { type: 'application/x-tar' })
+    wrapper.findComponent({ name: 'ElUpload' }).vm.$emit('update:file-list', [
+      { name: 'image.tar', raw: file },
+    ])
+    await flushPromises()
+
+    await wrapper.find('.upload-actions .el-button').trigger('click')
+    await flushPromises()
+
+    expect(ElMessage.error).toHaveBeenCalledWith('Upload failed: Server Error')
+  })
+
+  it('updates docker commands by changing repository and tag via DOM', async () => {
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    const inputs = wrapper.findAll('.config-card .el-input')
+    await inputs.at(0).setValue('my-app')
+    await inputs.at(1).setValue('v1.0')
+    await flushPromises()
+
+    expect(wrapper.vm.repositoryName).toBe('my-app')
+    expect(wrapper.vm.imageTag).toBe('v1.0')
+    expect(wrapper.vm.tagCommand).toContain('my-app:v1.0')
+  })
+
+  it('copies all docker commands to clipboard', async () => {
+    const { ElMessage } = await import('element-plus')
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    const commandInputs = wrapper.findAll('.command-input')
+    for (let i = 0; i < 3; i++) {
+      const copyBtn = commandInputs.at(i).find('.el-button')
+      await copyBtn.trigger('click')
+    }
+    await flushPromises()
+
+    expect(navigator.clipboard.writeText).toHaveBeenCalledTimes(3)
+    expect(ElMessage.success).toHaveBeenCalledWith('Copied to clipboard')
+  })
 })

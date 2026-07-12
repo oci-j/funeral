@@ -1,3 +1,5 @@
+const elTableKey = Symbol('el-table')
+
 const baseStub = (template, options = {}) => ({
   template,
   inheritAttrs: true,
@@ -43,7 +45,7 @@ export const elementStubs = {
     emits: ['update:modelValue', 'closed'],
     inheritAttrs: true,
     template:
-      '<div v-if="modelValue" class="el-dialog"><div v-if="title" class="el-dialog__title">{{ title }}</div><div class="el-dialog__body"><slot /></div><div class="el-dialog__footer"><slot name="footer" /></div></div>',
+      '<div v-if="modelValue" class="el-dialog"><div class="el-dialog__header"><div v-if="title" class="el-dialog__title">{{ title }}</div><button class="el-dialog__close" @click="$emit(\'update:modelValue\', false); $emit(\'closed\')">x</button></div><div class="el-dialog__body"><slot /></div><div class="el-dialog__footer"><slot name="footer" /></div></div>',
   },
   'el-divider': baseStub('<div class="el-divider"><slot /></div>'),
   'el-dropdown': {
@@ -130,8 +132,21 @@ export const elementStubs = {
     inheritAttrs: true,
     template: '<div class="el-tab-pane"><slot /></div>',
   },
-  'el-table': baseStub('<table class="el-table"><slot /></table>'),
-  'el-table-column': baseStub('<col class="el-table-column">'),
+  'el-table': {
+    name: 'ElTable',
+    props: ['data'],
+    provide() {
+      return { [elTableKey]: this }
+    },
+    template: '<table class="el-table"><slot /></table>',
+  },
+  'el-table-column': {
+    name: 'ElTableColumn',
+    props: ['prop', 'label'],
+    inject: { elTable: { from: elTableKey, default: () => null } },
+    template:
+      '<td class="el-table-column"><template v-if="elTable && elTable.data"><div v-for="(row, idx) in elTable.data" :key="idx" class="el-table-cell"><slot :row="row" :$index="idx" /></div></template><slot v-else :row="null" :$index="0" /></td>',
+  },
   'el-tabs': baseStub('<div class="el-tabs"><slot /></div>'),
   'el-tag': baseStub('<span class="el-tag"><slot /></span>'),
   'el-text': {
@@ -141,6 +156,7 @@ export const elementStubs = {
   },
   'el-tooltip': baseStub('<div class="el-tooltip"><slot /></div>'),
   'el-upload': {
+    name: 'ElUpload',
     props: ['fileList', 'autoUpload', 'accept'],
     emits: ['update:file-list'],
     inheritAttrs: true,

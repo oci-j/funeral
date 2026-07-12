@@ -292,4 +292,56 @@ describe('MirrorHelm', () => {
 
     expect(mockRouter.push).toHaveBeenCalledWith('/repository/nginx')
   })
+
+  it('fills all form fields via the DOM and starts mirroring', async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => successResponse,
+    })
+    const { ElMessage } = await import('element-plus')
+
+    const wrapper = createWrapper()
+    await flushPromises()
+
+    await wrapper.find('.mirror-helm-form .el-select').setValue('chartmuseum')
+    const inputs = wrapper.findAll('.mirror-helm-form .el-input')
+    await inputs.at(0).setValue('https://charts.example.com')
+    await inputs.at(1).setValue('nginx')
+    await inputs.at(2).setValue('1.0.0')
+    await inputs.at(3).setValue('my-nginx')
+    await inputs.at(4).setValue('1.0.1')
+    await inputs.at(5).setValue('user')
+    await inputs.at(6).setValue('pass')
+
+    await wrapper.find('.mirror-helm-actions .el-button').trigger('click')
+    await flushPromises()
+
+    const body = global.fetch.mock.calls[0][1].body.toString()
+    expect(body).toContain('sourceRepo=https%3A%2F%2Fcharts.example.com')
+    expect(body).toContain('chartName=nginx')
+    expect(body).toContain('version=1.0.0')
+    expect(body).toContain('targetRepository=my-nginx')
+    expect(body).toContain('targetVersion=1.0.1')
+    expect(body).toContain('format=chartmuseum')
+    expect(body).toContain('username=user')
+    expect(body).toContain('password=pass')
+    expect(ElMessage.success).toHaveBeenCalledWith('Successfully mirrored nginx!')
+  })
+
+  it('resets the form by clicking Reset', async () => {
+    const wrapper = createWrapper()
+    wrapper.vm.form.sourceRepo = 'https://charts.example.com'
+    wrapper.vm.form.chartName = 'nginx'
+    wrapper.vm.form.format = 'chartmuseum'
+    wrapper.vm.form.version = '1.0.0'
+    await flushPromises()
+
+    await wrapper.findAll('.mirror-helm-actions .el-button').at(1).trigger('click')
+    await flushPromises()
+
+    expect(wrapper.vm.form.sourceRepo).toBe('')
+    expect(wrapper.vm.form.chartName).toBe('')
+    expect(wrapper.vm.form.format).toBe('oci')
+    expect(wrapper.vm.form.version).toBe('')
+  })
 })
