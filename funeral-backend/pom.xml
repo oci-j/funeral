@@ -296,6 +296,7 @@
                 <configuration>
                     <systemPropertyVariables>
                         <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                        <jdk.httpclient.allowRestrictedHeaders>Host</jdk.httpclient.allowRestrictedHeaders>
                     </systemPropertyVariables>
                 </configuration>
             </plugin>
