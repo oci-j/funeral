@@ -19,8 +19,12 @@ services:
       S3_BUCKET: ${S3_BUCKET:-oci-registry}
 
       # Storage Backend Selection
-      NO_MONGO: ${NO_MONGO:-false}
-      NO_MINIO: ${NO_MINIO:-false}
+      # OCI_STORAGE_NO_MONGO / OCI_STORAGE_NO_MINIO are the canonical env vars read by the application.
+      # NO_MONGO / NO_MINIO are accepted as legacy aliases for backward compatibility.
+      OCI_STORAGE_NO_MONGO: ${OCI_STORAGE_NO_MONGO:-${NO_MONGO:-false}}
+      OCI_STORAGE_NO_MINIO: ${OCI_STORAGE_NO_MINIO:-${NO_MINIO:-false}}
+      NO_MONGO: ${NO_MONGO:-${OCI_STORAGE_NO_MONGO:-false}}
+      NO_MINIO: ${NO_MINIO:-${OCI_STORAGE_NO_MINIO:-false}}
       LOCAL_STORAGE_PATH: ${LOCAL_STORAGE_PATH:-/tmp/funeral-storage}
 
       # Authentication Configuration

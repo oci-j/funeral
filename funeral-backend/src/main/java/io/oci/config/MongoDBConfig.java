@@ -56,7 +56,7 @@ public class MongoDBConfig {
 
     @ConfigProperty(
             name = "oci.storage.no-mongo",
-            defaultValue = "false"
+            defaultValue = "true"
     )
     boolean noMongo;
 

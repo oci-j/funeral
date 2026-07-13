@@ -302,7 +302,6 @@ jobs:
 
     - name: Start Funeral registry
       run: |
-        set -x
         export LOCAL_STORAGE_PATH=/tmp/funeral-docker-test
         export AUTH_REALM=http://localhost:8911/v2/token
         export AUTH_SERVICE=funeral-registry
