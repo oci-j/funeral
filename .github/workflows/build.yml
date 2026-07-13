@@ -337,8 +337,8 @@ jobs:
 
     - name: Verify with Funeral CLI
       run: |
-        java -jar funeral-jvm/funeral.jar login localhost:8911 -u admin -p password
-        java -jar funeral-jvm/funeral.jar repo list localhost:8911
+        java -Dquarkus.http.port=0 -jar funeral-jvm/funeral.jar login localhost:8911 -u admin -p password
+        java -Dquarkus.http.port=0 -jar funeral-jvm/funeral.jar repo list localhost:8911
 
     - name: Stop Funeral registry
       if: always()
