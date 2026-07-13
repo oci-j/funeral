@@ -204,11 +204,14 @@ jobs:
       working-directory: ./funeral-backend
       run: |
         chmod +x target/funeral
+        export NO_MONGO=true
+        export NO_MINIO=true
+        export MONGO_URL=mongodb://127.0.0.1:27017
         echo "=== CLI version check ==="
         ./target/funeral --version
         ./target/funeral version
         echo "=== Start server and health check ==="
-        ./target/funeral serve &
+        ./target/funeral serve > /tmp/funeral-server.log 2>&1 &
         SERVER_PID=$!
         for i in {1..30}; do
           if curl -sf http://localhost:8911/funeral_addition/health >/dev/null 2>&1; then
@@ -220,8 +223,10 @@ jobs:
           sleep 1
         done
         echo "Health check failed"
+        cat /tmp/funeral-server.log || true
         kill $SERVER_PID 2>/dev/null || true
         exit 1
+
 
     - name: Upload Native Binary
       uses: actions/upload-artifact@v7
@@ -303,6 +308,7 @@ jobs:
         export AUTH_SERVICE=funeral-registry
         export NO_MONGO=true
         export NO_MINIO=true
+        export MONGO_URL=mongodb://127.0.0.1:27017
         java -jar funeral-jvm/funeral.jar serve > /tmp/funeral-server.log 2>&1 &
         echo "SERVER_PID=$!" >> $GITHUB_ENV
         for i in {1..30}; do
