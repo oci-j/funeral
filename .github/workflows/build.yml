@@ -262,6 +262,13 @@ jobs:
         name: funeral-jvm-${{ github.sha }}
         path: funeral-jvm
 
+    - name: Verify JVM JAR
+      run: |
+        ls -la funeral-jvm
+        file funeral-jvm/funeral.jar
+        java -version
+        java -jar funeral-jvm/funeral.jar --version
+
     - name: Configure Docker insecure registry
       run: |
         python3 - <<'PY' > /tmp/daemon.json
@@ -290,9 +297,12 @@ jobs:
 
     - name: Start Funeral registry
       run: |
+        set -x
         export LOCAL_STORAGE_PATH=/tmp/funeral-docker-test
         export AUTH_REALM=http://localhost:8911/v2/token
         export AUTH_SERVICE=funeral-registry
+        export NO_MONGO=true
+        export NO_MINIO=true
         java -jar funeral-jvm/funeral.jar serve > /tmp/funeral-server.log 2>&1 &
         echo "SERVER_PID=$!" >> $GITHUB_ENV
         for i in {1..30}; do
@@ -303,7 +313,12 @@ jobs:
           sleep 1
         done
         echo "Funeral registry did not become healthy"
+        echo "=== Server log ==="
         cat /tmp/funeral-server.log || true
+        echo "=== Active processes ==="
+        ps aux | grep -i funeral || true
+        echo "=== Listening ports ==="
+        ss -tlnp 2>/dev/null || netstat -tlnp 2>/dev/null || true
         exit 1
 
     - name: Docker login, push and pull
