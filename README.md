@@ -63,6 +63,44 @@ QUARKUS_BANNER_ENABLED=false QUARKUS_LOG_CONSOLE_ENABLE=false \
 zsh users can load the bash script via `autoload -U +X bashcompinit && bashcompinit` and then
 `source funeral-completion.bash`.
 
+# CLI Commands
+
+Quick reference (full documentation with all options and examples:
+[docs/cli-usage.md](docs/cli-usage.md), or run `funeral <command> --help`):
+
+```shell
+# Session
+funeral login 192.168.8.9:8911 -u admin -p password
+funeral logout 192.168.8.9:8911
+
+# Repositories & tags
+funeral repo list
+funeral repo rm myrepo
+funeral tag list myrepo
+funeral tag rm myrepo latest
+
+# Mirroring
+funeral mirror image docker.io/library/alpine:3.20 --to library/alpine
+funeral mirror helm https://charts.bitnami.com/bitnami nginx --version 15.4.0
+
+# Import & export
+funeral import docker.io/library/alpine:3.20 -t local
+funeral export library/alpine:3.20 --to registry2.example.com/library/alpine:3.20
+
+# Admin
+funeral admin user list
+funeral admin user create alice --email alice@example.com --role USER
+funeral admin permission set alice myrepo --pull --push
+
+# Misc
+funeral health
+funeral version
+funeral serve
+```
+
+Note: every CLI command boots a Quarkus instance and binds the HTTP port; if a server is
+already running locally, give the CLI a random port with `-Dquarkus.http.port=0`.
+
 # Develop
 
 1. setup
