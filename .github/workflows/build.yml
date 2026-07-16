@@ -210,6 +210,14 @@ jobs:
         echo "=== CLI version check ==="
         ./target/funeral --version
         ./target/funeral version
+        echo "=== Shell completion smoke ==="
+        QUARKUS_BANNER_ENABLED=false QUARKUS_LOG_CONSOLE_ENABLE=false \
+          ./target/funeral generate-completion > /tmp/funeral-generated-completion.bash
+        bash -n /tmp/funeral-generated-completion.bash
+        bash -n target/funeral-completion.bash
+        ./target/funeral __complete -- "" | grep -q '^serve$'
+        ./target/funeral __complete -- repo "" | grep -q '^list$'
+        ./target/funeral __complete -- mirror helm --format "" | grep -q '^oci$'
         echo "=== Start server and health check ==="
         ./target/funeral serve > /tmp/funeral-server.log 2>&1 &
         SERVER_PID=$!
@@ -499,6 +507,8 @@ jobs:
           find artifacts -type f -name "*funeral*" | head -20
           exit 1
         fi
+        # Copy bash completion script from the source tree
+        cp funeral-backend/src/main/scripts/funeral-completion.bash release-files/funeral-completion.bash
         # Create checksums
         cd release-files
         sha256sum * > checksums.txt
@@ -513,6 +523,7 @@ jobs:
         files: |
           release-files/funeral-${{ env.VERSION }}
           release-files/funeral-${{ env.VERSION }}.jar
+          release-files/funeral-completion.bash
           release-files/checksums.txt
         body: |
           ## 🎉 Funeral OCI Registry ${{ github.ref_name }}
@@ -545,6 +556,13 @@ jobs:
           ./funeral-${{ env.VERSION }} --help
           ./funeral-${{ env.VERSION }} login 192.168.8.9:8911 -u admin -p password
           ./funeral-${{ env.VERSION }} repo list
+          ```
+
+          #### Shell Completion (bash)
+          ```bash
+          sudo cp funeral-completion.bash /etc/bash_completion.d/funeral
+          # the script completes the `funeral` command name; symlink or alias your binary:
+          # sudo ln -s "$PWD/funeral-${{ env.VERSION }}" /usr/local/bin/funeral
           ```
 
           ### 🏗️ Build Details

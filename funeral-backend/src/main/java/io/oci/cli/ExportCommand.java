@@ -48,6 +48,7 @@ public class ExportCommand implements Callable<Integer> {
                     "--from"
             },
             defaultValue = "local",
+            completionCandidates = io.oci.cli.complete.StaticCandidates.OutputType.class,
             description = "Source type: local, docker, oci"
     )
     String fromType;

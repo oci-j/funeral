@@ -54,6 +54,8 @@ public class FuneralClient {
 
     private final Credentials credentials;
 
+    private final Duration requestTimeout;
+
     private final ObjectMapper mapper = new ObjectMapper().registerModule(
             new JavaTimeModule()
     )
@@ -79,16 +81,33 @@ public class FuneralClient {
             String hostOverride,
             Credentials credentials
     ) {
+        this(
+                registry,
+                hostOverride,
+                credentials,
+                Duration.ofSeconds(
+                        10
+                ),
+                null
+        );
+    }
+
+    public FuneralClient(
+            String registry,
+            String hostOverride,
+            Credentials credentials,
+            Duration connectTimeout,
+            Duration requestTimeout
+    ) {
         this.baseUrl = baseUrl(
                 registry
         );
         this.hostOverride = hostOverride;
         this.credentials = credentials;
+        this.requestTimeout = requestTimeout;
         this.httpClient = HttpClient.newBuilder()
                 .connectTimeout(
-                        Duration.ofSeconds(
-                                10
-                        )
+                        connectTimeout
                 )
                 .build();
     }
@@ -123,6 +142,9 @@ public class FuneralClient {
                 )
         );
         addHost(
+                builder
+        );
+        applyTimeout(
                 builder
         );
         HttpRequest request = builder.header(
@@ -279,6 +301,9 @@ public class FuneralClient {
         addHost(
                 builder
         );
+        applyTimeout(
+                builder
+        );
         addAuth(
                 builder
         );
@@ -376,6 +401,9 @@ public class FuneralClient {
         addHost(
                 builder
         );
+        applyTimeout(
+                builder
+        );
         addAuth(
                 builder
         );
@@ -445,6 +473,9 @@ public class FuneralClient {
         addHost(
                 builder
         );
+        applyTimeout(
+                builder
+        );
         addAuth(
                 builder
         );
@@ -476,6 +507,16 @@ public class FuneralClient {
             builder.header(
                     "Host",
                     hostOverride
+            );
+        }
+    }
+
+    private void applyTimeout(
+            HttpRequest.Builder builder
+    ) {
+        if (requestTimeout != null) {
+            builder.timeout(
+                    requestTimeout
             );
         }
     }

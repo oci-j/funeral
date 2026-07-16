@@ -148,6 +148,7 @@ public class MirrorCommand {
                         "--format"
                 },
                 description = "Source format: oci or chartmuseum",
+                completionCandidates = io.oci.cli.complete.StaticCandidates.Format.class,
                 defaultValue = "oci"
         )
         String format;

@@ -21,7 +21,9 @@ import picocli.CommandLine;
                 ImportCommand.class,
                 ExportCommand.class,
                 VersionCommand.class,
-                HealthCommand.class
+                HealthCommand.class,
+                CompleteCommand.class,
+                picocli.AutoComplete.GenerateCompletion.class
         },
         description = "Funeral OCI Registry CLI"
 )

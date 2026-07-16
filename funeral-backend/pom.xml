@@ -315,6 +315,7 @@
                                 <copy file="${project.build.directory}/funeral-${project.version}-runner.jar" tofile="${project.build.directory}/funeral.jar" overwrite="true" failonerror="false"/>
                                 <copy file="${project.build.directory}/funeral-${project.version}-runner" tofile="${project.build.directory}/funeral" overwrite="true" failonerror="false"/>
                                 <chmod file="${project.build.directory}/funeral" perm="+x"/>
+                                <copy file="${project.basedir}/src/main/scripts/funeral-completion.bash" tofile="${project.build.directory}/funeral-completion.bash" overwrite="true"/>
                             </target>
                         </configuration>
                     </execution>

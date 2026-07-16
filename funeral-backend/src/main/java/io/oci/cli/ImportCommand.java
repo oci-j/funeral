@@ -34,6 +34,7 @@ public class ImportCommand implements Callable<Integer> {
                     "-t", "--to"
             },
             defaultValue = "local",
+            completionCandidates = io.oci.cli.complete.StaticCandidates.OutputType.class,
             description = "Output type: local, docker, oci"
     )
     String outputType;

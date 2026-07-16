@@ -1,5 +1,7 @@
 package io.oci.cli;
 
+import java.time.Duration;
+
 import io.oci.cli.auth.CompositeCredentialsStore;
 import io.oci.cli.auth.Credentials;
 import io.oci.cli.auth.CredentialsStore;
@@ -35,6 +37,35 @@ public class CliHelper {
                 resolvedRegistry,
                 authDomain,
                 credentials
+        );
+    }
+
+    public static FuneralClient createClient(
+            String registry,
+            Duration connectTimeout,
+            Duration requestTimeout
+    ) {
+        ConfigManager configManager = new ConfigManager();
+        String resolvedRegistry = RegistryResolver.resolve(
+                registry,
+                configManager
+        );
+        String authDomain = RegistryResolver.resolveAuthDomain(
+                registry,
+                configManager
+        );
+        CredentialsStore store = new CompositeCredentialsStore(
+                configManager
+        );
+        Credentials credentials = store.load(
+                authDomain
+        );
+        return new FuneralClient(
+                resolvedRegistry,
+                authDomain,
+                credentials,
+                connectTimeout,
+                requestTimeout
         );
     }
 
