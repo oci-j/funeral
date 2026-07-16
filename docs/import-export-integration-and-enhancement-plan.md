@@ -111,4 +111,4 @@ mvn -B test -Dtest='!*MirrorResourceTest'
 - `ImportExportIntegrationTest` 已建，6 个用例全部通过：`testImportToLocalStorage`、`testImportToOciLayout`、`testExportFromLocalToFuneralServer`、`testExportHostHeaderOverride`、`testExportToMultipleTargets`、`testExportContinueOnError`。
 - 可选的 `testImportWithBasicAuth` 未实现。
 - `--continue-on-error` 已加入 `ExportCommand`；`--platform` 已加入 `ImportCommand` / `ExportCommand`。
-- 命令/选项的最终用户文档见 `docs/cli-usage.md`。
+- 命令/选项的最终用户文档见 `docs/cli-usage.zh-CN.md`。

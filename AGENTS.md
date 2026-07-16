@@ -24,3 +24,5 @@ When a code change alters behavior, commands, options, configuration, or CI work
 - `docs/cli-usage.md` for CLI subcommand/option/config changes.
 - Other `docs/*.md` for their respective topics.
 - For `docs/*-plan.md` historical plan documents, do not silently rewrite them; append a dated execution/update note instead.
+
+`README.md` and `docs/cli-usage.md` are bilingual: the unsuffixed file is English (canonical) and the `.zh-CN.md` file is the Chinese version. Keep both in sync in the same commit, and keep their mutual language links (`[English](...) | [简体中文](...)`) intact.

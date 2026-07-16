@@ -2,7 +2,7 @@
 
 > ✅ 本计划已执行完成（2026-07-13）。各阶段完成状态与提交 SHA 见
 > [`docs/complete-tasks-plan.md`](./complete-tasks-plan.md) 的执行状态表；
-> 其中 §3.2 提到的 CLI 用法文档已由 [`docs/cli-usage.md`](./cli-usage.md) 落地。
+> 其中 §3.2 提到的 CLI 用法文档已由 [`docs/cli-usage.zh-CN.md`](./cli-usage.zh-CN.md) 落地。
 
 ## 目标
 
