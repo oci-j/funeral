@@ -1,5 +1,9 @@
 # 下一阶段执行计划：RegistryClient 抽象与 MirrorResource 可测试化
 
+> ✅ 本计划已执行完成（2026-07-13）。各阶段完成状态与提交 SHA 见
+> [`docs/complete-tasks-plan.md`](./complete-tasks-plan.md) 的执行状态表；
+> 其中 §3.2 提到的 CLI 用法文档已由 [`docs/cli-usage.md`](./cli-usage.md) 落地。
+
 ## 目标
 
 - 解决 `MirrorResourceTest` 依赖外部网络的问题，使 `mvn -B test` 不再排除任何测试即可全绿。

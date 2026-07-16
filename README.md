@@ -19,14 +19,14 @@ Startup in no auth mode:
 
 ```shell
 export AUTH_ENABLED=false
-./funeral-0.1.8-runner
+./funeral-0.2.0-runner
 ```
 
 Or, startup in default auth mode:
 
 ```shell
 export AUTH_REALM=http://your-local-ip:8911/v2/token
-./funeral-0.1.8-runner
+./funeral-0.2.0-runner
 ```
 
 Otherwise, you can copy&modify the [application.yml](funeral-backend/src/main/resources/application.yml) to config minio & mongo connection & other configs
@@ -34,7 +34,7 @@ Otherwise, you can copy&modify the [application.yml](funeral-backend/src/main/re
 Like this:
 
 ```shell
-./funeral-0.1.8-runner -Dquarkus.config.locations=file:/home/xenoamess/funeral/application.yml
+./funeral-0.2.0-runner -Dquarkus.config.locations=file:/home/xenoamess/funeral/application.yml
 ```
 
 # Shell Completion (bash)

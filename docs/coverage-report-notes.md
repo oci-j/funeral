@@ -47,6 +47,16 @@ Date: 2026-07-12
 - Consider adding coverage thresholds once the project is stable, or keep the current "collect only, no gate" policy.
 - If more CI jobs produce coverage in the future, reuse the `jacoco:merge` pattern.
 
+## 2026-07-17 update
+
+- `build-jvm` now runs the full `mvn -B test` **without any exclusions**:
+  `MirrorResourceTest` was made offline via the `RegistryClient` abstraction
+  (see `docs/complete-tasks-plan.md` phase B), so the `-Dtest='!*MirrorResourceTest'`
+  exclusion mentioned above no longer exists in `build.yml`.
+- `ImportExportIntegrationTest` now also passes locally: surefire sets
+  `jdk.httpclient.allowRestrictedHeaders=Host` in `funeral-backend/pom.xml`,
+  so the JDK "restricted header name: Host" failure noted below is resolved.
+
 ## Post-merge check
 
 - 2026-07-12: Merged PR #28 (`build(deps-dev): bump vite from 5.4.21 to 8.1.4 in /funeral-frontend`).

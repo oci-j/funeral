@@ -100,3 +100,15 @@ mvn -B test -Dtest='!*MirrorResourceTest'
 ---
 
 *计划创建时间：2026-07-12*
+
+---
+
+## 执行记录（2026-07-17 补记）
+
+本计划已执行完成：
+
+- `MockRegistryServer` 已建于 `funeral-backend/src/test/java/io/oci/cli/oci/MockRegistryServer.java`（含 baseUrl / Host 头记录 / 上传体断言）。
+- `ImportExportIntegrationTest` 已建，6 个用例全部通过：`testImportToLocalStorage`、`testImportToOciLayout`、`testExportFromLocalToFuneralServer`、`testExportHostHeaderOverride`、`testExportToMultipleTargets`、`testExportContinueOnError`。
+- 可选的 `testImportWithBasicAuth` 未实现。
+- `--continue-on-error` 已加入 `ExportCommand`；`--platform` 已加入 `ImportCommand` / `ExportCommand`。
+- 命令/选项的最终用户文档见 `docs/cli-usage.md`。

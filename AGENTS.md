@@ -15,3 +15,12 @@ By default, after completing a coding task, stage the intended changes, create a
 - Review `git status`, `git diff`, and recent commits.
 - Stage only the files intended for the task.
 - Never update git config, force-push, or amend failed commits unless explicitly requested.
+
+## Documentation
+
+When a code change alters behavior, commands, options, configuration, or CI workflows that are described in the documentation, update the corresponding docs in the same commit (or explicitly state why no doc update is needed):
+
+- `README.md` for user-facing quick reference and usage.
+- `docs/cli-usage.md` for CLI subcommand/option/config changes.
+- Other `docs/*.md` for their respective topics.
+- For `docs/*-plan.md` historical plan documents, do not silently rewrite them; append a dated execution/update note instead.

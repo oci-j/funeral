@@ -1,5 +1,7 @@
 # Containerd Image Store 集成计划（bbolt-java 方案）
 
+> ✅ 本计划描述的功能已实现并合入主线（2026-07），内容已与当前代码核对一致。
+
 ## 目标
 
 在 Docker Engine 29+ 启用 **containerd image store** 的场景下，即使 Docker Daemon 不可用，Funeral 也能通过读取宿主的 containerd metadata 把 `repo:tag` 解析为 manifest digest，并进一步读取 manifest 与 blob。

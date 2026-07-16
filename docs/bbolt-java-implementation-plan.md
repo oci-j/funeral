@@ -218,3 +218,16 @@ mvn -B -f ../bbolt-java/pom.xml install -DskipTests
 - Quarkus native 编译中 `bbolt-java` 使用纯 Java NIO，理论上不需要额外 reflection 配置；
   若使用 `MappedByteBuffer` 可能需 runtime 初始化，因此采用 `RandomAccessFile` / `FileChannel` 读取。
 - GitHub 仓库 `oci-j/bbolt-java` 尚未创建，需要在本地初始化后推送。
+
+---
+
+## 执行记录（2026-07-17 补记）
+
+本计划已执行完成：
+
+- `oci-j/bbolt-java` 仓库已创建并推送，`0.1.0-SNAPSHOT` 纯 Java NIO 只读实现。
+- funeral 端 `MetadataDbImageIdFinder` / `ContainerdFileResolver` / `DockerStorageModeDetector`
+  已按 bbolt 方案落地（详见 `docs/metadata-db-integration-plan.md`），
+  bolt-jna / sqlite-jdbc / protobuf-java 依赖均已移除。
+- CI（`build.yml`）在 funeral 构建前 clone 并 `mvn install` bbolt-java；
+  `containerd-image-store-integration` job 与 native 构建均通过。
