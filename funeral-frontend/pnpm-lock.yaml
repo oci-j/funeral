@@ -47,7 +47,7 @@ importers:
         version: 6.0.8(vite@8.1.5(@types/node@26.1.1)(yaml@2.9.0))(vue@3.5.40)
       '@vitest/coverage-v8':
         specifier: ^2.1.9
-        version: 2.1.9(vitest@2.1.9(@types/node@26.1.1)(happy-dom@20.10.6)(lightningcss@1.32.0))
+        version: 2.1.9(vitest@2.1.9(@types/node@26.1.1)(happy-dom@20.11.0)(lightningcss@1.32.0))
       '@vue/test-utils':
         specifier: ^2.4.11
         version: 2.4.11(@vue/compiler-dom@3.5.40)(@vue/server-renderer@3.5.40)(vue@3.5.40)
@@ -64,8 +64,8 @@ importers:
         specifier: ^17.7.0
         version: 17.7.0
       happy-dom:
-        specifier: ^20.10.6
-        version: 20.10.6
+        specifier: ^20.11.0
+        version: 20.11.0
       prettier:
         specifier: ^3.9.5
         version: 3.9.5
@@ -80,7 +80,7 @@ importers:
         version: 8.1.5(@types/node@26.1.1)(yaml@2.9.0)
       vitest:
         specifier: ^2.1.9
-        version: 2.1.9(@types/node@26.1.1)(happy-dom@20.10.6)(lightningcss@1.32.0)
+        version: 2.1.9(@types/node@26.1.1)(happy-dom@20.11.0)(lightningcss@1.32.0)
       vue-eslint-parser:
         specifier: ^10.4.1
         version: 10.4.1(eslint@10.7.0)
@@ -1093,8 +1093,8 @@ packages:
     resolution: {integrity: sha512-Czmyns5dUsq4seFBR/Kdydhmo8y9kC79hiSkPn0YcGtNnYWnrgt0vjrSjx9tspoDGWm2CMarffRuLjM4xUz8xg==}
     engines: {node: '>=18'}
 
-  happy-dom@20.10.6:
-    resolution: {integrity: sha512-6QD0ilzDDt93tX44y8tbmZdAcdTRYDhUP+Asgi6pC8Pp5IA3cvaZGyoVN/EGtlq9ziT65iPuBBn3ASLr6hCgVw==}
+  happy-dom@20.11.0:
+    resolution: {integrity: sha512-XogN4asPd1a56di9prVG6bZxteNcXsZxxKmAvcEfc5Px5Ca2hMyMgk8wvqK2K1V8zXg40j9VANXsDaJYh9DeNA==}
     engines: {node: '>=20.0.0'}
 
   has-flag@4.0.0:
@@ -1825,8 +1825,8 @@ packages:
     resolution: {integrity: sha512-si7QWI6zUMq56bESFvagtmzMdGOtoxfR+Sez11Mobfc7tm+VkUckk9bW2UeffTGVUbOksxmSw0AA2gs8g71NCQ==}
     engines: {node: '>=12'}
 
-  ws@8.21.0:
-    resolution: {integrity: sha512-Vsp28b7DRcimFQvrqu2Wek3z1iYxDCWqHYB8Qsnk/S4RfaCQzPGPyBNuVjJV3cd6UiKtUtp6sNM77gWvzcCH+g==}
+  ws@8.21.1:
+    resolution: {integrity: sha512-+0NTnW77fFN/DjQi6k/Sq/Yvk4Sgajw7urW8V+asjXnRgDs9gyGkdb7EzgfhA4goXsRIZKE28fzIXBHEzhuiWw==}
     engines: {node: '>=10.0.0'}
     peerDependencies:
       bufferutil: ^4.0.1
@@ -2257,7 +2257,7 @@ snapshots:
       vite: 8.1.5(@types/node@26.1.1)(yaml@2.9.0)
       vue: 3.5.40
 
-  '@vitest/coverage-v8@2.1.9(vitest@2.1.9(@types/node@26.1.1)(happy-dom@20.10.6)(lightningcss@1.32.0))':
+  '@vitest/coverage-v8@2.1.9(vitest@2.1.9(@types/node@26.1.1)(happy-dom@20.11.0)(lightningcss@1.32.0))':
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@bcoe/v8-coverage': 0.2.3
@@ -2271,7 +2271,7 @@ snapshots:
       std-env: 3.10.0
       test-exclude: 7.0.2
       tinyrainbow: 1.2.0
-      vitest: 2.1.9(@types/node@26.1.1)(happy-dom@20.10.6)(lightningcss@1.32.0)
+      vitest: 2.1.9(@types/node@26.1.1)(happy-dom@20.11.0)(lightningcss@1.32.0)
     transitivePeerDependencies:
       - supports-color
 
@@ -2757,7 +2757,7 @@ snapshots:
 
   globals@17.7.0: {}
 
-  happy-dom@20.10.6:
+  happy-dom@20.11.0:
     dependencies:
       '@types/node': 26.1.1
       '@types/whatwg-mimetype': 3.0.2
@@ -2765,7 +2765,7 @@ snapshots:
       buffer-image-size: 0.6.4
       entities: 7.0.1
       whatwg-mimetype: 3.0.0
-      ws: 8.21.0
+      ws: 8.21.1
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -3333,7 +3333,7 @@ snapshots:
       fsevents: 2.3.3
       yaml: 2.9.0
 
-  vitest@2.1.9(@types/node@26.1.1)(happy-dom@20.10.6)(lightningcss@1.32.0):
+  vitest@2.1.9(@types/node@26.1.1)(happy-dom@20.11.0)(lightningcss@1.32.0):
     dependencies:
       '@vitest/expect': 2.1.9
       '@vitest/mocker': 2.1.9(vite@5.4.21(@types/node@26.1.1)(lightningcss@1.32.0))
@@ -3357,7 +3357,7 @@ snapshots:
       why-is-node-running: 2.3.0
     optionalDependencies:
       '@types/node': 26.1.1
-      happy-dom: 20.10.6
+      happy-dom: 20.11.0
     transitivePeerDependencies:
       - less
       - lightningcss
@@ -3457,7 +3457,7 @@ snapshots:
       string-width: 5.1.2
       strip-ansi: 7.2.0
 
-  ws@8.21.0: {}
+  ws@8.21.1: {}
 
   xml-name-validator@4.0.0: {}
 
