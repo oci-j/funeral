@@ -14,9 +14,10 @@ export const useAuthStore = defineStore('auth', () => {
     return authEnabled.value ? !!token.value : true
   })
   // When auth is disabled, treat all users as admin
-  const isAdmin = computed(() =>
-    authEnabled.value ? user.value?.roles?.includes('ADMIN') || false : false
-  )
+  const isAdmin = computed(() => {
+    if (authEnabled.value === false) return true
+    return user.value?.roles?.includes('ADMIN') || false
+  })
 
   const checkAuthConfig = async () => {
     // If already checked or currently checking, return immediately
