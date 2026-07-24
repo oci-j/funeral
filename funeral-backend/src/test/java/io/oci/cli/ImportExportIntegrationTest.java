@@ -408,6 +408,185 @@ public class ImportExportIntegrationTest {
         );
     }
 
+    private Path prepareOciLayout() throws IOException {
+        byte[] configBytes = CONFIG.getBytes(
+                StandardCharsets.UTF_8
+        );
+        byte[] layerBytes = LAYER.getBytes(
+                StandardCharsets.UTF_8
+        );
+        String configDigest = DigestUtil.sha256(
+                configBytes
+        );
+        String layerDigest = DigestUtil.sha256(
+                layerBytes
+        );
+        String manifest = "{\"schemaVersion\":2,\"mediaType\":\"application/vnd.oci.image.manifest.v1+json\",\"config\":{\"mediaType\":\"application/vnd.oci.image.config.v1+json\",\"digest\":\""
+                + configDigest + "\",\"size\":" + configBytes.length
+                + "},\"layers\":[{\"mediaType\":\"application/vnd.oci.image.layer.v1.tar+gzip\",\"digest\":\""
+                + layerDigest + "\",\"size\":" + layerBytes.length + "}]}";
+        byte[] manifestBytes = manifest.getBytes(
+                StandardCharsets.UTF_8
+        );
+        String manifestDigest = DigestUtil.sha256(
+                manifestBytes
+        );
+
+        Path ociDir = tempDir.resolve(
+                "oci-layout"
+        );
+        Path blobDir = ociDir.resolve(
+                "blobs/sha256"
+        );
+        Files.createDirectories(
+                blobDir
+        );
+        Files.write(
+                blobDir.resolve(
+                        manifestDigest.substring(
+                                "sha256:".length()
+                        )
+                ),
+                manifestBytes
+        );
+        Files.write(
+                blobDir.resolve(
+                        configDigest.substring(
+                                "sha256:".length()
+                        )
+                ),
+                configBytes
+        );
+        Files.write(
+                blobDir.resolve(
+                        layerDigest.substring(
+                                "sha256:".length()
+                        )
+                ),
+                layerBytes
+        );
+
+        String index = "{\"schemaVersion\":2,\"mediaType\":\"application/vnd.oci.image.index.v1+json\","
+                + "\"manifests\":[{\"mediaType\":\"application/vnd.oci.image.manifest.v1+json\"," + "\"digest\":\""
+                + manifestDigest + "\",\"size\":" + manifestBytes.length
+                + ",\"annotations\":{\"org.opencontainers.image.ref.name\":\"" + TAG + "\"}}]}";
+        Files.write(
+                ociDir.resolve(
+                        "index.json"
+                ),
+                index.getBytes(
+                        StandardCharsets.UTF_8
+                )
+        );
+        return ociDir;
+    }
+
+    @Test
+    public void testExportFromOciLayout() throws Exception {
+        Path ociDir = prepareOciLayout();
+
+        ExportCommand cmd = new ExportCommand();
+        new CommandLine(
+                cmd
+        ).parseArgs(
+                IMAGE_REF,
+                "--to",
+                IMAGE_REF,
+                "--from",
+                "oci",
+                "--oci-dir",
+                ociDir.toString(),
+                "--server",
+                server.baseUrl()
+        );
+        Integer exitCode = cmd.call();
+
+        assertEquals(
+                0,
+                exitCode
+        );
+        assertEquals(
+                1,
+                server.uploadCount()
+        );
+    }
+
+    @Test
+    public void testExportOciSourceWithoutOciDir() throws Exception {
+        ExportCommand cmd = new ExportCommand();
+        new CommandLine(
+                cmd
+        ).parseArgs(
+                IMAGE_REF,
+                "--to",
+                IMAGE_REF,
+                "--from",
+                "oci",
+                "--server",
+                server.baseUrl()
+        );
+        Integer exitCode = cmd.call();
+
+        assertEquals(
+                1,
+                exitCode
+        );
+        assertEquals(
+                0,
+                server.uploadCount()
+        );
+    }
+
+    @Test
+    public void testExportUnknownSourceType() throws Exception {
+        ExportCommand cmd = new ExportCommand();
+        new CommandLine(
+                cmd
+        ).parseArgs(
+                IMAGE_REF,
+                "--to",
+                IMAGE_REF,
+                "--from",
+                "bogus",
+                "--server",
+                server.baseUrl()
+        );
+        Integer exitCode = cmd.call();
+
+        assertEquals(
+                1,
+                exitCode
+        );
+    }
+
+    @Test
+    public void testExportFromLocalMissingImage() throws Exception {
+        Path storageDir = tempDir.resolve(
+                "empty-storage"
+        );
+
+        ExportCommand cmd = new ExportCommand();
+        new CommandLine(
+                cmd
+        ).parseArgs(
+                IMAGE_REF,
+                "--to",
+                IMAGE_REF,
+                "--from",
+                "local",
+                "--storage",
+                storageDir.toString(),
+                "--server",
+                server.baseUrl()
+        );
+        Integer exitCode = cmd.call();
+
+        assertEquals(
+                1,
+                exitCode
+        );
+    }
+
     @Test
     public void testExportContinueOnError() throws Exception {
         Path storageDir = tempDir.resolve(

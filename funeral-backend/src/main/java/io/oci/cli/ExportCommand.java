@@ -107,9 +107,19 @@ public class ExportCommand implements Callable<Integer> {
         ImageReference source = ImageReference.parse(
                 sourceRef
         );
-        SourceBundle bundle = resolveSource(
-                source
-        );
+        final SourceBundle sourceBundle;
+        try {
+            sourceBundle = resolveSource(
+                    source
+            );
+        }
+        catch (Exception e) {
+            System.err.println(
+                    "Export failed: " + e.getMessage()
+            );
+            return 1;
+        }
+        SourceBundle bundle = sourceBundle;
         ImagePackager.ResolvedManifest resolved = ImagePackager.resolveImageManifest(
                 bundle.manifestBytes,
                 bundle.mediaType,
