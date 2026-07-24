@@ -94,6 +94,57 @@ describe('FilePreview', () => {
     expect(wrapper.find('.el-alert--warning').exists()).toBe(true)
   })
 
+  it('treats large files without text extension as binary', async () => {
+    const size = 1024 * 1024 + 10
+    const buffer = new Uint8Array(size).buffer
+    const wrapper = createWrapper({ fileName: 'data.dat', fileContent: buffer, fileSize: size })
+    await openDialog(wrapper)
+
+    expect(wrapper.vm.contentType).toBe('binary')
+    expect(wrapper.find('.binary-viewer').exists()).toBe(true)
+  })
+
+  it('treats content with mostly high bytes as binary', async () => {
+    const bytes = new Uint8Array(100)
+    bytes.fill(0x80, 0, 60)
+    bytes.fill(0x61, 60)
+    const wrapper = createWrapper({ fileName: 'data.dat', fileContent: bytes.buffer, fileSize: 100 })
+    await openDialog(wrapper)
+
+    expect(wrapper.vm.contentType).toBe('binary')
+  })
+
+  it('treats invalid UTF-8 with few high bytes and no control chars as text', async () => {
+    const bytes = new Uint8Array(100)
+    bytes.fill(0x61, 0, 80)
+    bytes.fill(0x80, 80)
+    const wrapper = createWrapper({ fileName: 'data.dat', fileContent: bytes.buffer, fileSize: 100 })
+    await openDialog(wrapper)
+
+    expect(wrapper.vm.contentType).toBe('text')
+    expect(wrapper.find('.text-viewer').exists()).toBe(true)
+  })
+
+  it('handles files without extension using content detection', async () => {
+    const wrapper = createWrapper({ fileName: 'Dockerfile', fileContent: 'FROM alpine', fileSize: 11 })
+    await openDialog(wrapper)
+
+    expect(wrapper.vm.contentType).toBe('text')
+    expect(wrapper.find('.text-content').text()).toBe('FROM alpine')
+  })
+
+  it('renders invalid JSON content as stringified null data', async () => {
+    const wrapper = createWrapper({
+      fileName: 'broken.json',
+      fileContent: '{ not valid json',
+      fileSize: 16,
+    })
+    await openDialog(wrapper)
+
+    expect(wrapper.vm.contentType).toBe('json')
+    expect(wrapper.vm.jsonData).toBeNull()
+  })
+
   it('shows error when file content is missing', async () => {
     const wrapper = createWrapper({ fileName: '' })
     await openDialog(wrapper)

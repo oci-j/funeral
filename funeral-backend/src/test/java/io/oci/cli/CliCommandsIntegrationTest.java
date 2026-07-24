@@ -210,4 +210,37 @@ public class CliCommandsIntegrationTest {
                 "Credentials file should contain username"
         );
     }
+
+    @Test
+    public void testLoginWithWrongPassword(
+            QuarkusMainLauncher launcher
+    ) {
+        LaunchResult result = launcher.launch(
+                "login",
+                registryArg(),
+                "-u",
+                "user",
+                "-p",
+                "wrong-password"
+        );
+        assertTrue(
+                result.exitCode() != 0
+        );
+    }
+
+    @Test
+    public void testLoginWithoutRegistryAndNoDefault(
+            QuarkusMainLauncher launcher
+    ) {
+        LaunchResult result = launcher.launch(
+                "login",
+                "-u",
+                "user",
+                "-p",
+                "pass"
+        );
+        assertTrue(
+                result.exitCode() != 0
+        );
+    }
 }

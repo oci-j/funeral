@@ -328,4 +328,220 @@ public class DockerTarResourceTest {
                         )
                 );
     }
+
+    private byte[] createZip(
+            String entryName,
+            byte[] entryContent
+    )
+            throws IOException {
+        try (
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                java.util.zip.ZipOutputStream zipOut = new java.util.zip.ZipOutputStream(
+                        baos
+                )) {
+            zipOut.putNextEntry(
+                    new java.util.zip.ZipEntry(
+                            entryName
+                    )
+            );
+            zipOut.write(
+                    entryContent
+            );
+            zipOut.closeEntry();
+            zipOut.finish();
+            return baos.toByteArray();
+        }
+    }
+
+    @Test
+    public void testUploadZipWrappedTar() throws Exception {
+        String repository = "test/docker-tar-zip-" + System.nanoTime();
+        byte[] tarBytes = createMinimalDockerTar(
+                repository,
+                "zipped"
+        );
+        byte[] zipBytes = createZip(
+                "image.tar",
+                tarBytes
+        );
+
+        given().auth()
+                .oauth2(
+                        authToken
+                )
+                .multiPart(
+                        "file",
+                        "image.zip",
+                        zipBytes,
+                        "application/zip"
+                )
+                .when()
+                .post(
+                        "/funeral_addition/write/upload/dockertar"
+                )
+                .then()
+                .statusCode(
+                        200
+                )
+                .body(
+                        "repositories",
+                        hasItem(
+                                repository
+                        )
+                );
+    }
+
+    @Test
+    public void testUploadZipWithoutTar() throws Exception {
+        byte[] zipBytes = createZip(
+                "readme.txt",
+                "no tar here".getBytes()
+        );
+
+        given().auth()
+                .oauth2(
+                        authToken
+                )
+                .multiPart(
+                        "file",
+                        "notar.zip",
+                        zipBytes,
+                        "application/zip"
+                )
+                .when()
+                .post(
+                        "/funeral_addition/write/upload/dockertar"
+                )
+                .then()
+                .statusCode(
+                        400
+                )
+                .body(
+                        "errors.detail",
+                        hasItem(
+                                containsString(
+                                        "No tar file found in zip archive"
+                                )
+                        )
+                );
+    }
+
+    @Test
+    public void testUploadGarbageFile() {
+        byte[] garbage = "this is definitely not a tar file at all, just random text".getBytes();
+
+        given().auth()
+                .oauth2(
+                        authToken
+                )
+                .multiPart(
+                        "file",
+                        "garbage.tar",
+                        garbage,
+                        "application/x-tar"
+                )
+                .when()
+                .post(
+                        "/funeral_addition/write/upload/dockertar"
+                )
+                .then()
+                .statusCode(
+                        400
+                );
+    }
+
+    @Test
+    public void testUploadTarWithInvalidManifestJson() throws Exception {
+        try (
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                TarArchiveOutputStream tarOut = new TarArchiveOutputStream(
+                        baos
+                )) {
+            addTarEntry(
+                    tarOut,
+                    "manifest.json",
+                    "{ this is not valid json ".getBytes()
+            );
+            tarOut.finish();
+
+            given().auth()
+                    .oauth2(
+                            authToken
+                    )
+                    .multiPart(
+                            "file",
+                            "badmanifest.tar",
+                            baos.toByteArray(),
+                            "application/x-tar"
+                    )
+                    .when()
+                    .post(
+                            "/funeral_addition/write/upload/dockertar"
+                    )
+                    .then()
+                    .statusCode(
+                            400
+                    );
+        }
+    }
+
+    @Test
+    public void testUploadBatchMixedResults() throws Exception {
+        String repository = "test/docker-tar-mixed-" + System.nanoTime();
+        byte[] validTar = createMinimalDockerTar(
+                repository,
+                "mixed"
+        );
+        byte[] garbageTar = "not a tar".getBytes();
+
+        given().auth()
+                .oauth2(
+                        authToken
+                )
+                .multiPart(
+                        "files",
+                        "good.tar",
+                        validTar,
+                        "application/x-tar"
+                )
+                .multiPart(
+                        "files",
+                        "bad.tar",
+                        garbageTar,
+                        "application/x-tar"
+                )
+                .when()
+                .post(
+                        "/funeral_addition/write/upload/dockertar/batch"
+                )
+                .then()
+                .statusCode(
+                        200
+                )
+                .body(
+                        "totalFiles",
+                        equalTo(
+                                2
+                        )
+                )
+                .body(
+                        "successfulUploads",
+                        equalTo(
+                                1
+                        )
+                )
+                .body(
+                        "failedUploads",
+                        equalTo(
+                                1
+                        )
+                )
+                .body(
+                        "results.success",
+                        hasItems(
+                                true,
+                                false
+                        )
+                );
+    }
 }
