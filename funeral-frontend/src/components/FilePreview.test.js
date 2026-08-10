@@ -13,7 +13,9 @@ vi.mock('crypto-js', async () => {
   const { vi } = await import('vitest')
   const md5 = vi.fn(() => ({ toString: () => 'mock-md5' }))
   const sha256 = vi.fn(() => ({ toString: () => 'mock-sha256' }))
-  const init = vi.fn(() => ({}))
+  const init = vi.fn(function () {
+    return {}
+  })
   return {
     default: { MD5: md5, SHA256: sha256, lib: { WordArray: { init } } },
     MD5: md5,
