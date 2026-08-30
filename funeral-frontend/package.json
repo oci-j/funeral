@@ -36,7 +36,7 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-vue": "^10.10.0",
     "globals": "^17.11.0",
-    "happy-dom": "^20.11.6",
+    "happy-dom": "^20.11.12",
     "prettier": "^3.9.6",
     "unplugin-auto-import": "^21.1.0",
     "unplugin-vue-components": "^32.1.0",
