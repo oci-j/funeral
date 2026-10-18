@@ -27,8 +27,8 @@ importers:
         specifier: ^3.0.2
         version: 3.0.2
       pinia:
-        specifier: ^4.0.3
-        version: 4.0.3(@vue/devtools-api@8.2.1)(vue@3.5.44)
+        specifier: ^4.1.0
+        version: 4.1.0(@vue/devtools-api@8.2.1)(vue@3.5.44)
       tar-js:
         specifier: ^0.3.0
         version: 0.3.0
@@ -40,7 +40,7 @@ importers:
         version: 2.6.0(vue@3.5.44)
       vue-router:
         specifier: ^5.4.0
-        version: 5.4.0(@vue/compiler-sfc@3.5.43)(pinia@4.0.3(@vue/devtools-api@8.2.1)(vue@3.5.44))(rolldown@1.2.13)(vite@8.3.4(@types/node@26.5.1)(yaml@2.9.0))(vue@3.5.44)
+        version: 5.4.0(@vue/compiler-sfc@3.5.43)(pinia@4.1.0(@vue/devtools-api@8.2.1)(vue@3.5.44))(rolldown@1.2.13)(vite@8.3.4(@types/node@26.5.1)(yaml@2.9.0))(vue@3.5.44)
     devDependencies:
       '@eslint/js':
         specifier: ^10.0.1
@@ -1043,9 +1043,6 @@ packages:
   normalize-wheel-es@1.2.0:
     resolution: {integrity: sha512-Wj7+EJQ8mSuXr2iWfnujrimU35R2W4FAErEyTmJoJ7ucwTn2hOUSsRehMb5RSYkxXGTM7Y9QpvPmp++w5ftoJw==}
 
-  nostics@1.2.0:
-    resolution: {integrity: sha512-FGqEfhQjrvo1lL8KFifdTQiNwwQHJxC1jtYE1Rc54qF/jxONUNL+kC9gS1krX8Q65PgrQ5fCqH/I4NhWBvdSqg==}
-
   nostics@1.3.0:
     resolution: {integrity: sha512-wzRsrJwNlFbqIRQt8aCeL2WE8USip/uuvGSOZV1D02CxX8ABTMbw8IywKjH7yWHETMXbWJI4OBpihg9rmz2Vyg==}
 
@@ -1100,10 +1097,10 @@ packages:
     resolution: {integrity: sha512-qcJu88Q2IWqJsDD529JKMdwGm/dvInW4HvQnRwiH9JtihJvzGOscDtHE3x1pBKeUOTysQ8kVmLnJ2kJu7yhcGA==}
     engines: {node: '>=12'}
 
-  pinia@4.0.3:
-    resolution: {integrity: sha512-XMQqpvjgG7LMqVhhFUzKLT4KEbsYbfZZ0CZU9PgdFm1O2VKBmIkykL8+SfNhOaT7sR0wT6BEgKT0YNDYWgmVRA==}
+  pinia@4.1.0:
+    resolution: {integrity: sha512-+5/HMuVjYQfKlCD5xQ7zfXn1xUzYFEa7pd0DQK5SaMfZCaFRTHlaH/c02N1FoGOdlzSiwf5EOPgJx//1QDw6gw==}
     peerDependencies:
-      '@vue/devtools-api': ^8.1.5
+      '@vue/devtools-api': ^8.2.1
       typescript: '>=5.6.0'
       vue: ^3.5.11
     peerDependenciesMeta:
@@ -1818,7 +1815,7 @@ snapshots:
 
   '@vue/compiler-core@3.5.43':
     dependencies:
-      '@babel/parser': 7.29.8
+      '@babel/parser': 7.29.9
       '@vue/shared': 3.5.43
       entities: 7.0.1
       estree-walker: 2.0.2
@@ -1844,7 +1841,7 @@ snapshots:
 
   '@vue/compiler-sfc@3.5.43':
     dependencies:
-      '@babel/parser': 7.29.8
+      '@babel/parser': 7.29.9
       '@vue/compiler-core': 3.5.43
       '@vue/compiler-dom': 3.5.43
       '@vue/compiler-ssr': 3.5.43
@@ -2420,8 +2417,6 @@ snapshots:
 
   normalize-wheel-es@1.2.0: {}
 
-  nostics@1.2.0: {}
-
   nostics@1.3.0: {}
 
   nth-check@2.1.1:
@@ -2468,10 +2463,10 @@ snapshots:
 
   picomatch@4.0.7: {}
 
-  pinia@4.0.3(@vue/devtools-api@8.2.1)(vue@3.5.44):
+  pinia@4.1.0(@vue/devtools-api@8.2.1)(vue@3.5.44):
     dependencies:
       '@vue/devtools-api': 8.2.1
-      nostics: 1.2.0
+      nostics: 1.3.0
       vue: 3.5.44
 
   pkg-types@1.3.1:
@@ -2744,7 +2739,7 @@ snapshots:
     dependencies:
       vue: 3.5.44
 
-  vue-router@5.4.0(@vue/compiler-sfc@3.5.43)(pinia@4.0.3(@vue/devtools-api@8.2.1)(vue@3.5.44))(rolldown@1.2.13)(vite@8.3.4(@types/node@26.5.1)(yaml@2.9.0))(vue@3.5.44):
+  vue-router@5.4.0(@vue/compiler-sfc@3.5.43)(pinia@4.1.0(@vue/devtools-api@8.2.1)(vue@3.5.44))(rolldown@1.2.13)(vite@8.3.4(@types/node@26.5.1)(yaml@2.9.0))(vue@3.5.44):
     dependencies:
       '@vue-macros/common': 3.1.4(vue@3.5.44)
       '@vue/devtools-api': 8.2.1
@@ -2765,7 +2760,7 @@ snapshots:
       vue: 3.5.44
     optionalDependencies:
       '@vue/compiler-sfc': 3.5.43
-      pinia: 4.0.3(@vue/devtools-api@8.2.1)(vue@3.5.44)
+      pinia: 4.1.0(@vue/devtools-api@8.2.1)(vue@3.5.44)
       vite: 8.3.4(@types/node@26.5.1)(yaml@2.9.0)
     transitivePeerDependencies:
       - '@farmfe/core'
